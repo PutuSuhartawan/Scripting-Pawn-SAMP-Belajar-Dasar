@@ -20,3 +20,6 @@ stock FormatMoney(Float:amount, delimiter[2]=".", comma[2]=",")
 //	if (l <= 2) format(txt,sizeof( szStr ),"00,%s",txt);
 	return txt;
 }
+
+// credit https://www.facebook.com/ardiansyah.ii.1004/
+// putu suhartawan samp scripting .pwn money format
