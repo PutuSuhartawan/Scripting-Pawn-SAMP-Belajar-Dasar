@@ -1,5 +1,4 @@
-
-
+// How to make a gamemode function for recording and stop recording NPCs made from .rec files and compiled later to be .amx to the NPC models folder
 //DEFINES
 #define YSI_NO_OPTIMISATION_MESSAGE
 #define YSI_NO_VERSION_CHECK
