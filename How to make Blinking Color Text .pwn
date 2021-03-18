@@ -1,6 +1,6 @@
 
 
-//DEFINES
+//DEFINES Text How to Create blink Text in SAMP Script Detecting TextDraw Appears Kelap Kelip install Pawno
 #define YSI_NO_OPTIMISATION_MESSAGE
 #define YSI_NO_VERSION_CHECK
 #define YSI_NO_CACHE_MESSAGE
