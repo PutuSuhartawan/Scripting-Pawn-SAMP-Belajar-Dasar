@@ -1,0 +1,18 @@
+/*
+FIXED
+Change to
+SetTimerEx("PublicOwned", 1000, true, "i", playerid);
+//----------------------------------------------------------------
+
+sorry, I am confused about the mistake where when I install a lot of timer functions it can't work. I also can't run the isvalidtimer function because that include is empty. is there a way to install the correct include timerfix?
+
+Example problems :
+//-------------------------------------------------
+Does not work if it repeats:
+SetTimer ("TimeServer", 500, true);
+SetTimer ("Change_Color", 5000, true);
+//------------------------------------------------
+will run if one call:
+SetTimer ("UnFreezeMe", 3000.0);
+
+*/
