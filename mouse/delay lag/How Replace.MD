@@ -1,0 +1,1 @@
+Just replace the cursor.png file resulting from the SAMP addons. To a version that is very small in size or a cursor version that you can copy from the original GTA SAMP, the weight ratio is usually 7 KB and the light weight is under 1 KB.
