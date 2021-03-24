@@ -1,0 +1,56 @@
+// this is the topmost parent parameter for who is duty
+new OnDuty [MAX_PLAYERS];
+// new cmdtext;
+
+CMD: aduty (playerid, params [])
+{
+
+// This determines the skin the initial user uses
+        // new skin = GetPlayerSkin (playerid);
+        // new alreadyduty;
+        // new has not yet been assigned;
+// new initial score = GetPlayerScore (playerid);
+   // Here the player must first log in / rcon PW, if the player isnt a rcon admin then this message will be sent to him.
+    
+    // if (! IsPlayerAdmin (playerid)) return SendClientMessage (playerid, -1, "* You haven't used / rcon login (password).");
+new text dicharacteradmin;
+new string [128];
+if (OnDuty [playerid] == 0)
+    {
+        SetPlayerName (playerid, pInfo [playerid] [UCP]);
+textdik Characteradmin = CreatePlayer3DTextLabel (playerid, "Hight Admin", 0x01FCFFFF, 0.0,0.0,0.0,30.0);
+SetPlayerSkin (playerid, 217);
+SetPlayerHealth (playerid, 999999);
+SetPlayerColor (playerid, 0x01FCFFFF);
+SetPlayerScore (playerid, GetPlayerScore (playerid) + 9999);
+OnDuty [playerid] = 1;
+ApplyAnimation (playerid, "MEDIC", "CPR", 4.0,0,0,0,0,0);
+format (string, sizeof (string), "*" COL_RED "[% s]" COL_GREEN "are now on duty as an admin (/ report for assistance).", GetRPName (playerid));
+SendClientMessage (playerid, COLOR_SPRINGGREEN, string);
+GameTextForPlayer (playerid, "~ r ~ YOU ADMIN NOW", 4000, 1);
+ShowPlayerDialog (playerid, rented, DIALOG_STYLE_TABLIST_HEADERS, "{FFFF00} List of reporters", PLAYERNEEDHELP_DIALOG, "Help", "Lazy");
+
+
+       
+   }
+ else
+   {
+   SetPlayerName (playerid, pInfo [playerid] [Nick]);
+   DeletePlayer3DTextLabel (textdaracteradmin);
+SetPlayerSkin (playerid, pInfo [playerid] [pSkin]);
+SetPlayerHealth (playerid, 100);
+SetPlayerColor (playerid, 0xFFFFFFFF);
+OnDuty [playerid] = 0;
+SetPlayerScore (playerid, GetPlayerScore (playerid) - 9999);
+SendClientMessage (playerid, COLOR_ERROR, "* You are now off duty as admin!");
+ApplyAnimation (playerid, "ped", "Crouch_Roll_L", 4.0,0,0,0,0,0);
+    }
+
+
+
+
+
+
+
+return 1;
+}
