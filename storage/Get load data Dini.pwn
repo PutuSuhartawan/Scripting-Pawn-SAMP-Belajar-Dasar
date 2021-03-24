@@ -1,3 +1,78 @@
+
+
+stock LoadWorkshop()
+{
+	new FileName[128], string[1000];
+    for(new i = 0; i < MAX_WORKSHOP; i++)
+    {
+        format(FileName, sizeof(FileName), "Businesses/Workshop_%d.ini", i);
+        if(dini_Exists(FileName))
+        {
+            WsInfo[i][wsOwned] = dini_Int(FileName, "Owned" );
+            WsInfo[i][wsOwner] = dini_Get( FileName, "Owner" );
+			WsInfo[i][wsName] = dini_Get( FileName, "Name" );
+			WsInfo[i][wsPosX] = dini_Float(FileName, "PosX" );
+			WsInfo[i][wsPosY] = dini_Float(FileName, "PosY" );
+			WsInfo[i][wsPosZ] = dini_Float(FileName, "PosZ" );
+			WsInfo[i][wsStatus] = dini_Int(FileName, "Status" );
+			WsInfo[i][wsPrice] = dini_Int(FileName, "Price" );
+			WsInfo[i][wsSafeMoney] = dini_Int(FileName, "SafeMoney" );
+			WsInfo[i][wsComponent] = dini_Int(FileName, "Component" );
+			WsInfo[i][wsPapanX] = dini_Float(FileName, "wsPapanX" );
+			WsInfo[i][wsPapanY] = dini_Float(FileName, "wsPapanY" );
+			WsInfo[i][wsPapanZ] = dini_Float(FileName, "wsPapanZ" );
+			WsInfo[i][wsPapanRotX] = dini_Float(FileName, "wsPapanRotX" );
+			WsInfo[i][wsPapanRotY] = dini_Float(FileName, "wsPapanRotY" );
+			WsInfo[i][wsPapanRotZ] = dini_Float(FileName, "wsPapanRotZ" );
+			WsInfo[i][wsPapanMT] = dini_Int(FileName, "PapanMT" );
+			WsInfo[i][wsGate] = dini_Int(FileName, "Gate");
+			WsInfo[i][wsGateOX] = dini_Float(FileName, "wsGateOX" );
+			WsInfo[i][wsGateOY] = dini_Float(FileName, "wsGateOY" );
+			WsInfo[i][wsGateOZ] = dini_Float(FileName, "wsGateOZ" );
+			WsInfo[i][wsGateCX] = dini_Float(FileName, "wsGateCX" );
+			WsInfo[i][wsGateCY] = dini_Float(FileName, "wsGateCY" );
+			WsInfo[i][wsGateCZ] = dini_Float(FileName, "wsGateCZ" );
+			WsInfo[i][wsGateORX] = dini_Float(FileName, "wsGateORX" );
+			WsInfo[i][wsGateORY] = dini_Float(FileName, "wsGateORY" );
+			WsInfo[i][wsGateORZ] = dini_Float(FileName, "wsGateORZ" );
+			WsInfo[i][wsGateCRX] = dini_Float(FileName, "wsGateCRX" );
+			WsInfo[i][wsGateCRY] = dini_Float(FileName, "wsGateCRY" );
+			WsInfo[i][wsGateCRZ] = dini_Float(FileName, "wsGateCRZ" );
+			WsInfo[i][wsGate] = dini_Int(FileName, "Gate2");
+			WsInfo[i][wsGateOX] = dini_Float(FileName, "wsGateOX2" );
+			WsInfo[i][wsGateOY] = dini_Float(FileName, "wsGateOY2" );
+			WsInfo[i][wsGateOZ] = dini_Float(FileName, "wsGateOZ2" );
+			WsInfo[i][wsGateCX] = dini_Float(FileName, "wsGateCX2" );
+			WsInfo[i][wsGateCY] = dini_Float(FileName, "wsGateCY2" );
+			WsInfo[i][wsGateCZ] = dini_Float(FileName, "wsGateCZ2" );
+			WsInfo[i][wsGateORX] = dini_Float(FileName, "wsGateORX2" );
+			WsInfo[i][wsGateORY] = dini_Float(FileName, "wsGateORY2" );
+			WsInfo[i][wsGateORZ] = dini_Float(FileName, "wsGateORZ2" );
+			WsInfo[i][wsGateCRX] = dini_Float(FileName, "wsGateCRX2" );
+			WsInfo[i][wsGateCRY] = dini_Float(FileName, "wsGateCRY2" );
+			WsInfo[i][wsGateCRZ] = dini_Float(FileName, "wsGateCRZ2" );
+			WsInfo[i][wsPapanText] = dini_Get( FileName, "PapanText" );
+			printf( "[system] Workshop %d spawned.", i);
+   			SpawnedWS++;
+            if(WsInfo[i][wsOwned] == 1)
+			{
+				WsInfo[i][wsPapan] = CreateDynamicObject(18244, WsInfo[i][wsPapanX], WsInfo[i][wsPapanY], WsInfo[i][wsPapanZ], WsInfo[i][wsPapanRotX], WsInfo[i][wsPapanRotY], WsInfo[i][wsPapanRotZ]);
+				format(string, sizeof(string), "%s", WsInfo[i][wsPapanText]);
+				WsInfo[i][wsPapanText] = SetDynamicObjectMaterialText(WsInfo[i][wsPapan], 0, string, 120, "Arial", 24, 0, 0xFFFFFFFF, -16777216, 1);
+				WsInfo[i][wsGate] = CreateDynamicObject(7709, WsInfo[i][wsGateCX], WsInfo[i][wsGateCY], WsInfo[i][wsGateCZ], WsInfo[i][wsGateCRZ], WsInfo[i][wsGateCRZ], WsInfo[i][wsGateCRZ]);
+				WsInfo[i][wsGate2] = CreateDynamicObject(7709, WsInfo[i][wsGateCX2], WsInfo[i][wsGateCY2], WsInfo[i][wsGateCZ2], WsInfo[i][wsGateCRZ2], WsInfo[i][wsGateCRZ2], WsInfo[i][wsGateCRZ2]);
+			}
+			else
+			{
+   				WsInfo[i][wsPickup] = CreatePickup(1239, 1, WsInfo[i][wsPosX], WsInfo[i][wsPosY], WsInfo[i][wsPosZ], 0);
+				format(string, sizeof(string), "[id:%d]\nthis workshop is for sale\nPrice : $%s\nuse '/buyworkshop' for purchase this workshop", WsInfo[i][wsOwner], FormatMoney(WsInfo[i][wsPrice]), i);
+				WsInfo[i][wsText] = CreateStreamed3DTextLabel(string, COLOR_WHITE, WsInfo[i][wsPosX], WsInfo[i][wsPosY], WsInfo[i][wsPosZ], 5, 0, 0);
+			}
+	    }
+    }
+	return 1;
+}
+
 WeaponInfoFile(playerid)
 {
 	new name[MAX_PLAYER_NAME], file[40];
