@@ -1,0 +1,9 @@
+/*
+Why the integer after extract the iputtext variable has found = 0?
+How to extract inputtext variable to integer actually?
+
+FIXED
+Inputtext is a string data type, you have to change it to an integer first. If you want to store it to a variable that has an integer type, use a function called strval. So strval (inputtext)
+BidPrice = strval(inputtext);
+
+*/
