@@ -22,6 +22,9 @@ job = "" COL_GREEN "City Guest";
 new infocharacter [1000];
 format (infocharacter, 1000, "Working: [% s]" COL_RWHITE "Virtuarl Word in numbers: [% d] Current interior numbers: [% d] \ n You are the owner of% s registered in code% i \ n has now changed password to "COL_RED" [% s] \ n The skin ID used is [% d] \ n "COL_YELLOW" Coordinates are now at% f,% f,% f and facing towards% f. \ n You are in a status login (% i) ",
 job, GetPlayerVirtualWorld (playerid), GetPlayerInterior (playerid), pInfo [playerid] [Nick], pInfo [playerid] [ID], pInfo [playerid] [Password], skinid, x, y, z, facing, pInfo [playerid] [Logged]);
-ShowPlayerDialog (playerid, RESPONDDIALOGKOSONG, DIALOG_STYLE_MSGBOX, "Character Database", infoccharacter, "Understood", "");
 
+ShowPlayerDialog (playerid, RESPONDDIALOGKOSONG, DIALOG_STYLE_MSGBOX, "Character Database", infoccharacter, "Understood", "");
+ new string[140];
+ format(string, sizeof(string), "Coordinates are now at% f,% f,% f ",  x, y, z);
+SendClientMessage(playerid, 0xFFFFFFFF, string);
 }
