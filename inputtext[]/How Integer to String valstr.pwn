@@ -17,7 +17,7 @@ Examples
 */
 new string[4];
 new iValue = 250;
-valstr(string,iValue); // string is now "250"
+valstr(string,iValue); // string is now "250" =============================>>>>>>>>>>> very usefull
 // valstr fix by Slice
 stock FIX_valstr(dest[], value, bool:pack = false)
 {
