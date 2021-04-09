@@ -640,3 +640,31 @@ CMD:addtimeplayed(playerid, params[])
 }
 
 
+CMD:stats(playerid)
+{
+	new Float:x,Float:y,Float:z;
+	new Float:facing, pekerjaan[50];
+	new skinid = GetPlayerSkin(playerid);
+	// ini untuk cmd /stats
+
+	//pInfo[playerid][pJobMechanic] = 1; //percobaan ganti string
+
+	if(pInfo[playerid][pJobMechanic] == 1)
+	{
+		pekerjaan = ""COL_LIGHTBLUE"Mechanic";
+	}
+	else
+	{
+		pekerjaan = ""COL_GREEN"Tamu Kota";
+	}
+
+    GetPlayerPos(playerid, x, y, z);
+    GetPlayerFacingAngle(playerid, facing);
+
+	new infokarakter[1000];
+	format(infokarakter, 1000, "Bekerja : [ %s ]"COL_RWHITE" Virtuarl Word di angka : [ %d ]  Interior sekarang di angka : [ %d ] \n Anda pemilik %s terdaftar di kode %i \n kini telah merubah password menjadi "COL_RED"[ %s ] \n Skin ID yang di kenakan Adalah [ %d ] \n "COL_YELLOW"Kordinat sekarang ada di %f, %f, %f dan menghadap ke arah %f. \n Anda dalam status login (%i), "COL_WHITE"Time Played : [ "COL_BLUE"%d hours %d minutes %d seconds "COL_WHITE"]",
+	pekerjaan, GetPlayerVirtualWorld(playerid), GetPlayerInterior(playerid), pInfo[playerid][Nick], pInfo[playerid][ID], pInfo[playerid][PasswordAccount], skinid, x, y, z, facing, pInfo[playerid][Logged], pInfo[playerid][pHours], pInfo[playerid][pMinutes], pInfo[playerid][pSeconds] );
+	ShowPlayerDialog(playerid, RESPONDDIALOGKOSONG, DIALOG_STYLE_MSGBOX, "Database Karakter", infokarakter, "Paham", "");
+
+}
+
