@@ -20,3 +20,6 @@ GetPlayerFPS(playerid) {
     }
     return 0;
 }
+
+
+// more utilitys here https://github.com/PatrickGTR/gta-open/blob/master/gamemodes/utils/utils_player.inc
