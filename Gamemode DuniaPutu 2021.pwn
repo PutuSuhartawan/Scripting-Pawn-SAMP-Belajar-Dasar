@@ -2,7 +2,7 @@
 //----------------------------------------------------------
 //
 //  putu suhartawan
-//  2021
+//  oktober 2020
 //
 //----------------------------------------------------------
 
@@ -10,7 +10,7 @@
 /*
 #include <a_samp>
 #include <dini>
-#include <a_mysql>
+
 #include <md5>
 #include <streamer>
 #include <timestamptodate>
@@ -25,7 +25,32 @@
 #include <zcmd>
 #include <geoip>
 
+// building code for Visual Studio Code
+{
+    "version": "2.0.0",
+    "tasks": [
+      {
+        "label": "build-normal",
+        "type": "shell",
+        "command": "E:/GAME/Server PutuSuhartawansamp03DL_svr_R1_win32/pawno/pawncc.exe",
+        "args": ["${file}", "--%", "-Dgamemodes", "-;+", "-(+", "-d3"],
+        "group": {
+          "kind": "build",
+          "isDefault": true
+        },
+        "isBackground": false,
+        "presentation": {
+          "reveal": "silent",
+          "panel": "dedicated"
+        },
+        "problemMatcher": "$pawncc"
+      }
+    ]
+  }
+  
+
 */
+
 
 
 //DEFINES
@@ -44,7 +69,8 @@
 #include <a_samp>
 //#define FIXES_OnPlayerText 0
 #define FIXES_GetMaxPlayersMsg 0
-#define FIXES_ServerVarMsg 0                                             
+#define FIXES_ServerVarMsg 0  
+//#define FIXES_OnPlayerKeyStateChange 0                                          
 #define FIX_GetServerVarAsString 0                                      
 #define FIX_GetServerVarAsFloat  0                                       
 #define FIX_GetServerVarAsInt    0                                      
@@ -59,18 +85,23 @@
 
 
  // untuk membuat log
-#include <Dini> // ini simpan data dari player
+#include <dini> // this is for saving data of dini database  * @update    : 16th Sep 2008
 #include <sprintf>
+ //important for timer set
 #include <streamer>
 #include "../include/gl_messages.inc"
 #include <core>
 #include <float>
-#include "../include/gl_spawns.inc"
+//#include "../include/gl_spawns.inc"
 #include "../include/gl_common.inc"
 #include "../include/vehicleutil.inc"
 #include <a_npc>
 #include "../include/SpikeStrip.inc"
-#include "Idlewood_Projects.pwn"
+#include "mapping/Idlewood_Projects.pwn"
+#include "mapping/AuctionMart.pwn"
+
+
+//#include "features/AuctionSystem.pwn"
 #include <yom_buttons>
 #include <data>
 #include <textdraws>
@@ -81,18 +112,23 @@
 
  // untuk supaya bisa pake progress bar sekarang tahun. Progress Bar 2.0.3 tahun 2015
 #include <a_mysql> // MySQL plugin R41-4
-#include <YSI_Storage\y_ini>
+#include <timerfix.inc>
+//#include <YSI_Storage\y_ini>
 #include <YSI_Data\y_iterate>
 #include <progress2>
-#include <foreach>// ini color khusus string yang tidak mendukung tanda kurung.
+#include <foreach>// color with string
 
 //#include <_ALS_OnFilterScriptInit>
+#include "player/vehicle/header.inc"
 
 
 
 
 //#define tabsize 0
 
+//============ DEFINE THE PATH OF FILE
+
+#define DINI_PATH        "Users/%s.ini" // source from folder .ini file in filterscript
 
 #define FILTERSCRIPT
 #define COL_EASY "{FFF1AF}"
@@ -104,7 +140,7 @@
 #define COL_YELLOW "{F3FF02}"
 #define COL_ORANGE "{FFAF00}"
 #define COL_LIME "{B7FF00}"
-#define COL_CYAN "{00FFEE}"
+#define COL_CYAN "{00FFEE}"            
 #define COL_LIGHTBLUE "{00C0FF}"
 #define COL_BLUE "{0049FF}"
 #define COL_MAGENTA "{F300FF}"
@@ -123,14 +159,68 @@
 #define COL_LRED2 "{C77D87}" 
 
 
-#define GetPlayerData(%0,%1) 	pInfo[%0][%1]
+#define SEM(%0,%1) SendClientMessage(%0,0xBFC0C200,%1) // notif for error message
+//native SEM(playerid, yourstring[]);
+#define GetPlayerData(%0,%1) 	pInfo[%0][%1]		  
+//native GetPlayerData(playerid, PlayerInfo);					
 #define AddPlayerData(%0,%1,%2,%3) pInfo[%0][%1] %2= %3
-#define GetPlayerMoneyEx(%0)	GetPlayerData(%0, pMoney) 			// uang pemain
+//native AddPlayerData(playerid, PlayerInfo, plusorminus, value);
+#define GetPlayerMoneyEx(%0)	GetPlayerData(%0, pMoney) 			// money SQL from selecting ID player 
+//native GetPlayerMoneyEx(playerid, pMoney);
 
-// ini kumpulan ID dialog yang akan respond
+#define GetItemInfo(%0,%1)    get_item_type[%0][%1]
+//native GetItemInfo(vehicleid, trunkslot, enumstrunkstructur);
+																
+
+// ------------------------------------------
+#define GetOwnableCarData(%0,%1)    get_ownable_car[%0][%1]
+//native GetOwnableCarData(vehicleid, OC_SQL_ID);
+#define SetOwnableCarData(%0,%1,%2)   get_ownable_car[%0][%1] = %2
+//native SetOwnableCarData(vehicleid, OC_SQL_ID, new value);
+#define AddOwnableCarData(%0,%1,%2,%3)  get_ownable_car[%0][%1] %2= %3
+//native AddOwnableCarData(vehicleid, OC_SQL_ID, plus,new value);
+#define IsOwnableCarOwned(%0)     (GetOwnableCarData(%0, OC_OWNER_ID) > 0)
+//native IsOwnableCarOwned(vehicleid);
+// ------------------------------------------
+
+
+#define GetVehicleData(%0,%1)   get_vehicle_data[%0][%1]
+//native GetVehicleData(vehicleid, V_ACTION_ID);
+// ------------------------------------------
+#define GetTrunkData(%0,%1,%2)      get_vehicle_trunk[%0][%1][%2]
+//native GetTrunkData(vehicleid, trunkslot, enumstrunkstructur);
+#define SetTrunkData(%0,%1,%2,%3)     get_vehicle_trunk[%0][%1][%2] = %3
+//native SetTrunkData(vehicleid, trunkslot, enumstrunkstructur, newvalueenumdata);
+#define AddTrunkData(%0,%1,%2,%3,%4)  get_vehicle_trunk[%0][%1][%2] %3= %4
+//native AddTrunkData(vehicleid, trunkslot, enumstrunkstructur, plusorminus,newvalueenumdata);
+#define IsTrunkFreeSlot(%0,%1)      !GetTrunkData(%0, %1, TRUNK_SQL_ID)
+//native IsTrunkFreeSlot(vehicleid, trunkslot, TRUNK_SQL_ID);
+
+// ------------------------------------------
+#define GPS_STATUS_ON true
+#define GPS_STATUS_OFF  false
+
+// ------------------------------------------
+// ------------------------------------------
+#define GetPlayerGPSInfo(%0,%1)   g_player_gps[%0][%1]
+#define SetPlayerGPSInfo(%0,%1,%2)  g_player_gps[%0][%1] = %2
+
+// ------------------------------------------
+
+#define MAX_OWNABLE_CARS    (1000)// the maximum value setting
+#define MAX_VEHICLE_TRUNK_SLOTS (4) // amount of slots
+
+// a code define all dialog line respond
+#define           DIALOG_OPTION_ATTACHED_DYNAMIC_OBJECT (10)
+#define           DIALOG_SHOW_GPS               (11)
+#define           DIALOG_OPEN_VEHICLE_TRUNK     (12)
+#define 					DIALOG_INPUT_BID_AUCTION			(13)
+#define 					DIALOG_ACCEPT_AUCTION				(14)
+#define 					DIALOG_INPUT_offerINGAUCTION		(15)
 #define 					DIALOG_PROSSES_IKLAN 				(16)
+#define 					DIALOG_GANTI_PW 					(17)
 #define 					PILIHAN_LAMPU						(12312)
-#define                     RESPONDDIALOGKOSONG					(543)
+#define           RESPONDDIALOGKOSONG					(543)
 #define						BUYTOYSCOP 					 		(10153)
 #define						BUYTOYSCOP2 					 	(10154)
 #define						BUYTOYSCOP3 					 	(10155)
@@ -151,7 +241,6 @@
 #define COLOR_RED 0xFF0000FF
 #define COLOR_LIGHTRED 0xFF6347AA // 0xB33C3CAA
 #define COLOR_LIGHTBLUE 0x33CCFFAA
-
 #define COLOR_BLUE 0x1ED5C7FF
 #define COLOR_YELLOW 0xFFFF00AA
 #define COLOR_ORANGE 0xFFFF8000
@@ -165,7 +254,6 @@
 #define COLOR_LPURPLE 0xFF8080C0
 #define COLOR_LGREEN 0x9ACD32AA
 #define COLOR_GRAY 0xFF676767
-
 #define COLOR_DARKGOLD 0x808000AA
 #define COLOR_AQUA 0x00FFFFFF
 #define COLOR_RUSAK 0x01FCFFC8
@@ -211,6 +299,9 @@ Nama Player\tStatus\tPermohonan\n\
 {FFFFFF}Wirko_Gangs\tCheater Detected\t{FF0000}Destoring Database of PlayerData\n\
 {FFFFFF}Koplo_Koplak\tCheating\t{FF0000}Hacking Admin Status\n\
 "
+
+
+
 
 #define HOLDING(%0) \
 	((newkeys & (%0)) == (%0))
@@ -269,21 +360,39 @@ Nama Player\tStatus\tPermohonan\n\
 //#define MySQL = mysql_connect(SQL_HOST, SQL_USER, SQL_PASS, SQL_DB)
 //native IsValidVehicle(vehicleid);
 
-// BAGIAN UNTUK VARIABEL MECHANIC YANG AKAN DI PAKAI UNTUK PUBLIK
+
+/*
+//online database
+#define SQL_HOST "5.9.8.124" //your destination server
+#define SQL_USER "u57366_WB0mjICWjW" //default user name of wampserver
+#define SQL_PASS "qtYHezRap@j2.PgN8qlzeBBL" //wampserver has no default password unless you have set one.
+#define SQL_DB "s57366_PutuDatabase"//the name of your database
+//#define MySQL = mysql_connect(SQL_HOST, SQL_USER, SQL_PASS, SQL_DB)
+//native IsValidVehicle(vehicleid);
+
+*/
+
+// BAGIAN UNTUK VARIABEL MECHANIC YANG AKAN DI PAKAI UNTUK PUBLIK Public variable line
+new inEditingMode[MAX_PLAYERS], DynamicObjectID[MAX_PLAYERS]; // describe the ID of Editing dynamic object
 new PintuMasukBizMoneyChangPick, PintuKeluarBizMoneyChangPick, PintuMasukMinimarketPick, PintuKeluarMinimarketPick, KasirMinimarketPick, Text:PerlihatkanBoombox;
 // ini untuk jelaskan fungsi baru
 new g_Sql;
 new options; // = mysql_init_options();
+// variabel for door flat
+new DoorFlat, DoorFlatClosed, DoorStatus=1;
+// variabel auction for auction system
+new BidPrice, HighestBidder, Itemofferings[50], CountDownAuction = 10, CountOfParticipants = 0, TimerLimitForAuction, AuctionRunning = 0, WinnerOfAuction[50], WinnerOfAuctionID, AuctionMartChartBoard; 
 // variabel yang tegolong untuk mancing
 new Player_Frisk[MAX_PLAYERS], friskInvited[MAX_PLAYERS], friskApproved[MAX_PLAYERS];
-new PintuGarasiMechanic, DongkratMobilMechanic, PeneranganMobilMechanic; // semua yang berhubungan dengan kondisi mechanic center.
+new MechanicGarageDoor, DongkratMobilMechanic, PeneranganMobilMechanic; // semua yang berhubungan dengan kondisi mechanic center.
 new CrateBox, StatusCrateTerangkat; //khusus untuk pekerjaan angkat crate trucker
 
 new AreaMancingDiLaut, PenandaMancingDiLaut, RodObject, EfekPancingan[MAX_PLAYERS];
 new MenggunakanRobberPack[MAX_PLAYERS];
 new kendaraanrobber;
-new engine, lights, alarm, doors, bonnet, boot, objective; // status dari kendaraan
-
+new engine, lights, alarm, doors, bonnet, boot, objective; // status dari kendaraan , 
+//khusus untuk kendaraan NPC
+new Pemotor_vehicle, BusBandara_vehicle, BusInTerminal_vehicle;
 //untuk ID pekerjaan bandara
 new KerjaSweeperBandara[MAX_PLAYERS], MobilSweeperBandara, pesawatbandara, balehopesawat, 
 MobilPedagangMakanan, aktorpedagangmakanan, pintubrangkasbiz, sepedasewaan[MAX_PLAYERS], areapickuprentalsepeda;
@@ -291,8 +400,119 @@ new Text3D:ChatPedagangMenjualKeliling;
 // ini untuk ID variabel khusus untuk kerja hauling trucker
 new MobilKerjaHauling, KerjaHaulingStatus[MAX_PLAYERS], TrailerHaulingDiBandara;
 // ingat untuk variabel id bisnis Iklan
-// ini data variabel untuk jenis garasi mobil
-new mobilplayer1[MAX_PLAYERS], AktifkanLimitSpeed[MAX_PLAYERS]; // untuk spawn ID mobil yang slot 1
+
+enum VEHICLE_STRUCTUR
+{
+  V_MODELID,
+  Float: V_SPAWN_X,
+  Float: V_SPAWN_Y,
+  Float: V_SPAWN_Z,
+  Float: V_SPAWN_ANGLE,
+  V_COLOR_1,
+  V_COLOR_2,
+  V_RESPAWN_DELAY,
+  V_ADDSIREN,
+  // -------------
+  V_ACTION_TYPE,
+  V_ACTION_ID,
+  // -------------
+  V_DRIVER_ID,
+  // -------------
+  V_LIMIT,
+  V_ALARM,
+  Float: V_FUEL,
+  Float: V_MILEAGE,
+  // -------------
+  Text3D: V_LABEL,
+  // -------------
+  Float: V_HEALTH,
+  V_LAST_LOAD_TIME,
+  V_BAGAGE_AMOUNT_GUN
+};
+
+
+new get_vehicle_data[MAX_VEHICLES][VEHICLE_STRUCTUR];
+// ------------------------------------------
+enum ENUM_OWNABLE_CAR_STRUCTUR
+{
+  OC_SQL_ID,      // id dalam basis
+  OC_OWNER_ID,    // id pemilik
+  OC_OWNER_NAME[21],  // nama pemilik
+  OC_NUMBER[8],   // nomor kendaraan
+  OC_MODEL_ID,    // model
+  OC_COLOR_1,     // warna 1
+  OC_COLOR_2,     // warna 2
+  OC_PAINTJOBID,      // warna 1
+  OC_COMPID,
+  OC_SPOILER,
+  OC_NITRO,
+  OC_LAMPS,
+  OC_SIDES,
+  OC_HOOD,
+  OC_EXHAUST,
+  OC_WHEELS,
+  OC_RBUMP,
+  OC_FBUMP,
+  OC_VENTS,
+  OC_ROOF,
+  Float: OC_POS_X,  // posisi kendaraan
+  Float: OC_POS_Y,  // posisi kendaraan
+  Float: OC_POS_Z,  // posisi kendaraan
+  Float: OC_ANGLE,  // posisi kendaraan (sudut rotasi)
+  OC_World,
+  OC_Int,
+  bool: OC_KEY_IN,  // adalah kunci yang dimasukkan
+  OC_CREATE,  // waktu pembuatan
+  Float: OC_FUEL,            // bahan bakar
+  OC_PT_ENGINE,       // performance tuning mesinnya
+  OC_PT_BRAKE,        // performance tuning rem
+  OC_PT_STABILITY,    // performance tuning keberlanjutan
+};
+
+
+new get_ownable_car[MAX_OWNABLE_CARS][ENUM_OWNABLE_CAR_STRUCTUR];
+new get_ownable_car_loaded;
+
+enum VehicleInfo
+{
+    VehID,
+    item[50],
+    amountofitem
+
+};
+
+enum VEHICLE_TRUNK_STRUCTUR
+{
+  TRUNK_SQL_ID,
+  TRUNK_ITEM_TYPE,     // Name of item
+  TRUNK_ITEM_AMOUNT,   // value
+  TRUNK_ITEM_VALUE     // weigh Kg
+};
+
+new get_vehicle_trunk[MAX_VEHICLES][MAX_VEHICLE_TRUNK_SLOTS][VEHICLE_TRUNK_STRUCTUR];
+// this variabel for vehicle exmpale one slot
+new VehiclePlayerPrimary[MAX_PLAYERS][VehicleInfo], AktifkanLimitSpeed[MAX_PLAYERS]; // get the slot vehicle with limit speed
+
+
+enum E_ITEM_STRUCT
+{
+  I_NAME[16],
+  I_NAME_COUNT[8],
+  bool: I_COMBINATION
+};
+
+
+new const get_item_type[7][E_ITEM_STRUCT] =
+                                            {
+                                              {"Error",   "õõõ",  false},
+                                              {"Money",    "$",  true},
+                                              {"VehicleGas",      "l",  false},
+                                              {"Medkit",   "pcs",  true},
+                                              {"Material",     "kg",   true},
+                                              {"Voucher",   "pcs",  true},
+                                              {"Drugs", "ã",  true}
+                                            };
+
 new TempatDisplayIklan;
 new TempatBeriklan;
 new layariklanbadara;
@@ -301,7 +521,7 @@ new gatepertamadirumahsakit, KeadaanLelah[MAX_PLAYERS], MobilEmergencyAmbulance;
 
 new gaterumahsakit[MAX_PLAYERS]; // untuk merubah variabel gate di rumah sakit dari 0 ke satu
 
-new contohdikendaraan; // ini untuk objek di kendaraan.
+new ExampleAttachedDynamic; // ini untuk objek di kendaraan.
 //new MySQL:mysql;
 //new field[128];
 new susterdiresepsionis; // id dari suster
@@ -311,10 +531,11 @@ new sewaan;
 new Text3D:HasilTrading;
 new pakaihelm[MAX_PLAYERS]; // daftarkan ID setiap player untuk informasi pemakaian helm
 new Text:UI[4], Text:TeksSaatLogin, Text:TeksInfoGreenZone;
+
  // variabel yang menjelaskan teks untuk menampilkan tanggal dan waktu.
 new Text:panelkecepatankendaraan;
 new tempatpickupbeligasstation;
-new senjatadipilih;
+
 // Buttons / doors
 new FBILobbyLeft, FBILobbyLeftBTN[2], FBILobbyRight, FBILobbyRightBTN[2], FBIPrivate[2], FBIPrivateBTN[2];
 new lspdcopsonly;
@@ -958,13 +1179,13 @@ new PintuKeluarDoopBarPick;
 //new message[526+1];
 new savanna=0;
 new blade=0;
-new fence=0;
+
 
 new labelajah[MAX_PLAYERS]; // variabel untuk label yang di buat
 new unfreezeplayer=0;
 new testlbplayer=0;
 
-new edit_objectid = INVALID_OBJECT_ID;
+
 new vehicleid_tokill = 0;
 
 // For testing text material/texture replacements
@@ -986,6 +1207,7 @@ new test_actor_id = INVALID_ACTOR_ID;
 
 //new main( ) { }
 
+forward ChangeServerEverySecond(playerid, closestcar);
 forward UnFreezeMe();
 forward ShowTestDialog();
 forward TimedVehicleDeath();
@@ -993,14 +1215,18 @@ forward UpdateTextTimer();
 forward KembalikanMobilPedagangMakanan();
 
 
+
 enum PlayerInfo
 {
     ID, // id of the player
     Nick[24],
-    Sandi[20], // name of the player
+    PasswordAccount[20], // name of the player
     UCP[20], // merukapak variabel enum untuk nama UCP ketika duty admin
     pAdmin, // admin level of the player
     pSkin,
+    pSeconds,
+    pMinutes,
+    pHours,
     pMoney, //money of the player
     pKills, // Kills of the player
     pDeaths,
@@ -1029,6 +1255,8 @@ enum PlayerInfo
     pStatusLoadingBar, // 
     Float:pKecepatanKendaraan,
     pKendaraanDipakai,
+  	JoinedAuction, // auction member status
+    LastVehicleID, 
     IP[16],
     pBoombox, // nilai integer bahwa ada kepemilikan boombox
     pFishingRod, // kalau dia sudah beli pancingan
@@ -1042,101 +1270,484 @@ enum PlayerInfo
 
 new pInfo[MAX_PLAYERS][PlayerInfo];
 
+enum E_PLAYER_GPS_STRUCT
+{
+  bool: G_ENABLED,
+  Float: G_POS_X,
+  Float: G_POS_Y,
+  Float: G_POS_Z
+};
 
+// ------------------------------------------
+new g_player_gps[MAX_PLAYERS][E_PLAYER_GPS_STRUCT];
+new
+  g_gps_default_values[E_PLAYER_GPS_STRUCT] =
+{
+  GPS_STATUS_OFF,
+  0.0,
+  0.0,
+  0.0
+};
+
+new GPSCP; // chekcpoint of GPS
+// ------------------------------------------
+
+
+// ALL STOCK LINE IS WILL BE TAKE FROM HERE
+//==================================================================================
+
+#include "mapping/LosSantosApartment.inc" // mapping stock
+
+stock SelectObjectEx(playerid)
+{
+    SelectObject(playerid);
+    GameTextForPlayer(playerid, "Sir please press ~y~'Escape'~w~ if have ending in this selecting system", 1000, 5);
+}
+
+
+
+
+stock EnablePlayerGPS(playerid, Float: x, Float: y, Float: z, message[] = "Sir, You have changed your GPS location.")
+{
+      SetPlayerGPSInfo(playerid, G_POS_X, x);
+      SetPlayerGPSInfo(playerid, G_POS_Y, y);
+      SetPlayerGPSInfo(playerid, G_POS_Z, z);
+
+      GPSCP = SetPlayerCheckpoint(playerid, x, y, z, 3.0);
+
+    //  SetPlayerMapIcon(playerid, 98, x, y, z, markertype, 0, MAPICON_GLOBAL);
+
+      if(strlen(message))
+        SendClientMessage(playerid, 0xFFFF00FF, message);
+
+      SetPlayerGPSInfo(playerid, G_ENABLED, GPS_STATUS_ON);
+
+  return 1;
+}
+
+
+
+stock DisablePlayerGPS(playerid)
+{
+  if(GetPlayerGPSInfo(playerid, G_ENABLED) == GPS_STATUS_ON)
+  {
+    DisablePlayerCheckpoint(playerid);
+
+    SetPlayerGPSInfo(playerid, G_ENABLED, GPS_STATUS_OFF);
+    SendClientMessage(playerid, 0xFFFF00FF, ""COL_RED"GPS:"COL_WHITE" You turn off the GPS device. Good luck sir!");
+  }
+  return 1;
+}
 
 
 SavePlayer(playerid) // ini adalah fungsi callback saveplayer untuk simpan data ke mysql
 {
-   	// fungsi untuk save player data
-   // SendClientMessage(playerid, -1, "MySQL di coba untuk simpan");
-    pInfo[playerid][pInterior] = GetPlayerInterior(playerid);
-    pInfo[playerid][pWord] = GetPlayerVirtualWorld(playerid);
+            // fungsi untuk save player data
+           // SendClientMessage(playerid, -1, "MySQL di coba untuk simpan");
+            pInfo[playerid][pInterior] = GetPlayerInterior(playerid);
+            pInfo[playerid][pWord] = GetPlayerVirtualWorld(playerid);
 
-    if(pInfo[playerid][Logged] == 1)
-    // checks if the player is logged
-    {
-    	// stock simpan data player
-        new Query[500];
-        format(Query, 500, "UPDATE `playerdata` SET `admin` = '%d', `score` = '%d', `money` = '%i',`component` = '%i', `kills` = '%d', `deaths` = '%d', `posisiorang` = '%s', `posisimobil` = '%s', `pword` = '%s', `pinterior` = '%s' WHERE `id` = '%d' LIMIT 1",
-        pInfo[playerid][pAdmin],
-        pInfo[playerid][pScore],
-        pInfo[playerid][pMoney],
-        pInfo[playerid][pComponent],
-        pInfo[playerid][pKills],
-        pInfo[playerid][pDeaths],
-        pInfo[playerid][pPosisiTerakhir],
-        pInfo[playerid][pPosisiMobil],
-        pInfo[playerid][pWord],
-        pInfo[playerid][pInterior],
-        pInfo[playerid][ID]);
+            if(pInfo[playerid][Logged] == 1)
+            // checks if the player is logged
+            {
+              // stock simpan data player
+                new Query[500];
+                format(Query, 500, "UPDATE `playerdata` SET `admin` = '%d', `score` = '%d', `money` = '%i',`component` = '%i', `kills` = '%d', `deaths` = '%d', `posisiorang` = '%s', `posisimobil` = '%s', `pword` = '%s', `pinterior` = '%s' WHERE `id` = '%d' LIMIT 1",
+                pInfo[playerid][pAdmin],
+                pInfo[playerid][pScore],
+                pInfo[playerid][pMoney],
+                pInfo[playerid][pComponent],
+                pInfo[playerid][pKills],
+                pInfo[playerid][pDeaths],
+                pInfo[playerid][pPosisiTerakhir],
+                pInfo[playerid][pPosisiMobil],
+                pInfo[playerid][pWord],
+                pInfo[playerid][pInterior],
+                pInfo[playerid][ID]);
 
-        mysql_query(MySQL:g_Sql,Query, bool:true);
+                mysql_query(MySQL:g_Sql,Query, bool:true);
 
-        SendClientMessage(playerid, -1, "MySQL data uang anda telah di update :)");
+                SendClientMessage(playerid, -1, "MySQL data uang anda telah di update :)");
 
-        
-		    
-		for(new i; i < 13; i++) // looping through all weapon slots (0 - 12)
-		{
-			new
-		    weaponid,
-		    ammo;
+              
+                
+            for(new i; i < 13; i++) // looping through all weapon slots (0 - 12)
+            {
+              new
+                weaponid,
+                ammo;
 
-		    // koding nyimpan senjata
-		   	//GetPlayerWeaponData(playerid, slot, weapons, ammo)
-		    GetPlayerWeaponData(playerid, i, weaponid, ammo); // get weaponid and ammo
+                // koding nyimpan senjata
+                //GetPlayerWeaponData(playerid, slot, weapons, ammo)
+                GetPlayerWeaponData(playerid, i, weaponid, ammo); // get weaponid and ammo
 
-		    if(!weaponid) continue; // don't insert if there's no weapon in this slot
-		    new savesenjata[500];
-	   		format(savesenjata, 500, "INSERT INTO player_weapons VALUES (%d, %d, %d) ON DUPLICATE KEY UPDATE ammo = %d;", pInfo[playerid][ID], weaponid, ammo, ammo);
-		   	mysql_query(MySQL:g_Sql, savesenjata[499],bool:true); // parallel queries
-		   	
-		   	//SendClientMessage(playerid, -1, savesenjata);
-		   	return 1;
-		}
-
-
-		new loaddataplayer[200];
-	    format(loaddataplayer, sizeof(Query), "SELECT * FROM `playerdata` WHERE `id` COLLATE latin1_general_cs = '%i' LIMIT 1", pInfo[playerid][ID]);
-	    mysql_query(MySQL:g_Sql, loaddataplayer[199], bool:true);
-
-        
-        // simpan posisi mobil.
-        GetVehiclePos(mobilplayer1[playerid], Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz]);
-
-	    new kordinatmobil[500];
-	   	format(kordinatmobil, 500, "UPDATE `playerdata` SET `pmx` = '%f',`pmy` = '%f',`pmz` = '%f' WHERE `id` = '%i' LIMIT 1", Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz], pInfo[playerid][ID]);
-	    mysql_query(MySQL:g_Sql, kordinatmobil[499], bool:true);
-	    SendClientMessage(playerid, -1, kordinatmobil);
-	    
-	    printf("Mobil pindah posisi ke %f, %f, %f ke pemilik ID %i", Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz], pInfo[playerid][ID]);
-    
-		//this basically gets the variables and stores it to the players special identifier called "ID".
+                if(!weaponid) continue; // don't insert if there's no weapon in this slot
+                new savesenjata[500];
+                format(savesenjata, 500, "INSERT INTO player_weapons VALUES (%d, %d, %d) ON DUPLICATE KEY UPDATE ammo = %d;", pInfo[playerid][ID], weaponid, ammo, ammo);
+                mysql_query(MySQL:g_Sql, savesenjata[499],bool:true); // parallel queries
+                
+                //SendClientMessage(playerid, -1, savesenjata);
+                return 1;
+            }
 
 
-	    // fungsi untuk simpan posisi orang saat save data player
+            new loaddataplayer[200];
+              format(loaddataplayer, sizeof(Query), "SELECT * FROM `playerdata` WHERE `id` COLLATE latin1_general_cs = '%i' LIMIT 1", pInfo[playerid][ID]);
+              mysql_query(MySQL:g_Sql, loaddataplayer[199], bool:true);
+
+                
+              // simpan posisi mobil.
+              GetVehiclePos(VehiclePlayerPrimary[playerid][VehID], Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz]);
+
+              new kordinatmobil[500];
+              format(kordinatmobil, 500, "UPDATE `playerdata` SET `pmx` = '%f',`pmy` = '%f',`pmz` = '%f' WHERE `id` = '%i' LIMIT 1", Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz], pInfo[playerid][ID]);
+              mysql_query(MySQL:g_Sql, kordinatmobil[499], bool:true);
+              SendClientMessage(playerid, -1, kordinatmobil);
+              
+              printf("SAVED: New vehicle position on %f, %f, %f has owned bye ID %i", Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz], pInfo[playerid][ID]);
+            
+            //this basically gets the variables and stores it to the players special identifier called "ID".
 
 
-		GetPlayerPos(playerid, Float:pInfo[playerid][pPx], Float:pInfo[playerid][pPy], Float:pInfo[playerid][pPz]);
-
-	    new simpanorang[500];
-	    format(simpanorang, 500, "UPDATE `playerdata` SET `ppx` = '%f',`ppy` = '%f',`ppz` = '%f' WHERE `id` = '%d' LIMIT 1",
-	    pInfo[playerid][pPx], pInfo[playerid][pPy], pInfo[playerid][pPz], pInfo[playerid][ID]);
-	    //mysql_query(MySQL:handle, const query[], bool:use_cache = true)
-	    mysql_query(MySQL:g_Sql,simpanorang, bool:true);
+              // fungsi untuk simpan posisi orang saat save data player
 
 
-	    new lokasidisimpan[500];
-	    format(lokasidisimpan, 500, "Disimpan pada posisi %f, %f, %f", pInfo[playerid][pPx], pInfo[playerid][pPy], pInfo[playerid][pPz] );
-	    SendClientMessage(playerid, -1, lokasidisimpan);
+            GetPlayerPos(playerid, Float:pInfo[playerid][pPx], Float:pInfo[playerid][pPy], Float:pInfo[playerid][pPz]);
 
-    }
+              new simpanorang[500];
+              format(simpanorang, 500, "UPDATE `playerdata` SET `ppx` = '%f',`ppy` = '%f',`ppz` = '%f' WHERE `id` = '%d' LIMIT 1",
+              pInfo[playerid][pPx], pInfo[playerid][pPy], pInfo[playerid][pPz], pInfo[playerid][ID]);
+              //mysql_query(MySQL:handle, const query[], bool:use_cache = true)
+              mysql_query(MySQL:g_Sql,simpanorang, bool:true);
+
+
+              new lokasidisimpan[500];
+              format(lokasidisimpan, 500, "SAVED: New position for: %f, %f, %f", pInfo[playerid][pPx], pInfo[playerid][pPy], pInfo[playerid][pPz] );
+              SendClientMessage(playerid, -1, lokasidisimpan);
+
+            }
 
     // batas bila player sudah login
     return 1;
 }
 
-// STOCK UNTU SEMUA JENIS FUNGSI YANG AKAN DI PANGGIL
+
+stock UserPath(playerid)
+{
+  new string[128],playername[MAX_PLAYER_NAME];
+  GetPlayerName(playerid,playername,sizeof(playername));
+  format(string,sizeof(string),DINI_PATH,playername);
+  return string;
+}
+
+
+stock SaveUser_dini_data(playerid, value[])
+{
+        //strunpack(pInfo[playerid][PasswordAccount], dini_Get(UserPath(playerid), "Password") , 20);
+        strunpack(pInfo[playerid][PasswordAccount], value, 100);
+        dini_Set(UserPath(playerid), "Password", pInfo[playerid][PasswordAccount]);
+        SendClientMessage(playerid, COLOR_LIGHTRED, value); // DEBUGING
+        SendClientMessage(playerid, COLOR_LIGHTRED, pInfo[playerid][PasswordAccount]); // DEBUGING
+    return 1;
+}
+
+
+stock GetTrunkFreeSlot(vehicleid, item_type)
+{
+  new free_slot = -1, comb_slot = -1;
+  new bool: comb = GetItemInfo(item_type, I_COMBINATION);
+
+  for(new idx; idx < MAX_VEHICLE_TRUNK_SLOTS; idx ++)
+  {
+    if(GetTrunkData(vehicleid, idx, VT_ITEM_TYPE) == item_type && comb)
+    {
+      comb_slot = idx;
+    }
+    else if(free_slot == -1 && IsTrunkFreeSlot(vehicleid, idx))
+    {
+      free_slot = idx;
+    }
+    else continue;
+  }
+  return comb_slot != -1 ? comb_slot : free_slot;
+}
+
+
+
+stock GetOwnableCarBySqlID(sql_id, buffer[] = {0, 0, 0})
+{
+  buffer[2] = INVALID_VEHICLE_ID;
+  for(buffer[0] = 1; buffer[0] < MAX_VEHICLES; buffer[0] ++)
+  {
+    if(!IsAOwnableCar(buffer[0])) continue;
+    buffer[1] = GetVehicleData(buffer[0], V_ACTION_ID);
+
+    if(GetOwnableCarData(buffer[1], OC_SQL_ID) != sql_id) continue;
+
+    buffer[2] = buffer[0];
+    break;
+  }
+  return buffer[2];
+}
+
+
+
+public LoadOwnableCars()
+{
+  
+  new rows, vehicleid;
+  new Cache:result;
+
+  result = mysql_query(g_Sql, "SELECT oc.*, IFNULL(a.name, 'None') AS owner_name FROM ownable_cars oc LEFT JOIN accounts a ON a.id = oc.owner_id", true);
+  rows = cache_num_rows();
+
+  if(rows > MAX_OWNABLE_CARS)
+  {
+    rows = MAX_OWNABLE_CARS;
+    print("[OwnableCars]: WARNINGS DataBase rows over the limit of MAX_OWNABLE_CARS");
+  }
+  
+  for(new idx; idx < rows; idx ++) 
+  {
+    SetOwnableCarData(idx, OC_SQL_ID, cache_get_value_int(idx, "id", get_ownable_car[idx][OC_SQL_ID])); 
+    SetOwnableCarData(idx, OC_OWNER_ID,   cache_get_value_int(idx, "owner_id", get_ownable_car[idx][OC_OWNER_ID]));
+  
+    SetOwnableCarData(idx, OC_MODEL_ID,   cache_get_value_int(idx, "model_id", get_ownable_car[idx][OC_MODEL_ID]));
+      /*
+    SetOwnableCarData(idx, OC_COLOR_1,    cache_get_value_int(idx, "color_1"));
+    SetOwnableCarData(idx, OC_COLOR_2,    cache_get_value_int(idx, "color_2"));
+
+    SetOwnableCarData(idx, OC_POS_X,    cache_get_value_name_float(idx, "pos_x"));
+    SetOwnableCarData(idx, OC_POS_Y,    cache_get_value_name_float(idx, "pos_y"));
+    SetOwnableCarData(idx, OC_POS_Z,    cache_get_value_name_float(idx, "pos_z"));
+    SetOwnableCarData(idx, OC_ANGLE,    cache_get_value_name_float(idx, "angle"));
+
+    SetOwnableCarData(idx, OC_World,    cache_get_value_int(idx, "World"));
+    SetOwnableCarData(idx, OC_Int,      cache_get_value_int(idx, "Inter"));
+
+    cache_get_field_content(idx, "number", get_ownable_car[idx][OC_NUMBER], mysql, 8);
+
+    SetOwnableCarData(idx, OC_KEY_IN,     bool: cache_get_value_int(0, "key_in"));
+
+    SetOwnableCarData(idx, OC_CREATE,     cache_get_value_int(0, "create_time"));
+
+    SetOwnableCarData(idx, OC_PT_ENGINE,  cache_get_value_int(0, "pt_engine"));
+    SetOwnableCarData(idx, OC_PT_BRAKE,   cache_get_value_int(0, "pt_brake"));
+    SetOwnableCarData(idx, OC_PT_STABILITY, cache_get_value_int(0, "pt_stability"));
+
+    SetOwnableCarData(idx, OC_PAINTJOBID,   cache_get_value_int(0, "paintjob"));
+    SetOwnableCarData(idx, OC_COMPID,     cache_get_value_int(0, "componentid"));
+
+    SetOwnableCarData(idx, OC_SPOILER,    cache_get_value_int(0, "Spoiler"));
+    SetOwnableCarData(idx, OC_NITRO,    cache_get_value_int(0, "Nitro"));
+    SetOwnableCarData(idx, OC_LAMPS,    cache_get_value_int(0, "Lamps"));
+    SetOwnableCarData(idx, OC_SIDES,    cache_get_value_int(0, "Sides"));
+    SetOwnableCarData(idx, OC_HOOD,     cache_get_value_int(0, "Hood"));
+    SetOwnableCarData(idx, OC_VENTS,    cache_get_value_int(0, "Vents"));
+    SetOwnableCarData(idx, OC_EXHAUST,    cache_get_value_int(0, "Exhaust"));
+    SetOwnableCarData(idx, OC_WHEELS,     cache_get_value_int(0, "Wheels"));
+    SetOwnableCarData(idx, OC_RBUMP,    cache_get_value_int(0, "RBumper"));
+    SetOwnableCarData(idx, OC_FBUMP,    cache_get_value_int(0, "FBumper"));
+    SetOwnableCarData(idx, OC_ROOF,     cache_get_value_int(0, "Roof"));
+
+    // ----------------------------------------------------------------------------------------
+
+
+    if(strlen(GetOwnableCarData(idx, OC_NUMBER)) != 6)
+      strmid(get_ownable_car[idx][OC_NUMBER], "------", 0, 8, 8);
+
+    vehicleid = CreateVehicle
+    (
+      GetOwnableCarData(idx, OC_MODEL_ID),
+      GetOwnableCarData(idx, OC_POS_X),
+      GetOwnableCarData(idx, OC_POS_Y),
+      GetOwnableCarData(idx, OC_POS_Z),
+      GetOwnableCarData(idx, OC_ANGLE),
+      GetOwnableCarData(idx, OC_COLOR_1),
+      GetOwnableCarData(idx, OC_COLOR_2),
+      -1,
+      0,
+      VEHICLE_ACTION_TYPE_OWNABLE_CAR,
+      idx
+    );
+    LinkVehicleToInterior(vehicleid, GetOwnableCarData(idx, OC_Int));
+    SetVehicleVirtualWorld(vehicleid, GetOwnableCarData(idx, OC_World));
+    if(vehicleid != INVALID_VEHICLE_ID)
+    {
+      CreateVehicleLabel(vehicleid, GetOwnableCarData(idx, OC_NUMBER), 0xFFFF00EE, 0.0, 0.0, 1.3, 20.0);
+      SetVehicleParam(vehicleid, V_LOCK, bool: cache_get_value_int(idx, "status"));
+      SetVehicleData(vehicleid, V_MILEAGE, cache_get_value_name_float(idx, "mileage"));
+      ChangeVehiclePaintjob(vehicleid, GetOwnableCarData(idx, OC_PAINTJOBID));
+      AddVehicleComponent(vehicleid, GetOwnableCarData(idx, OC_COMPID));
+      AddVehicleComponent(vehicleid, GetOwnableCarData(idx, OC_SPOILER));
+      AddVehicleComponent(vehicleid, GetOwnableCarData(idx, OC_NITRO));
+      AddVehicleComponent(vehicleid, GetOwnableCarData(idx, OC_LAMPS));
+      AddVehicleComponent(vehicleid, GetOwnableCarData(idx, OC_SIDES));
+      AddVehicleComponent(vehicleid, GetOwnableCarData(idx, OC_HOOD));
+      AddVehicleComponent(vehicleid, GetOwnableCarData(idx, OC_VENTS));
+      AddVehicleComponent(vehicleid, GetOwnableCarData(idx, OC_EXHAUST));
+      AddVehicleComponent(vehicleid, GetOwnableCarData(idx, OC_WHEELS));
+      AddVehicleComponent(vehicleid, GetOwnableCarData(idx, OC_RBUMP));
+      AddVehicleComponent(vehicleid, GetOwnableCarData(idx, OC_FBUMP));
+      AddVehicleComponent(vehicleid, GetOwnableCarData(idx, OC_ROOF));
+    }
+    */
+  }
+  get_ownable_car_loaded = rows;
+  cache_delete(result);
+
+  printf("[OwnableCars]: Mobil pribadi dimuat: %d", get_ownable_car_loaded);
+  
+}
+
+
+
+public LoadTrunks()
+{
+  /*
+  new Cache: result, rows;
+  new vehicleid, slot, buffer;
+
+  result = mysql_query(g_Sql, "SELECT * FROM trunkdata ORDER BY owner_id ASC, trunkslotid ASC", true);
+  rows = cache_num_rows();
+
+  for(new idx; idx < rows; idx ++)
+  {
+    vehicleid = GetOwnableCarBySqlID(cache_get_value_int(idx, "owner_id"));
+    if(vehicleid != INVALID_VEHICLE_ID)
+    {
+      for(slot = 0; slot < MAX_VEHICLE_TRUNK_SLOTS; slot ++)
+      {
+        if(GetTrunkData(vehicleid, slot, TRUNK_SQL_ID)) continue;
+
+        SetTrunkData(vehicleid, slot, TRUNK_SQL_ID,    cache_get_value_int(idx, "id"));
+        SetTrunkData(vehicleid, slot, TRUNK_ITEM_TYPE,   cache_get_value_int(idx, "item_type"));
+        SetTrunkData(vehicleid, slot, TRUNK_ITEM_AMOUNT,   cache_get_value_int(idx, "amount"));
+        SetTrunkData(vehicleid, slot, TRUNK_ITEM_VALUE,  cache_get_value_int(idx, "value"));
+      }
+      buffer ++;
+    }
+  }
+
+  cache_delete(result);
+  printf("[Trunks]: Item on upload SQL: %d", buffer);
+
+*/
+}
+
+
+stock AddTrunkItem(vehicleid, item_id, amount, value = 0)
+{
+  if(1 <= item_id <= sizeof(g_item_type)-1)
+  {
+    new free_slot = GetTrunkFreeSlot(vehicleid, item_id);
+    if(free_slot != -1)
+    {
+      SetTrunkData(vehicleid, free_slot, VT_SQL_ID, 1);
+
+      SetTrunkData(vehicleid, free_slot, VT_ITEM_TYPE, item_id);
+      SetTrunkData(vehicleid, free_slot, VT_ITEM_VALUE, value);
+
+      new query[100],
+        index,
+        oc_id;
+
+      index = GetVehicleData(vehicleid, V_ACTION_ID);
+      oc_id = GetOwnableCarData(index, OC_SQL_ID);
+
+      if(!IsTrunkFreeSlot(vehicleid, free_slot))
+      {
+        AddTrunkData(vehicleid, free_slot, VT_ITEM_AMOUNT, +, amount);
+
+        if((GetTrunkData(vehicleid, free_slot, VT_ITEM_AMOUNT) - amount) == 0)
+        {
+          mysql_format(MySQL:g_Sql, query, sizeof query, "INSERT INTO trunkdata (oc_id,item_type,amount,value) VALUES (%d,%d,%d,%d)", oc_id, item_id, amount, value);
+          mysql_query(MySQL:g_Sql, query, false);
+        }
+        else
+        {
+          mysql_format(MySQL:g_Sql, query, sizeof query, "UPDATE trunkdata SET amount='%d' WHERE item_type='%d' AND oc_id='%d' LIMIT 1", GetTrunkData(vehicleid, free_slot, TRUNK_ITEM_AMOUNT), item_id, oc_id);
+          mysql_query(MySQL:g_Sql, query, false);
+        }
+      }
+
+      else
+      {
+        SetTrunkData(vehicleid, free_slot, VT_ITEM_AMOUNT, amount);
+
+        mysql_format(MySQL:g_Sql, query, sizeof query, "INSERT INTO trunkdata (oc_id,item_type,amount,value) VALUES (%d,%d,%d,%d)", oc_id, item_id, amount, value);
+        mysql_query(MySQL:g_Sql, query, false);
+      }
+
+      return 1;
+    }
+    return -1;
+  }
+  return 0;
+}
+
+stock TakeTrunkItem(vehicleid, item_id, amount)
+{
+  if(1 <= item_id <= sizeof(g_item_type)-1)
+  {
+    new busy_slot = GetTrunkBusySlot(vehicleid, item_id);
+
+    new query[100],
+      index,
+      oc_id;
+
+    index = GetVehicleData(vehicleid, V_ACTION_ID);
+    oc_id = GetOwnableCarData(index, OC_SQL_ID);
+
+    if(!IsTrunkFreeSlot(vehicleid, busy_slot))
+    {
+      AddTrunkData(vehicleid, busy_slot, VT_ITEM_AMOUNT, -, amount);
+
+      if(GetTrunkData(vehicleid, busy_slot, VT_ITEM_AMOUNT) >= 0)
+      {
+        if(!GetTrunkData(vehicleid, busy_slot, VT_ITEM_AMOUNT))
+        {
+          mysql_format(MySQL:g_Sql, query, sizeof query, "DELETE FROM trunkdata WHERE item_type='%d' AND oc_id='%d'", item_id, oc_id);
+          mysql_query(MySQL:g_Sql, query, false);
+
+          RemoveTrunkItem(vehicleid, busy_slot);
+        }
+        else
+        {
+          mysql_format(MySQL:g_Sql, query, sizeof query, "UPDATE trunkdata SET amount='%d' WHERE item_type='%d' AND oc_id='%d' LIMIT 1", GetTrunkData(vehicleid, busy_slot, VT_ITEM_AMOUNT), item_id, oc_id);
+          mysql_query(MySQL:g_Sql, query, false);
+        }
+        return 1;
+      }
+      else
+      {
+        AddTrunkData(vehicleid, busy_slot, VT_ITEM_AMOUNT, +, amount);
+        return -1;
+      }
+    }
+    return -1;
+  }
+  return 0;
+}
+
+
+
+stock RemoveTrunkItem(vehicleid, item_slot)
+{
+  if(!IsTrunkFreeSlot(vehicleid, item_slot))
+  {
+    SetTrunkData(vehicleid, item_slot, TRUNK_SQL_ID, 0);
+
+    SetTrunkData(vehicleid, item_slot, TRUNK_ITEM_TYPE,  0);
+    SetTrunkData(vehicleid, item_slot, TRUNK_ITEM_AMOUNT,  0);
+    SetTrunkData(vehicleid, item_slot, TRUNK_ITEM_VALUE,   0);
+
+    return 1;
+  }
+  return 0;
+}
+
+
 
 stock SetVehicleSpeedTT(vehicleid, Float:speed)
 {
@@ -1148,6 +1759,46 @@ stock SetVehicleSpeedTT(vehicleid, Float:speed)
     y1 = (floatcos(a, degrees) * (speed/100) + floatsin(a, degrees) * 0 + y2) - y2;
     SetVehicleVelocity(vehicleid, x1, y1, z1);
 }
+
+
+//============ PUBLIC LINE FORWARD LINE=========================
+
+//stock UpdatePlayerTimePlayed[1000](playerid) //  error 010: invalid function or declaration  error 001: expected token: ";", but found "("
+forward UpdatePlayerTimePlayed(playerid);
+public UpdatePlayerTimePlayed(playerid)
+{
+
+
+          
+          pInfo[playerid][pSeconds]++;
+          if(pInfo[playerid][pSeconds] > 60)
+          {
+            pInfo[playerid][pSeconds] = 0;
+            return pInfo[playerid][pMinutes]++;
+            SendClientMessage(playerid, 0xFFFF00FF, "debug minute");
+          }
+          if(pInfo[playerid][pMinutes] > 60)
+          {
+            pInfo[playerid][pMinutes] = 0;
+            return pInfo[playerid][pHours]++;
+           
+          }
+            
+      
+}
+
+
+forward LoadUser_dini_data(playerid);
+public LoadUser_dini_data(playerid)
+{
+     
+      dini_Get(UserPath(playerid), "Password", pInfo[playerid][PasswordAccount]);
+      SendClientMessage(playerid, COLOR_LIGHTRED, pInfo[playerid][PasswordAccount]); // DEBUGING
+ 
+      return pInfo[playerid][PasswordAccount]; // get value in string
+}
+
+
 
 forward Float: GetVehicleSpeed(vehicleid);
 public Float: GetVehicleSpeed(vehicleid)
@@ -1257,7 +1908,7 @@ stock MySQL_Login(playerid)
 
 
 
-
+#include "player/vehicle/function.inc"
 
 
 
@@ -1468,12 +2119,12 @@ stock GivePlayerMoneyEx(playerid, money, description[]="None", bool:save=true, b
 
 	/*
 	format(fmt_str, sizeof fmt_str, "INSERT INTO money_log (uid,uip,time,money,description) VALUES (%d,'%s',%d,%d,'%s')", GetPlayerAccountID(playerid), GetPlayerIpEx(playerid), gettime(), money, description);
-	mysql_query(mysql, fmt_str, false);
+	mysql_query(MySQL:g_Sql, fmt_str, false);
 
 	if(save) save = false;
 
 	format(fmt_str, sizeof fmt_str, "UPDATE accounts SET money=%d WHERE id=%d LIMIT 1", GetPlayerMoneyEx(playerid), GetPlayerAccountID(playerid));
-	mysql_query(mysql, fmt_str, false);
+	mysql_query(MySQL:g_Sql, fmt_str, false);
 	*/
 
 	if(game_text)
@@ -1507,7 +2158,40 @@ stock CreateExplosionEx(Float:X, Float:Y, Float:Z, type, Float:Radius, virtualwo
 // di public ini juga bisa untuk hapus tapi lebih baik saat player connect.
 public OnGameModeInit()
 {
+  
 	
+
+  CreateIdlewood(); // mapping
+	AuctionMart(); // mapping
+  LosSantosApartmentMap(); // mapping
+
+  AuctionMartChartBoard = CreateDynamicObject(18244, 1351.04651, -1759.52295, 17.95660,   90.00000, 0.00000, 180.00000);
+  SetDynamicObjectMaterialText(AuctionMartChartBoard, 0,"{FFFFFF}Auction Mart",  130, "Arial", 70, 1, -1250582, 0, 1);
+
+
+	ConnectNPC("[BOT]orang", "testcek"); // on foot NPC
+	ConnectNPC("[BOT]Pemotor", "motor"); // on vehicle NPC
+	Pemotor_vehicle = CreateVehicle(521,0.0,0.0,0.0,0.0,-1,-1,-1);
+	ToggleVehicleEngine(Pemotor_vehicle);
+	SetVehicleVirtualWorld(Pemotor_vehicle, 0);
+
+	ConnectNPC("[BOT]BusBandara", "PengendaraBusBandara");
+	BusBandara_vehicle = CreateVehicle(431,0.0,0.0,0.0,0.0,-1,-1,-1);
+	ToggleVehicleEngine(BusBandara_vehicle);
+	SetVehicleVirtualWorld(BusBandara_vehicle, 0);
+
+	/*
+	ConnectNPC("[BOT]GasStationStaff", "GasStationStaff"); // on foot NPC
+	ConnectNPC("[BOT]BusInTerminal", "BusInTerminal"); // on vehicle NPC
+	BusInTerminal_vehicle = CreateVehicle(431,0.0,0.0,0.0,0.0,-1,-1,-1);
+	ToggleVehicleEngine(BusInTerminal_vehicle);
+	SetVehicleVirtualWorld(BusInTerminal_vehicle, 0);
+	*/
+
+	print("\n--------------------------------------");
+	printf("\nRobot Keliling dari NPC testcek telah coba di star. \n");
+	print("\n--------------------------------------");
+
 	LayarJadiMerah = TextDrawCreate(317.000000, 
 		-400.000000, // ini adalah sumbu y supaya bisa pindah atas bawah
 		 "Tabrakan");
@@ -1638,12 +2322,14 @@ public OnGameModeInit()
 
 	// load teks draw nama server dan waktu server
 	
-	SetTimer("WaktuServer", 500, true);
-	SetTimer("GantiWarna", 	5000, true);
- 
+	
 	
  
-    UI[0] = TextDrawCreate(639.516906, 1.583336, "DuniaPutu");
+	
+
+
+ 
+    UI[0] = TextDrawCreate(639.516906, 1.583336, "SuhartawanWorld");
 	TextDrawLetterSize(UI[0], 0.476837, 2.434166);
 	TextDrawAlignment(UI[0], 3);
 	TextDrawColor(UI[0], -1);
@@ -1725,7 +2411,7 @@ public OnGameModeInit()
 	
 	// simpan data log selesai
 
-	//mysql_query(mySQLconnection, sprintf("INSERT INTO `playerdata` (`money`) VALUES ( '45')");
+	//mysql_query(MySQL:g_Sqlconnection, sprintf("INSERT INTO `playerdata` (`money`) VALUES ( '45')");
 	//g_Sql = mysql_connect(SQL_HOST, SQL_USER, SQL_DB, SQL_PASS, options); // ini format konek yang salah
 	//g_Sql = mysql_connect(SQL_HOST, SQL_USER, SQL_PASS, SQL_DB, options);
 	//g_Sql = mysql_connect(SQL_HOST, SQL_USER, SQL_PASS, SQL_DB); // tanpan port rubahan
@@ -1736,7 +2422,7 @@ public OnGameModeInit()
 	//ConnectMySQL();
 	//mysql_connect(SQL_HOST, SQL_USER, SQL_DB, SQL_PASS);
 	
-	//mysql_query(MySQL:handle, const query[], bool:use_cache = true)
+	//mysql_query(MySQL:g_Sql:handle, const query[], bool:use_cache = true)
 	mysql_query(MySQL:g_Sql, "SELECT * FROM `playerdata` ORDER BY `playerdata`.`id` ASC", bool:true);
 	//mysql_query(g_Sql, "INSERT INTO `playerdata` (`id`) VALUES ( '2')");
 	//mysql_query(g_Sql, "INSERT INTO `playerdata` (`money`) VALUES ( '45')");
@@ -1767,17 +2453,19 @@ public OnGameModeInit()
 	}
 
 	AddCharModel(305, 29999, "wartawan.dff", "wartawan.txd");
-    AddCharModel(305, 20001, "lvpdpc2.dff", "lvpdpc2.txd");
-    ConnectMySQL();
-	SetGameModeText("Scrift Sering Sakit Maaf");
+	AddCharModel(305, 20001, "lvpdpc2.dff", "lvpdpc2.txd");
+  //AddSimpleModel(0, 5409, 20002, "mosque.dff", "mosque.txd");
+  AddSimpleModel( -1, 5409, -20002, "mosque.dff", "mosque.txd");
+	ConnectMySQL();
+	SetGameModeText("Basic Scripting");
 	
-
+	
 	
 
 	BlackRadar= GangZoneCreate(-3334.758544, -3039.903808, 3049.241455, 3184.096191);
 
 	
-	ShowPlayerMarkers(PLAYER_MARKERS_MODE_GLOBAL);
+	ShowPlayerMarkers(PLAYER_MARKERS_MODE_STREAMED);
 	ShowNameTags(1);
 	SetNameTagDrawDistance(40.0);
 	EnableStuntBonusForAll(0);
@@ -1788,6 +2476,7 @@ public OnGameModeInit()
 	SetObjectsDefaultCameraCol(true);
 	// anim untuk membuat cj run
 	//UsePlayerPedAnims();
+
 	ManualVehicleEngineAndLights();
 	//LimitGlobalChatRadius(300.0);
 	
@@ -2888,7 +3577,11 @@ public OnGameModeInit()
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
 	///////////////////////////////////////////////////////////////////////////////////////////////////////////////// 
-	tmpobjid = CreateDynamicObject(1523,-42.049,148.570,998.049,0.000,0.000,0.000,-1,-1,-1,400.000,400.000); 
+	// example change flat doordynamic
+	
+	//DoorFlat = CreateDynamicObject(1523,-42.049,148.570,998.049,0.000,0.000,0.000,-1,-1,-1,400.000,400.000); 
+	DoorFlat = CreateDynamicObject(1502,-42.049,148.570,998.049,0.000,0.000,0.000,-1,-1,-1,400.000,400.000); 
+	SetDynamicObjectMaterial(DoorFlat, 1, 14853,"paperchase_bits2", "ab_medbag", 0); 
 	tmpobjid = CreateDynamicObject(2611,-27.750,146.080,999.500,0.000,0.000,-89.940,-1,-1,-1,400.000,400.000); 
 	tmpobjid = CreateDynamicObject(2000,-22.069,149.029,998.059,0.000,0.000,-90.000,-1,-1,-1,400.000,400.000); 
 	tmpobjid = CreateDynamicObject(18074,-27.409,150.410,999.200,0.000,0.000,0.000,-1,-1,-1,400.000,400.000); 
@@ -3043,7 +3736,7 @@ public OnGameModeInit()
 
 	Create3DTextLabel(""COL_RED"Gas Station Sulawesi\n"COL_YELLOW"DIJUAL\n\n"COL_WHITE"Rp. 2.086.693.552",COLOR_SPRINGGREEN,1586.7100,-2175.1416,14.8035,8.0,0);
 	tempatrentalmobildibandarals = CreatePickup(1239, 1, 1557.3281,-2260.5244,13.5407, -1);
-	Create3DTextLabel("Bandara Internasional\nSewa Mobil\nKENDARI",0xFFFFFFFF,1557.3281,-2260.5244,13.5407,10.0,0);
+	Create3DTextLabel("International Airport\nRent a Car\nSingapore",0xFFFFFFFF,1557.3281,-2260.5244,13.5407,10.0,0);
 	//CreateActor(234, 1557.3281,-2260.5260,13.5407);
 	//Create3DTextLabel("ANDA BUTUH SIM\n",COLOR_ERROR,1557.3281,-2260.5244,13.5407,10.0,0);
     //Objects////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -3169,9 +3862,9 @@ public OnGameModeInit()
 	SetDynamicObjectMaterial(tmpobjid, 10, 7088, "casinoshops1", "247sign1", 0x00000000);
 	SetDynamicObjectMaterial(tmpobjid, 11, 18646, "matcolours", "red", 0x00000000);
 	tmpobjid = CreateDynamicObject(4735, 1580.931762, -2325.196289, 18.689550, 0.000000, 0.000000, 270.500000, object_world, object_int, -1, 300.00, 300.00); 
-	SetDynamicObjectMaterialText(tmpobjid, 0, "SULAWESI", 140, "Arial", 100, 1, 0xFF000000, 0x00000000, 1);
+	SetDynamicObjectMaterialText(tmpobjid, 0, "SINGAPORE", 140, "Arial", 100, 1, 0xFF000000, 0x00000000, 1);
 	tmpobjid = CreateDynamicObject(4735, 1586.072875, -2286.144042, 22.869586, 0.000000, 0.000000, 360.500000, object_world, object_int, -1, 300.00, 300.00); 
-	SetDynamicObjectMaterialText(tmpobjid, 0, "BANDARA", 140, "Arial", 100, 1, 0xFFFFFFFF, 0x00000000, 1);
+	SetDynamicObjectMaterialText(tmpobjid, 0, "SINGAPORE", 140, "Arial", 100, 1, 0xFFFFFFFF, 0x00000000, 1);
 	tmpobjid = CreateDynamicObject(4735, 1585.986572, -2276.311523, 20.879556, 0.000000, 0.000000, 360.500000, object_world, object_int, -1, 300.00, 300.00); 
 	SetDynamicObjectMaterialText(tmpobjid, 0, "AIRPORT", 140, "Arial", 60, 1, 0xFFFFFFFF, 0x00000000, 1);
 	tmpobjid = CreateDynamicObject(4735, 1586.079467, -2293.824218, 20.879556, 0.000000, 0.000000, 360.500000, object_world, object_int, -1, 300.00, 300.00); 
@@ -3196,7 +3889,7 @@ public OnGameModeInit()
 	SetDynamicObjectMaterial(tmpobjid, 3, 18646, "matcolours", "grey-90-percent", 0x00000000);
 	SetDynamicObjectMaterial(tmpobjid, 4, 18646, "matcolours", "grey-90-percent", 0x00000000);
 	tmpobjid = CreateDynamicObject(19366, 1642.852416, -2328.764160, 14.754721, 0.000000, 0.000000, 67.000000, object_world, object_int, -1, 300.00, 300.00); 
-	SetDynamicObjectMaterialText(tmpobjid, 0, "Internasional", 140, "Arial", 40, 1, 0xFFFFFFFF, 0x00000000, 1);
+	SetDynamicObjectMaterialText(tmpobjid, 0, "International System", 140, "Arial", 40, 1, 0xFFFFFFFF, 0x00000000, 1);
 	tmpobjid = CreateDynamicObject(19446, 1586.848999, -2282.044921, 18.252782, 0.000000, 90.000000, 0.000000, object_world, object_int, -1, 300.00, 300.00); 
 	SetDynamicObjectMaterial(tmpobjid, 0, 10765, "airportgnd_sfse", "white", 0x00000000);
 	tmpobjid = CreateDynamicObject(19446, 1586.848999, -2282.044921, 17.392763, 0.000000, 90.000000, 0.000000, object_world, object_int, -1, 300.00, 300.00); 
@@ -3247,7 +3940,7 @@ public OnGameModeInit()
 	tmpobjid = CreateDynamicObject(19366, 1642.852416, -2328.764160, 14.524718, 0.000000, 0.000000, 67.000000, object_world, object_int, -1, 300.00, 300.00); 
 	SetDynamicObjectMaterialText(tmpobjid, 0, "Airport Putu", 140, "Arial", 40, 1, 0xFFFFFFFF, 0x00000000, 1);
 	tmpobjid = CreateDynamicObject(19366, 1642.852416, -2328.764160, 14.294718, 0.000000, 0.000000, 67.000000, object_world, object_int, -1, 300.00, 300.00); 
-	SetDynamicObjectMaterialText(tmpobjid, 0, "Sulawesi Tenggara", 140, "Arial", 40, 1, 0xFFFFFFFF, 0x00000000, 1);
+	SetDynamicObjectMaterialText(tmpobjid, 0, "Singapore", 140, "Arial", 40, 1, 0xFFFFFFFF, 0x00000000, 1);
 	tmpobjid = CreateDynamicObject(717, 1547.373779, -2181.686279, 13.011993, 0.000000, 0.000000, 0.000000, object_world, object_int, -1, 300.00, 300.00); 
 	SetDynamicObjectMaterial(tmpobjid, 0, 4835, "airoads_las", "grassdry_128HV", 0x00000000);
 	tmpobjid = CreateDynamicObject(4735, 1605.712524, -2183.159423, 18.104776, 0.000000, 0.000000, 90.000000, object_world, object_int, -1, 300.00, 300.00); 
@@ -3488,13 +4181,13 @@ public OnGameModeInit()
 	tmpobjid = CreateDynamicObject(19446, 1632.915161, -2337.041748, 16.872768, 0.000022, 90.000015, 89.999900, object_world, object_int, -1, 300.00, 300.00); 
 	SetDynamicObjectMaterial(tmpobjid, 0, 18646, "matcolours", "grey-10-percent", 0x00000000);
 	tmpobjid = CreateDynamicObject(4735, 1586.074096, -2286.244140, 22.749584, 0.000000, 0.000000, 360.500000, object_world, object_int, -1, 300.00, 300.00); 
-	SetDynamicObjectMaterialText(tmpobjid, 0, "SULAWESI", 140, "Arial", 100, 1, 0xFF000000, 0x00000000, 1);
+	SetDynamicObjectMaterialText(tmpobjid, 0, "SINGAPORE", 140, "Arial", 100, 1, 0xFF000000, 0x00000000, 1);
 	tmpobjid = CreateDynamicObject(4735, 1586.079956, -2293.864257, 20.819555, 0.000000, 0.000000, 360.500000, object_world, object_int, -1, 300.00, 300.00); 
-	SetDynamicObjectMaterialText(tmpobjid, 0, "KENDARI", 140, "Arial", 60, 1, 0xFF000000, 0x00000000, 1);
+	SetDynamicObjectMaterialText(tmpobjid, 0, "YOUR", 140, "Arial", 60, 1, 0xFF000000, 0x00000000, 1);
 	tmpobjid = CreateDynamicObject(4735, 1585.987182, -2276.361572, 20.799554, 0.000000, 0.000000, 360.500000, object_world, object_int, -1, 300.00, 300.00); 
 	SetDynamicObjectMaterialText(tmpobjid, 0, "AIRPORT", 140, "Arial", 60, 1, 0xFF000000, 0x00000000, 1);
 	tmpobjid = CreateDynamicObject(4735, 1580.831665, -2325.196289, 18.599548, 0.000000, 0.000000, 270.500000, object_world, object_int, -1, 300.00, 300.00); 
-	SetDynamicObjectMaterialText(tmpobjid, 0, "SULAWESI", 140, "Arial", 100, 1, 0xFFFF0000, 0x00000000, 1);
+	SetDynamicObjectMaterialText(tmpobjid, 0, "SINGAPORE", 140, "Arial", 100, 1, 0xFFFF0000, 0x00000000, 1);
 	tmpobjid = CreateDynamicObject(19325, 1594.215087, -2334.594970, 11.429143, 0.000000, 0.000007, 0.000000, object_world, object_int, -1, 300.00, 300.00); 
 	SetDynamicObjectMaterial(tmpobjid, 0, 19325, "lsmall_shops", "lsmall_window01", 0x00000000);
 	tmpobjid = CreateDynamicObject(19325, 1594.215087, -2334.594970, 15.539149, 0.000000, 0.000007, 0.000000, object_world, object_int, -1, 300.00, 300.00); 
@@ -6068,9 +6761,9 @@ public OnGameModeInit()
 	CreateVehicle(525,2171.1123,-1731.6053,13.6506,180.3974,1,1); // mobil tow trucknya mechanic
 	//Objects////////////////////////////////////////////////////////////////////////////////////////////////////////
 	
-	// ini untuk pintu garasi 1 yang bisa naik turun.
-	PintuGarasiMechanic = CreateDynamicObject(10575, 2152.647216, -1735.895996, 17.400230, 0.000000, 85.000000, 90.000000, -1, -1, -1, 300.00, 300.00);
-	SetDynamicObjectMaterial(PintuGarasiMechanic, 0, 9514, "711_sfw", "sw_sheddoor2", 0x00000000);
+	// this ID object for Mechaic Garage door can move down.
+	MechanicGarageDoor = CreateDynamicObject(10575, 2152.647216, -1735.895996, 17.400230, 0.000000, 85.000000, 90.000000, -1, -1, -1, 300.00, 300.00);
+	SetDynamicObjectMaterial(MechanicGarageDoor, 0, 9514, "711_sfw", "sw_sheddoor2", 0x00000000);
 	
 	tmpobjid = CreateDynamicObject(19447, 2168.206542, -1729.110839, 15.931400, 0.000000, 0.000000, 0.000000, -1, -1, -1, 300.00, 300.00);
 	SetDynamicObjectMaterial(tmpobjid, 0, 10370, "alleys_sfs", "ws_sandstone1", 0x00000000);
@@ -6653,9 +7346,137 @@ stock ToggleHood(vehicleid, toggle)
 	SetVehicleParamsEx(vehicleid, engine, lights, alarm, doors, toggle, boot, objective);
 }
 //-------------------------------------------------
-forward WaktuServer(playerid, closestcar);
-public WaktuServer(playerid, closestcar)
+
+public AuctionWasEnded(playerid)
 {
+	//GameTextForPlayer(playerid, "Auction Done\nChoice your offer and start it", 1000, 5);
+	SendClientMessage(playerid, -1, "AUCTION: Auction command to end has called.");
+
+  
+  //KillTimer(TimerLimitForAuction);
+	AuctionRunning = 0;
+  CountDownAuction = 0;
+  
+  pInfo[playerid][JoinedAuction] = 0;
+	new string[250];
+	
+	if(BidPrice > 1)
+	{
+		format(string, sizeof(string), ""COL_BLUE"'%s'\n"COL_WHITE"THE WINNER\nwith auction item:\na "COL_LGREEN"$%i of "COL_BLUE"%s's", WinnerOfAuction, BidPrice, Itemofferings);
+		SendClientMessage(playerid, -1, string);
+		SendClientMessage(playerid, -1, "AUCTION: Auction Time Up, you are left from this section");
+    if(!strcmp(WinnerOfAuction, GetRPName(playerid), true, 10))
+    {
+      ResetPlayerMoney(playerid);
+      GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
+      GivePlayerMoney(playerid, - HighestBidder);
+      pInfo[playerid][pMoney] = pInfo[playerid][pMoney]- HighestBidder;
+      SendClientMessage(playerid, -1, "AUCTION: Money Highest Bidder taken.");
+    }
+	}
+	else
+	{
+    format(string, sizeof(string), ""COL_RED"**FAILED**"COL_WHITE"\nSorry we canceled\nthe auction for \nitem:"COL_BLUE"%s", Itemofferings);
+    SendClientMessage(playerid, -1, string);
+  	SendClientMessage(playerid, -1, "AUCTION: Auction Time Up, Please rejoin with "COL_YELLOW"'/auction bid'");
+		
+	}
+  BidPrice = 0;
+  HighestBidder = 0;
+  CountOfParticipants = 0;
+  strunpack(WinnerOfAuction, "NO BODY", 20);
+	UpdateDynamic3DTextLabelText(TempatDisplayIklan, COLOR_AQUAGREEN, string);
+  //SetDynamicObjectMaterialText(layariklanbadara, 0, string, OBJECT_MATERIAL_SIZE_512x512, "Tahoma", 30, 1, COLOR_GREEN, 0x00000000, OBJECT_MATERIAL_TEXT_ALIGN_RIGHT);
+  SetDynamicObjectMaterialText(layariklanbadara, 0, string, OBJECT_MATERIAL_SIZE_512x512, "Tahoma", 45, 1, -1250582, 0, OBJECT_MATERIAL_TEXT_ALIGN_LEFT);
+  
+  SetDynamicObjectMaterialText(AuctionMartChartBoard, 0, string, 130, "Arial", 40, 1, -1250582, 0, 1);
+  PlayerPlaySound(playerid, 1100, 0.0, 0.0, 0.0);
+  
+	return 1;
+
+}
+
+
+public ChangeServerEverySecond(playerid, closestcar)
+{
+
+      if(IsPlayerInRangeOfPoint(playerid, Float:15.0, 2152.647216, -1735.895996, 17.400230)) // coordinat near door mechanic
+      { 
+                MoveDynamicObject(MechanicGarageDoor, 2152.647216, -1735.895996, 17.400230, Float:2.0,  0.000000, 85.000000, 90.000000);
+                // ketika pintu garasi di buka
+                if(IsPlayerInAnyVehicle(playerid))
+                {
+                  ToggleHood(GetPlayerVehicleID(playerid), VEHICLE_PARAMS_ON);
+                }
+                MoveDynamicObject(DongkratMobilMechanic, 2151.989501, -1729.435058, 11.610030+1, Float:0.01, 0.000000, 0.000000, 0.000000);
+                // ini dongkrak di naikkan
+                MoveDynamicObject(PeneranganMobilMechanic, 2152.0371,-1726.3260,12.9692, Float:0.01, 0.0000,0.0000,4.8428);
+                
+                //cmd_makan(playerid);
+      }
+      else
+
+      {
+          MoveDynamicObject(MechanicGarageDoor, 2152.632812, -1733.791625, 14.466965, Float:2.0,  0.599999, 0.899998, 89.599990);
+          
+          // ini kalau pintu sudah di tutup.
+          
+          MoveDynamicObject(DongkratMobilMechanic, 2151.9052,-1729.4147,10.7400, Float:0.1,  0.0000,0.9000,0.7433);
+          // ini dongkrak di turunkan
+
+          MoveDynamicObject(PeneranganMobilMechanic, 2156.474121, -1734.285278, 12.558380, Float:1.0, 0.000000, 0.000000, 0.000000);
+          
+      }
+
+  UpdatePlayerTimePlayed(playerid);
+  //SendClientMessage(playerid, COLOR_WHITE, "INFO: PlayerTimePlayed has running");
+
+  if(AuctionRunning == true)
+  {
+    if(CountDownAuction <= 0)
+    {
+      AuctionWasEnded(playerid);
+    }
+    
+
+    
+    if(pInfo[playerid][JoinedAuction] == 1)
+    {
+      SendClientMessage(playerid, COLOR_WHITE, "INFO: Auction has running");
+      new string[300];
+      SendClientMessage(playerid, COLOR_WHITE, "INFO: you are was joinned the auction");
+      CountDownAuction--;
+      //CountDownAuction = CountDownAuction - 1;
+      if(!strcmp(WinnerOfAuction, "NO BODY", true, 7))
+      {
+        format(string, sizeof(string), ""COL_RED"WARNING IN: %d\n"COL_LRED2" ***%s***\n"COL_WHITE"Have a Chart #1 of\nauction item is:\na "COL_LGREEN"$%i "COL_BLUE"%s's\n%d Participants", CountDownAuction, WinnerOfAuction, BidPrice, Itemofferings, CountOfParticipants);
+      
+      }
+      else
+      {
+        format(string, sizeof(string), "Countdown"COL_RED": %d\n"COL_BLUE" ***%s***\n"COL_WHITE"On Top Chart #1 of\nthe auction item:\na "COL_LGREEN"$%i of "COL_BLUE"%s's\n%d Participants", CountDownAuction, WinnerOfAuction, BidPrice, Itemofferings, CountOfParticipants);
+      }
+      
+
+      UpdateDynamic3DTextLabelText(TempatDisplayIklan, COLOR_AQUAGREEN, string);
+      //SetDynamicObjectMaterialText(layariklanbadara, 0, string, OBJECT_MATERIAL_SIZE_512x512, "Tahoma", 30, 1, COLOR_GREEN, 0x00000000, OBJECT_MATERIAL_TEXT_ALIGN_RIGHT);
+      SetDynamicObjectMaterialText(layariklanbadara, 0, string, OBJECT_MATERIAL_SIZE_512x512, "Tahoma", 45, 1, -1250582, 0, OBJECT_MATERIAL_TEXT_ALIGN_LEFT);
+      
+      SetDynamicObjectMaterialText(AuctionMartChartBoard, 0, string, 130, "Arial", 40, 1, -1250582, 0, 1);
+      //GameTextForPlayer(playerid, "Auction has available now", 500, 5);
+      SendClientMessage(playerid, -1, "AUCTION: "COL_YELLOW"'/auction bid' "COL_WHITE" will cost for "COL_LGREEN"$200 per your bid sir, "COL_WHITE"Just try your price"COL_RED" is fast");
+      
+    }
+    else
+    {
+      SendClientMessage(playerid, COLOR_WHITE, "INFO: you are not joinned the auction");
+    }
+    
+
+  }
+
+	//SendClientMessage(playerid, COLOR_WHITE, "Function waktu server works");
+
 	// membuat fungsi progress bar jadi berjalan menuju 100 persen
 	if(pInfo[playerid][pStatusLoadingBar] == 1) // artinya sedang ada loading
 	{
@@ -6726,33 +7547,7 @@ public WaktuServer(playerid, closestcar)
     	
     }
 
-	if(IsPlayerInRangeOfPoint(playerid, Float:15.0, 2152.647216, -1735.895996, 17.400230))
-	{ 
-		MoveDynamicObject(PintuGarasiMechanic, 2152.647216, -1735.895996, 17.400230, Float:2.0,  0.000000, 85.000000, 90.000000);
-		// ketika pintu garasi di buka
-		if(IsPlayerInAnyVehicle(playerid))
-		{
-			ToggleHood(GetPlayerVehicleID(playerid), VEHICLE_PARAMS_ON);
-		}
-		MoveDynamicObject(DongkratMobilMechanic, 2151.989501, -1729.435058, 11.610030+1, Float:0.01, 0.000000, 0.000000, 0.000000);
-		// ini dongkrak di naikkan
-		MoveDynamicObject(PeneranganMobilMechanic, 2152.0371,-1726.3260,12.9692, Float:0.01, 0.0000,0.0000,4.8428);
-		
-		//cmd_makan(playerid);
-	}
-	else
 
-	{
-		MoveDynamicObject(PintuGarasiMechanic, 2152.632812, -1733.791625, 14.466965, Float:2.0,  0.599999, 0.899998, 89.599990);
-		
-		// ini kalau pintu sudah di tutup.
-		
-		MoveDynamicObject(DongkratMobilMechanic, 2151.9052,-1729.4147,10.7400, Float:0.1,  0.0000,0.9000,0.7433);
-		// ini dongkrak di turunkan
-
-		MoveDynamicObject(PeneranganMobilMechanic, 2156.474121, -1734.285278, 12.558380, Float:1.0, 0.000000, 0.000000, 0.000000);
-		
-	}
 
 	if(IsPlayerInAnyVehicle(playerid))
 	{
@@ -6797,7 +7592,7 @@ public WaktuServer(playerid, closestcar)
     }
 
 
-
+	/*
 	static warna = 0;
     new str[32];
     if(warna == 5) format(str, sizeof(str), "~p~DuniaPutu Corp."), warna = 0;
@@ -6839,6 +7634,8 @@ public WaktuServer(playerid, closestcar)
 
     format(string, sizeof string, "%02d, %s, %d", date[0],month,date[2]);//TGL
     TextDrawSetString(UI[2], string);
+
+	*/
 
     // update data panel kecepatan kendaraan
     new vehicleid = GetPlayerVehicleID(playerid);
@@ -6891,14 +7688,14 @@ public WaktuServer(playerid, closestcar)
     	TextDrawHideForPlayer(playerid, Text:TeksInfoGreenZone);
     }
 
-
-    
-
 }
 
 forward GantiWarna(playerid);
 public GantiWarna(playerid) 
 {
+  //SendClientMessage(playerid, COLOR_WHITE, "Function gantiwarna works.");
+
+
     if(GetPlayerVirtualWorld(playerid) == 0)
     {
     	if(GetPlayerInterior(playerid) == 0)
@@ -7048,7 +7845,99 @@ TabListHeadersDialogTest(playerid)
 
 public OnPlayerSpawn(playerid)
 {
-	
+  
+	if(IsPlayerNPC(playerid))
+	{
+		new name[MAX_PLAYER_NAME];
+		GetPlayerName(playerid,name,sizeof(name));
+		if(!strcmp(name,"[BOT]orang",false))
+		{
+			SetPlayerSkin(playerid, 187);
+			cmd_robberpack(playerid);
+			CreateDynamic3DTextLabel("Tukang Nasi Goreng", COLOR_WHITE, 0.0, 0.0, 0.0, 50.0, playerid);
+			
+			new String[100];
+	    	format(String, 100, "Seharusnya NPC bernama %s sudah spawn di world dan interior 0 "COL_GREEN" Coba cek log server ", GetRPName(playerid));
+	    	SendClientMessage(playerid, COLOR_RED, String);
+	    	printf(String);
+	    	TogglePlayerControllable(playerid, 1);
+			
+			
+		}
+		
+    
+
+		GetPlayerName(playerid,name,sizeof(name));
+		if(!strcmp(name,"[BOT]Pemotor",false))
+		{
+			PutPlayerInVehicle(playerid,Pemotor_vehicle,0);
+			print("\n--------------------------------------");
+			printf("\n NPC sudah berhasil naik motor \n");
+			print("\n--------------------------------------");
+			SetPlayerSkin(playerid, 188);
+			//PutPlayerInVehicle(playerid,npc_name_here_vehicle,0);
+			//CreateDynamic3DTextLabel("Putu_Ganteng", COLOR_WHITE, Float:0.0, Float:0.0, Float:0.0, Float:10.0, playerid,  INVALID_VEHICLE_ID,  0,0, 0, playerid, STREAMER_3D_TEXT_LABEL_SD,  -1, 0);
+			CreateDynamic3DTextLabel("Si Pembalap Naik Motor", COLOR_WHITE, 0.0, 0.0, 0.0, 50.0, playerid);
+			CreateDynamic3DTextLabel("Motornya NPC", COLOR_ME, 0.0, 0.0, 0.0, 50.0, INVALID_PLAYER_ID ,Pemotor_vehicle);
+
+			
+		}
+		
+		GetPlayerName(playerid,name,sizeof(name));
+		if(!strcmp(name,"[BOT]BusBandara",false))
+		{
+			PutPlayerInVehicle(playerid,BusBandara_vehicle,0);
+			print("\n--------------------------------------");
+			printf("\n NPC sudah berhasil naik bus \n");
+			print("\n--------------------------------------");
+			SetPlayerSkin(playerid, 189);
+			//PutPlayerInVehicle(playerid,npc_name_here_vehicle,0);
+			//CreateDynamic3DTextLabel("Putu_Ganteng", COLOR_WHITE, Float:0.0, Float:0.0, Float:0.0, Float:10.0, playerid,  INVALID_VEHICLE_ID,  0,0, 0, playerid, STREAMER_3D_TEXT_LABEL_SD,  -1, 0);
+			CreateDynamic3DTextLabel("Pegawai Bus Bandara", COLOR_WHITE, 0.0, 0.0, 0.0, 50.0, playerid);
+			CreateDynamic3DTextLabel("[PAPAN] Bus bandara tarif \n terbaik untuk anda tuan", COLOR_ME, 0.0, 0.0, 0.0, 50.0, INVALID_PLAYER_ID , BusBandara_vehicle);
+
+			
+		}
+		/*
+		GetPlayerName(playerid,name,sizeof(name));
+		if(!strcmp(name,"[BOT]GasStationStaff",false))
+		{
+			SetPlayerSkin(playerid, 190);
+			
+			//PutPlayerInVehicle(playerid,npc_name_here_vehicle,0);
+			//CreateDynamic3DTextLabel("Putu_Ganteng", COLOR_WHITE, Float:0.0, Float:0.0, Float:0.0, Float:10.0, playerid,  INVALID_VEHICLE_ID,  0,0, 0, playerid, STREAMER_3D_TEXT_LABEL_SD,  -1, 0);
+			CreateDynamic3DTextLabel("GasStationStaff", COLOR_WHITE, 0.0, 0.0, 0.0, 50.0, playerid);
+			
+			new String[100];
+	    	format(String, 100, "Spawned NPC name %s sudah spawn di world dan interior 0 "COL_GREEN" Coba cek log server ", GetRPName(playerid));
+	    	SendClientMessage(playerid, COLOR_RED, String);
+	    	printf(String);
+	    	TogglePlayerControllable(playerid, 1);
+			TogglePlayerSpectating(playerid, 0);
+		}
+
+		GetPlayerName(playerid,name,sizeof(name));
+		if(!strcmp(name,"[BOT]BusInTerminal",false))
+		{
+			PutPlayerInVehicle(playerid,BusInTerminal_vehicle,0);
+			print("\n--------------------------------------");
+			printf("\n NPC Terminal bus was running\n");
+			print("\n--------------------------------------");
+			SetPlayerSkin(playerid, 191);
+			//PutPlayerInVehicle(playerid,npc_name_here_vehicle,0);
+			//CreateDynamic3DTextLabel("Putu_Ganteng", COLOR_WHITE, Float:0.0, Float:0.0, Float:0.0, Float:10.0, playerid,  INVALID_VEHICLE_ID,  0,0, 0, playerid, STREAMER_3D_TEXT_LABEL_SD,  -1, 0);
+			CreateDynamic3DTextLabel("BusInTerminal", COLOR_WHITE, 0.0, 0.0, 0.0, 50.0, playerid);
+			CreateDynamic3DTextLabel("**[BOARD]** Wellcome Terminal \n Luxury Service for you", COLOR_ME, 0.0, 0.0, 0.0, 50.0, INVALID_PLAYER_ID , BusInTerminal_vehicle);
+
+			
+		}
+		*/
+		return 1;
+	}
+
+
+
+
 	SetPlayerSkin(playerid, pInfo[playerid][pSkin]);
 	new dapatkanIDdiMySQL[500];
 	format(dapatkanIDdiMySQL, 500, "SELECT * FROM `playerdata` WHERE `nick` = '%s' LIMIT 1", pInfo[playerid][Nick]); // now here check the database if the player has given the proper password.HTTP
@@ -7064,6 +7953,7 @@ public OnPlayerSpawn(playerid)
     	TextDrawShowForPlayer(playerid,UI[1]);	
     	TextDrawShowForPlayer(playerid,UI[2]);
     	TextDrawShowForPlayer(playerid,UI[3]);	
+    		
 
 
     	TogglePlayerSpectating(playerid, 0);
@@ -7075,66 +7965,66 @@ public OnPlayerSpawn(playerid)
     	
 
     	SetPlayerPos(playerid, Float:pInfo[playerid][pPx], Float:pInfo[playerid][pPy], Float:pInfo[playerid][pPz]);
-		SetPlayerVirtualWorld(playerid, pInfo[playerid][pWord]);
-		SetPlayerInterior(playerid, pInfo[playerid][pInterior]);
-		
+  		SetPlayerVirtualWorld(playerid, pInfo[playerid][pWord]);
+  		SetPlayerInterior(playerid, pInfo[playerid][pInterior]);
+  		
 
-		// meload data player weapon
+  		// meload data player weapon
 
-		new
-        weaponid,
-        ammo;
-        
-        
-    
-        new Query[250];
-   		format(Query, sizeof(Query), "SELECT weaponid, ammo FROM player_weapons WHERE id = %d;", pInfo[playerid][ID]);
-	    //mysql_query(MySQL:handle, const query[], bool:use_cache = true)
-	    mysql_query(MySQL:g_Sql, Query, bool:true);
+  		new
+          weaponid,
+          ammo;
+          
+          
+      
+          new Query[250];
+     		format(Query, sizeof(Query), "SELECT weaponid, ammo FROM player_weapons WHERE id = %d;", pInfo[playerid][ID]);
+  	    //mysql_query(MySQL:handle, const query[], bool:use_cache = true)
+  	    mysql_query(MySQL:g_Sql, Query, bool:true);
 
-	    for(new i, j = cache_num_rows(); i < j; i++) // loop through all the rows that were found
-	    {
-	        cache_get_value_index_int(i, 0, weaponid);
-			cache_get_value_index_int(i, 1, ammo);
-	        
-	        new infodataweapon[100];
-	        format(infodataweapon, 100, "* Data yang di muat adalah di antaranya senjata ID %i pelurunya %i, ",  weaponid, ammo);
-	        SendClientMessage(playerid, -1, infodataweapon);
+  	    for(new i, j = cache_num_rows(); i < j; i++) // loop through all the rows that were found
+  	    {
+  	       cache_get_value_index_int(i, 0, weaponid);
+  			   cache_get_value_index_int(i, 1, ammo);
+  	        
+  	        new infodataweapon[100];
+  	        format(infodataweapon, 100, "* Data yang di muat adalah di antaranya senjata ID %i pelurunya %i, ",  weaponid, ammo);
+  	        SendClientMessage(playerid, -1, infodataweapon);
 
 
-	        if(!(0 <= weaponid <= 46)) // check if weapon is valid (should be)
-	        {
-	            printf("[info] Warning: OnLoadPlayerWeapons - Unknown weaponid '%d'. Senjata ini ID nya tidak cocok melebihi 46.", weaponid);
-	            continue;
-	        }
-	        
-	        GivePlayerWeapon(playerid, weaponid, ammo); 
+  	        if(!(0 <= weaponid <= 46)) // check if weapon is valid (should be)
+  	        {
+  	            printf("[info] Warning: OnLoadPlayerWeapons - Unknown weaponid '%d'. Senjata ini ID nya tidak cocok melebihi 46.", weaponid);
+  	            continue;
+  	        }
+  	        
+  	        GivePlayerWeapon(playerid, weaponid, ammo); 
 
-	        //GivePlayerWeapon(playerid,WEAPON_M4,100);
+  	        //GivePlayerWeapon(playerid,WEAPON_M4,100);
 
-		    //GivePlayerWeapon(playerid,WEAPON_SHOTGUN,122);
+  		    //GivePlayerWeapon(playerid,WEAPON_SHOTGUN,122);
 
-		    //GivePlayerWeapon(playerid,WEAPON_AK47,132);
+  		    //GivePlayerWeapon(playerid,WEAPON_AK47,132);
 
-		    // load data bar lapar
-		    //CreatePlayerProgressBar(playerid, Float:x, Float:y, Float:width = 55.5, Float:height = 3.2, colour = 0xFF1C1CFF, Float:max = 100.0, direction = BAR_DIRECTION_RIGHT)
-		    pInfo[playerid][pLaparBar] = PlayerBar:CreatePlayerProgressBar(playerid, Float:572.00, Float:340.00, Float:56.50, Float:4.20, COLOR_GREEN, Float:100.0, BAR_DIRECTION_RIGHT);
-		   	// untuk membuat progressbar loading
-		    pInfo[playerid][pLoadingBar] = PlayerBar:CreatePlayerProgressBar(playerid, Float:260.00, Float:210.00, Float:120.50, Float:16.20, COLOR_WHITE, Float:100.0, BAR_DIRECTION_RIGHT);
-		   	SetPlayerProgressBarValue(playerid, PlayerBar:pInfo[playerid][pLoadingBar], Float:1.0);
+  		    // load data bar lapar
+  		    //CreatePlayerProgressBar(playerid, Float:x, Float:y, Float:width = 55.5, Float:height = 3.2, colour = 0xFF1C1CFF, Float:max = 100.0, direction = BAR_DIRECTION_RIGHT)
+  		    pInfo[playerid][pLaparBar] = PlayerBar:CreatePlayerProgressBar(playerid, Float:572.00, Float:340.00, Float:56.50, Float:4.20, COLOR_GREEN, Float:100.0, BAR_DIRECTION_RIGHT);
+  		   	// untuk membuat progressbar loading
+  		    pInfo[playerid][pLoadingBar] = PlayerBar:CreatePlayerProgressBar(playerid, Float:260.00, Float:210.00, Float:120.50, Float:16.20, COLOR_WHITE, Float:100.0, BAR_DIRECTION_RIGHT);
+  		   	SetPlayerProgressBarValue(playerid, PlayerBar:pInfo[playerid][pLoadingBar], Float:1.0);
 
-		   	//CreatePlayerProgressBar(playerid, Float:x, Float:y, Float:width = 55.5, Float:height = 3.2, colour = 0xFF1C1CFF, Float:max = 100.0, direction = BAR_DIRECTION_RIGHT)
-		    ShowPlayerProgressBar(playerid, PlayerBar:pInfo[playerid][pLaparBar]);
-		    //SetPlayerProgressBarValue(playerid, PlayerBar:barid, Float:value)
-        	SetPlayerProgressBarValue(playerid, PlayerBar:pInfo[playerid][pLaparBar], Float:80.0);
+  		   	//CreatePlayerProgressBar(playerid, Float:x, Float:y, Float:width = 55.5, Float:height = 3.2, colour = 0xFF1C1CFF, Float:max = 100.0, direction = BAR_DIRECTION_RIGHT)
+  		    ShowPlayerProgressBar(playerid, PlayerBar:pInfo[playerid][pLaparBar]);
+  		    //SetPlayerProgressBarValue(playerid, PlayerBar:barid, Float:value)
+          	SetPlayerProgressBarValue(playerid, PlayerBar:pInfo[playerid][pLaparBar], Float:80.0);
 
-        	
-	    }
+          	
+  	    }
 
-	    
-	    SetPlayerArmedWeapon(playerid, 0);
-	    
-		ResetPlayerMoney(playerid);
+  	    
+  	    SetPlayerArmedWeapon(playerid, 0);
+  	    
+  		ResetPlayerMoney(playerid);
 	    GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
 	    new pesan[100];
 	    format(pesan, 100, " Lokasinya jadi spawn di %f, %f, %f Sementara masalah ID mobilnya adalah %i", Float:pInfo[playerid][pPx], Float:pInfo[playerid][pPy], Float:pInfo[playerid][pPz], pInfo[playerid][pTipeMobil]);
@@ -7144,26 +8034,31 @@ public OnPlayerSpawn(playerid)
 
 	    // ini adalah fungsi ketika ingin load data kendaraan saat akan spawn
 
-	    if(!IsValidVehicle(mobilplayer1[playerid]))
-    	{
-    		mobilplayer1[playerid] = AddStaticVehicle( pInfo[playerid][pTipeMobil], Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz], Float:0.0, -1, -1);
-			SetVehicleVirtualWorld(mobilplayer1[playerid], 0);
-			LinkVehicleToInterior(mobilplayer1[playerid], 0);
-	    	SetVehicleHealth(mobilplayer1[playerid], Float:pInfo[playerid][pHealtM1]);
-    	}
-    	else
-    	{
-    		SendClientMessage(playerid, -1, "Mobil player slot satu sudah memang ada terspawn.");
-    	}
+    if(!IsValidVehicle(VehiclePlayerPrimary[playerid][VehID]))
+    {
+        VehiclePlayerPrimary[playerid][VehID] = AddStaticVehicle( pInfo[playerid][pTipeMobil], Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz], Float:0.0, -1, -1);
+        SetVehicleVirtualWorld(VehiclePlayerPrimary[playerid][VehID], 0);
+        LinkVehicleToInterior(VehiclePlayerPrimary[playerid][VehID], 0);
+        SetVehicleHealth(VehiclePlayerPrimary[playerid][VehID], Float:pInfo[playerid][pHealtM1]);
+        SendClientMessage(playerid, -1, "VEHICLE: Player vehicle has changed for health from SQL and spawned.");
+    }
+    else
+    {
+        SendClientMessage(playerid, -1, "VEHICLE: Player vehicle has valid and exist!");
+    }
 
-	    if(IsPlayerInRangeOfPoint(playerid, Float:6, Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz]))
-	    { 
-	    	// langsung masuk mobil di spawn
-	    	//AddStaticVehicle(modelid, Float:spawn_x, Float:spawn_y, Float:spawn_z, Float:z_angle, color1, color2)
+    if(IsPlayerInRangeOfPoint(playerid, Float:6, Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz]))
+    { // if the player near his vehicle while spawn
+      // Automatic enter vehicle sit ID 0
+      
+      PutPlayerInVehicle(playerid, VehiclePlayerPrimary[playerid][VehID], 0);
 
-    		PutPlayerInVehicle(playerid, mobilplayer1[playerid], 0);
+    }
+  
 
-	    }
+
+    
+    
 
 
 
@@ -7193,7 +8088,7 @@ public OnPlayerSpawn(playerid)
 	    cache_get_value_int(0, "pinterior", pInfo[playerid][pInterior]); SetPlayerInterior(playerid, pInfo[playerid][pInterior]);
 	    
 	    SendClientMessage(playerid, -1, pInfo[playerid][pPosisiTerakhir]);
-	    cache_get_value_name(0, "password", pInfo[playerid][Sandi], 50);
+	    cache_get_value_name(0, "password", pInfo[playerid][PasswordAccount], 50);
 	    
 	    
 	    
@@ -7202,7 +8097,7 @@ public OnPlayerSpawn(playerid)
 	    TogglePlayerControllable(playerid, 0); // supaya karakter yang spawn itu diam tidak bergerak
 	 	unfreezeplayer = playerid; // variabel playerid itu sama dengan variabel unfreeplayer
 	 	SetTimer("UnFreezeMe",4000,0); 
-	    //cache_get_value_name(0, "password", pInfo[playerid][Sandi]);
+	    //cache_get_value_name(0, "password", pInfo[playerid][PasswordAccount]);
 	    pInfo[playerid][pScore] = pInfo[playerid][pScore]+1;
 	     // kasi skornya dia.
 	    
@@ -7222,7 +8117,6 @@ public OnPlayerSpawn(playerid)
 	    return 1;
     }
 
-	
     ResetPlayerMoney(playerid);
 	GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
 	//PindahinOrangnya(playerid, pInfo[playerid][pPosisiTerakhir]);
@@ -7391,8 +8285,58 @@ perintahpaku(const string[], &index)
 
 // on player connect tempat paling bagus menghapus segala object yang di tambah ataupun yang ada.
 
+public OnNPCConnect(myplayerid)
+{
+	new String[100];
+	format(String, 100, "OnNPCConnect bernama %s "COL_GREEN" Coba cek dulu di bandara ", GetRPName(myplayerid));
+
+	printf(String);
+}
+
 public OnPlayerConnect(playerid)
 {	
+  RemoveOldAuctionMartBuilding(playerid); // mapping
+  RemoveIdlewoodBuilding(playerid); //mapping
+	if(IsPlayerNPC(playerid)) return 1; 
+
+    pInfo[playerid][pSeconds] = 0;
+            pInfo[playerid][pMinutes] = 0;
+            pInfo[playerid][pHours] = 0;
+
+  SetTimerEx("ChangeServerEverySecond", 1000, true, "i", playerid);
+  SetTimerEx("GantiWarna",  5000, true, "i", playerid);
+
+	/*
+	if(IsPlayerNPC(playerid))
+	{
+		
+			//PutPlayerInVehicle(playerid,npc_name_here_vehicle,0);
+			new String[100];
+	    	format(String, 100, "terkoneksi NPC bernama %s "COL_GREEN" Coba cek dulu di bandara ", GetRPName(playerid));
+	    
+	    	printf(String);
+	    	SetPlayerInterior(playerid, 0);
+			SetPlayerVirtualWorld(playerid, 0);
+
+    		SetSpawnInfo(0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0);
+    		TogglePlayerControllable(playerid, 1);
+			TogglePlayerSpectating(playerid, 0);
+			
+			
+			StatusBaruLogin[playerid] = 1;
+		
+			pInfo[playerid][Logged] = 1;
+			
+			return cmd_spawn(playerid);
+			if(!PLAYER_STATE_SPAWNED)
+			{
+				OnPlayerConnect(playerid);
+				return 1;
+			}
+
+	}
+	*/
+
 	SelectTextDraw(playerid, COLOR_BLUE);
 
 	SetSpawnInfo(0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0);
@@ -7455,47 +8399,51 @@ public OnPlayerConnect(playerid)
 
 
 	
-	//ConnectMySQL();
+    //ConnectMySQL();
     GetPlayerName(playerid, pInfo[playerid][Nick], 24);
-     //gets the player's name and stores it to to your enum pInfo[playerid][Nick]
+    //gets the player's name and stores it to to your enum pInfo[playerid][Nick]
     GetPlayerIp(playerid, pInfo[playerid][IP], 16); //Gets the IP of the player and stores it to pInfo[playerid][IP]
-   // mysql_log( ERROR | WARNING ); // we query the statement above
-   // mysql_escape_string(pInfo[playerid][Nick], pInfo[playerid][Nick]); 
+    // mysql_log( ERROR | WARNING ); // we query the statement above
+    // mysql_escape_string(pInfo[playerid][Nick], pInfo[playerid][Nick]); 
     //fopen("logs/pay.log", io_write);
 
-    
+
     //mysql_connect_file("mysql.ini");// now we have to escape the name inorder to escape any mysql injections. ([url]http://en.wikipedia.org/wiki/SQL_injection[/url])
-   	//format(Query, 500, "SELECT `nick` FROM `playerdata` WHERE `nick` COLLATE latin1_general_cs = '%s' LIMIT 1", pInfo[playerid][Nick]); // here we are selecting the name of the player who logged in from the database.
+    //format(Query, 500, "SELECT `nick` FROM `playerdata` WHERE `nick` COLLATE latin1_general_cs = '%s' LIMIT 1", pInfo[playerid][Nick]); // here we are selecting the name of the player who logged in from the database.
     //mysql_query(g_Sql, Query, true);
 
 
-    new passworddariuser[500];
-    format(passworddariuser, 500, "SELECT * FROM `playerdata` WHERE `nick` COLLATE latin1_general_cs = '%s' LIMIT 1", pInfo[playerid][Nick]); // now here check the database if the player has given the proper password.HTTP
-	//mysql_query(MySQL:handle, const query[], bool:use_cache = true)
-	mysql_query(MySQL:g_Sql, passworddariuser, bool:true);
+    new GetDataFromPlayerConnect[500];
+    format(GetDataFromPlayerConnect, 500, "SELECT * FROM `playerdata` WHERE `nick` COLLATE latin1_general_cs = '%s' LIMIT 1", pInfo[playerid][Nick]); // now here check the database if the player has given the proper password.HTTP
+    //mysql_query(MySQL:handle, const query[], bool:use_cache = true)
+    mysql_query(MySQL:g_Sql, GetDataFromPlayerConnect, bool:true);
 
-	//new datapw[250];
+    //new datapw[250];
     //format(datapw, sizeof(datapw), "SELECT * FROM `playerdata` WHERE `nick` COLLATE latin1_general_cs = '%s' LIMIT 1", pInfo[playerid][Nick]);
     //mysql_query(g_Sql, datapw);
 
-	
-	cache_get_value_int(0, "id", pInfo[playerid][ID]); 
-	cache_get_value_name(0, "password", pInfo[playerid][Sandi], 50);
-	cache_get_value_name(0, "UCP", pInfo[playerid][UCP], 20);
-	cache_get_value_int(0, "JobMechanic", pInfo[playerid][pJobMechanic]);
-	cache_get_value_int(0, "skin", pInfo[playerid][pSkin]);
-	cache_get_value_int(0, "component", pInfo[playerid][pComponent]);
-	cache_get_value_name_float(0, "ppx", Float:pInfo[playerid][pPx]); 
+
+    cache_get_value_int(0, "id", pInfo[playerid][ID]); 
+    cache_get_value_name(0, "password", pInfo[playerid][PasswordAccount], 50);
+    cache_get_value_name(0, "UCP", pInfo[playerid][UCP], 20);
+    cache_get_value_int(0, "JobMechanic", pInfo[playerid][pJobMechanic]);
+    cache_get_value_int(0, "skin", pInfo[playerid][pSkin]);
+    cache_get_value_int(0, "component", pInfo[playerid][pComponent]);
+    cache_get_value_name_float(0, "ppx", Float:pInfo[playerid][pPx]); 
     cache_get_value_name_float(0, "ppy", Float:pInfo[playerid][pPy]);
     cache_get_value_name_float(0, "ppz", Float:pInfo[playerid][pPz]);
     cache_get_value_name_float(0, "pmx", Float:pInfo[playerid][pMx]); 
     cache_get_value_name_float(0, "pmy", Float:pInfo[playerid][pMy]);
     cache_get_value_name_float(0, "pmz", Float:pInfo[playerid][pMz]);
     cache_get_value_name_float(0, "healthm1", Float:pInfo[playerid][pHealtM1]);
-	cache_get_value_int(0, "tipemobil", pInfo[playerid][pTipeMobil]);
-	new inputtext[600];
-	new yangdiinput[600];
-	format(yangdiinput, 600, "Anda %s selaku kode %i mengetik password "COL_RED" %s padahal password anda %s ", pInfo[playerid][Nick], pInfo[playerid][ID], inputtext, pInfo[playerid][Sandi]);
+    cache_get_value_int(0, "tipemobil", pInfo[playerid][pTipeMobil]);
+
+
+    printf("Vehicle ID %d has loaded while user %s connected", pInfo[playerid][pTipeMobil], pInfo[playerid][Nick]);
+
+    new inputtext[600];
+    new yangdiinput[600];
+	format(yangdiinput, 600, "Anda %s selaku kode %i mengetik password "COL_RED" %s padahal password anda %s ", pInfo[playerid][Nick], pInfo[playerid][ID], inputtext, pInfo[playerid][PasswordAccount]);
     SendClientMessage(playerid, COLOR_SPRINGGREEN, yangdiinput); 
     //cache_get_result_count(); // next we store the result inorder for it to be used further ahead.
 
@@ -7514,7 +8462,7 @@ public OnPlayerConnect(playerid)
 		
 		
 		// dialog yang di hilangkan.
-        //ShowPlayerDialog(playerid, 1, DIALOG_STYLE_PASSWORD, ""COL_GREEN"Selamat Datang Mari Login via Akun", "\n \n"COL_RED"Nama user ini sudah di daftarkan mohon sebutkan sandi yang cocok:\n\n\n", "Login", "");
+        //ShowPlayerDialog(playerid, 1, DIALOG_STYLE_PASSWORD, ""COL_GREEN"Selamat Datang Mari Login via Akun", "\n \n"COL_RED"Nama user ini sudah di daftarkan mohon sebutkan PasswordAccount yang cocok:\n\n\n", "Login", "");
         pInfo[playerid][Logged] = 0;
         
 		 
@@ -8007,7 +8955,26 @@ stock ApplyAnimationEx(playerid, animlib[], animname[], Float:fDelta, loop, lock
 }
 
 
+public OnPlayerRequestSpawn(playerid)
+{
+	if(IsPlayerNPC(playerid)) return 1; 
+  SetSpawnInfo(0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0);
+  SEM(playerid, "OnPlayerRequestSpawn");
 
+	if(!IsPlayerNPC(playerid))
+	{
+    TogglePlayerSpectating(playerid, 1);
+		//return cmd_spawn(playerid);
+		SendClientMessage(playerid, -1, "You are detect was not an NPC sir");
+		if(!PLAYER_STATE_SPAWNED)
+		{
+			SpawnPlayer(playerid);
+			return cmd_rumahsakit(playerid);
+		}
+		return cmd_rumahsakit(playerid);
+	}
+	
+}
 	
 
 
@@ -8019,47 +8986,71 @@ stock ApplyAnimationEx(playerid, animlib[], animname[], Float:fDelta, loop, lock
 
 public OnPlayerRequestClass(playerid, classid)
 {
-	  
-	SetPlayerCameraPos(playerid, Float:1494.7446, Float:-2293.4832, Float:18.2991);
-    SetPlayerCameraLookAt(playerid, Float:1494.7446, Float:-2293.4832, Float:18.29911557, CAMERA_MOVE);
 
-	if(IsPlayerNPC(playerid)) return 1;
+          StatusBaruLogin[playerid] = 1;
+        	if(IsPlayerNPC(playerid)) return 1; 
+          SetPlayerInterior(playerid, 0);
+          SetPlayerVirtualWorld(playerid, 0);
+          SpawnPlayer(playerid);
+          //new _ALS, _ALS_go; OnPlayerSpawn(playerid);
+          return 1;
+          TogglePlayerSpectating(playerid, 1);
+          SpawnPlayer(playerid);
+          /*
+          SetSpawnInfo(0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0);
+          SetPlayerCameraPos(playerid, Float:1494.7446, Float:-2293.4832, Float:18.2991);
+          SetPlayerCameraLookAt(playerid, Float:1494.7446, Float:-3763.4832, Float:12.29911557, CAMERA_MOVE);
+          */
+          
+          
+          cmd_rumahsakit(playerid);
+          SEM(playerid, "OnPlayerRequestClass");
+        	if(!PLAYER_STATE_SPAWNED)
+        	{
+
+            
+        		SpawnPlayer(playerid);
+        		return 1;
+        	}
+        	
+
+        	
 
 
-	/*
-	if(gPlayerHasCitySelected[playerid]) 
-	{
-		//ClassSel_SetupCharSelection(playerid);
-		SetPlayerSkin(playerid, 187);
-		return 1;
-	} 
-	else 
-	{
-		if(GetPlayerState(playerid) != PLAYER_STATE_SPECTATING) 
-		{
-			//TogglePlayerSpectating(playerid,1);
-    		//TextDrawShowForPlayer(playerid, txtClassSelHelper);
-    		gPlayerCitySelection[playerid] = -1;
-		}
-  	}
-	*/
-    
+        	/*
+        	if(gPlayerHasCitySelected[playerid]) 
+        	{
+        		//ClassSel_SetupCharSelection(playerid);
+        		SetPlayerSkin(playerid, 187);
+        		return 1;
+        	} 
+        	else 
+        	{
+        		if(GetPlayerState(playerid) != PLAYER_STATE_SPECTATING) 
+        		{
+        			//TogglePlayerSpectating(playerid,1);
+            		//TextDrawShowForPlayer(playerid, txtClassSelHelper);
+            		gPlayerCitySelection[playerid] = -1;
+        		}
+          	}
+        	*/
+            
 
-    // scripting tempat orang harusnya mati
-    if(StatusPlayerTerkill[playerid] == 1)
-	{
-		SpawnPlayer(playerid);
-		StatusPlayerTerkill[playerid] = 0;
-	    PindahinOrangnya(playerid, Float:-44.9554, Float:142.0473, Float:1000.0493);
-		ApplyAnimation(playerid, "CRACK", "crckdeth2",4.0,0,0,0,0,0);
-		ShowPlayerDialog(playerid,RESPONDDIALOGKOSONG,DIALOG_STYLE_MSGBOX,"{EE7777}Pingsan sudah lama berlangsung\n","\n*"COL_RED" Mohon istrihat tidur sebentar.\n\nJagalah kesehatan anda karena itu penting!","OK","");	
-		printf("* Di temukan %s telah pingsan dan bangun di rumah sakit sekitar san fierro, mohon untuk di jenguk segera. %s", GetRPName(playerid));
-		SetPlayerTime(playerid, 0, 0);
-		SetPlayerVirtualWorld(playerid, -1);
-		SetPlayerInterior(playerid, -1);
-	    SetPlayerSkin(playerid, 187);
-	    return 1;
-	}
+            // scripting tempat orang harusnya mati
+            if(StatusPlayerTerkill[playerid] == 1)
+        	{
+        		SpawnPlayer(playerid);
+        		StatusPlayerTerkill[playerid] = 0;
+        	    PindahinOrangnya(playerid, Float:-44.9554, Float:142.0473, Float:1000.0493);
+        		ApplyAnimation(playerid, "CRACK", "crckdeth2",4.0,0,0,0,0,0);
+        		ShowPlayerDialog(playerid,RESPONDDIALOGKOSONG,DIALOG_STYLE_MSGBOX,"{EE7777}Pingsan sudah lama berlangsung\n","\n*"COL_RED" Mohon istrihat tidur sebentar.\n\nJagalah kesehatan anda karena itu penting!","OK","");	
+        		printf("* Di temukan %s telah pingsan dan bangun di rumah sakit sekitar san fierro, mohon untuk di jenguk segera. %s", GetRPName(playerid));
+        		SetPlayerTime(playerid, 0, 0);
+        		SetPlayerVirtualWorld(playerid, -1);
+        		SetPlayerInterior(playerid, -1);
+        	    SetPlayerSkin(playerid, 187);
+        	    return 1;
+        	}
 
 
 
@@ -9961,7 +10952,7 @@ public OnPlayerDisconnect(playerid, reason)
 
     //new Float:mobilx, Float:mobily, Float:mobilz;
     //GetVehiclePos(vehicleid, Float:x, Float:y, Float:z)
-    GetVehiclePos(mobilplayer1[playerid], Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz]);
+    GetVehiclePos(VehiclePlayerPrimary[playerid][VehID], Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz]);
 
     //new teksposisimobil[100];
     //format(teksposisimobil, 100, "%f, %f, %f", mobilx, mobily, mobilz);
@@ -9969,19 +10960,19 @@ public OnPlayerDisconnect(playerid, reason)
 
 
 
-    pInfo[playerid][Mvw1] = GetVehicleVirtualWorld(mobilplayer1[playerid]);
+    pInfo[playerid][Mvw1] = GetVehicleVirtualWorld(VehiclePlayerPrimary[playerid][VehID]);
 
-    new simpanpword[100];
-    format(simpanpword, sizeof(simpanpword), "UPDATE `playerdata` SET `pword` = '%i', `vwm1` = '%i' WHERE `id` = '%d' LIMIT 1", pInfo[playerid][pWord], pInfo[playerid][Mvw1], pInfo[playerid][ID]);
-    mysql_query(MySQL:g_Sql, simpanpword, bool:true);
+    new SaveWordPlayerPosition[100];
+    format(SaveWordPlayerPosition, sizeof(SaveWordPlayerPosition), "UPDATE `playerdata` SET `pword` = '%i', `vwm1` = '%i' WHERE `id` = '%d' LIMIT 1", pInfo[playerid][pWord], pInfo[playerid][Mvw1], pInfo[playerid][ID]);
+    mysql_query(MySQL:g_Sql, SaveWordPlayerPosition, bool:true);
 
     
 
-    new simpanpinterior[100];
-    format(simpanpinterior, sizeof(simpanpinterior), "UPDATE `playerdata` SET `pinterior` = '%i' WHERE `id` = '%d' LIMIT 1",pInfo[playerid][pInterior],pInfo[playerid][ID]);
-    mysql_query(MySQL:g_Sql, simpanpinterior, bool:true);
+    new SaveInteriorPlayerPosition[100];
+    format(SaveInteriorPlayerPosition, sizeof(SaveInteriorPlayerPosition), "UPDATE `playerdata` SET `pinterior` = '%i' WHERE `id` = '%d' LIMIT 1",pInfo[playerid][pInterior],pInfo[playerid][ID]);
+    mysql_query(MySQL:g_Sql, SaveInteriorPlayerPosition, bool:true);
 
-    printf("Di tempat word %i di interior %i ",pInfo[playerid][pWord], pInfo[playerid][pInterior]);
+    printf("SAVED: Player Word %i and interior %i from %s", pInfo[playerid][pWord], pInfo[playerid][pInterior], GetRPName(playerid));
 
     /*
     new tipemobil[500];
@@ -10009,13 +11000,24 @@ public OnPlayerDisconnect(playerid, reason)
  
     SendClientMessage(playerid, 0xFFFFFFFF, vehpostext);
     // ini untuk kasi tau kalau sudah selesai penyembutan posisinya.
-    new Float:healthmp1;
-    GetVehicleHealth(mobilplayer1[playerid], Float:healthmp1);
 
-    format(simpanpinterior, sizeof(simpanpinterior), "UPDATE `playerdata` SET `healthm1` = '%f' WHERE `id` = '%d' LIMIT 1", Float:healthmp1,pInfo[playerid][ID]);
-    mysql_query(MySQL:g_Sql, simpanpinterior, bool:true);
+    //================================================================================
+    // this function for get vehicle data status value healt
+    new Float:healthmp1; // variabel float for healt
+    GetVehicleHealth(VehiclePlayerPrimary[playerid][VehID], Float:healthmp1); // with ID car player id get from player connect
+    // saving to mysql
+    format(Query, 500, "UPDATE `playerdata` SET `healthm1` = '%f' WHERE `id` = '%d' LIMIT 1", Float:healthmp1, pInfo[playerid][ID]);
+    mysql_query(MySQL:g_Sql, Query, bool:true);
+    // notit to the SAMP server console
+    printf("The vehicle from player %s, with %s in engine value %f was saved on MYSQL_TYPE_LONG", GetRPName(playerid), VehiclePlayerPrimary[playerid][VehID], Float:healthmp1);
+    // information for console so the owner can be get notif instanly.
 
-    printf("Health kendaraan %i yang tersimpan adalah %f ", mobilplayer1[playerid], Float:healthmp1);
+    //================================================================================
+
+    format(SaveInteriorPlayerPosition, sizeof(SaveInteriorPlayerPosition), "UPDATE `playerdata` SET `healthm1` = '%f' WHERE `id` = '%d' LIMIT 1", Float:healthmp1,pInfo[playerid][ID]);
+    mysql_query(MySQL:g_Sql, SaveInteriorPlayerPosition, bool:true);
+
+    printf("Health kendaraan %i yang tersimpan adalah %f ", VehiclePlayerPrimary[playerid][VehID], Float:healthmp1);
     SavePlayer(playerid);
 
     return 1;
@@ -10025,12 +11027,31 @@ public OnPlayerDisconnect(playerid, reason)
 
 
 //------------------------------------------------
-GetRPName(playerid)
+stock GetRPName(playerid)
 {
     new RPName[MAX_PLAYER_NAME], i_pos;
     GetPlayerName(playerid, RPName, MAX_PLAYER_NAME);
     while ((i_pos = strfind(RPName, "_", false, i_pos)) != -1) RPName[i_pos] = ' ';
     return RPName;
+
+}
+
+stock GetDistanceToCar(playerid, veh, Float: posX = 0.0, Float: posY = 0.0, Float: posZ = 0.0) {
+
+	new
+	    Float: Floats[2][3];
+
+	if(posX == 0.0 && posY == 0.0 && posZ == 0.0) {
+		if(!IsPlayerInAnyVehicle(playerid)) GetPlayerPos(playerid, Floats[0][0], Floats[0][1], Floats[0][2]);
+		else GetVehiclePos(GetPlayerVehicleID(playerid), Floats[0][0], Floats[0][1], Floats[0][2]);
+	}
+	else {
+		Floats[0][0] = posX;	
+		Floats[0][1] = posY;
+		Floats[0][2] = posZ;
+	}
+	GetVehiclePos(veh, Floats[1][0], Floats[1][1], Floats[1][2]);
+	return floatround(floatsqroot((Floats[1][0] - Floats[0][0]) * (Floats[1][0] - Floats[0][0]) + (Floats[1][1] - Floats[0][1]) * (Floats[1][1] - Floats[0][1]) + (Floats[1][2] - Floats[0][2]) * (Floats[1][2] - Floats[0][2])));
 }
 
 
@@ -10055,23 +11076,6 @@ stock GetClosestCar(playerid, exception = INVALID_VEHICLE_ID)
     return target;
 }
 
-stock GetDistanceToCar(playerid, veh, Float: posX = 0.0, Float: posY = 0.0, Float: posZ = 0.0) {
-
-	new
-	    Float: Floats[2][3];
-
-	if(posX == 0.0 && posY == 0.0 && posZ == 0.0) {
-		if(!IsPlayerInAnyVehicle(playerid)) GetPlayerPos(playerid, Floats[0][0], Floats[0][1], Floats[0][2]);
-		else GetVehiclePos(GetPlayerVehicleID(playerid), Floats[0][0], Floats[0][1], Floats[0][2]);
-	}
-	else {
-		Floats[0][0] = posX;
-		Floats[0][1] = posY;
-		Floats[0][2] = posZ;
-	}
-	GetVehiclePos(veh, Floats[1][0], Floats[1][1], Floats[1][2]);
-	return floatround(floatsqroot((Floats[1][0] - Floats[0][0]) * (Floats[1][0] - Floats[0][0]) + (Floats[1][1] - Floats[0][1]) * (Floats[1][1] - Floats[0][1]) + (Floats[1][2] - Floats[0][2]) * (Floats[1][2] - Floats[0][2])));
-}
 
 new WormAttached[MAX_PLAYERS],FishingEquipped[MAX_PLAYERS],fish[MAX_PLAYERS],attachingw[MAX_PLAYERS],AttachWorm[MAX_PLAYERS],TimerFish[MAX_PLAYERS],Fishing[MAX_PLAYERS],TimerAttachWorm[MAX_PLAYERS];
 
@@ -10303,6 +11307,161 @@ public timerAttachWorm(playerid)
 	}
 	return 1;
 }
+
+CMD:fressmoney(playerid, params[])
+{
+  pInfo[playerid][pMoney] = 999999;
+  ResetPlayerMoney(playerid);
+  GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
+  new string[250];
+  format(string, sizeof(string), "* Anda di dompet %s di beri bonus PayDay sebesar "COL_GREEN"$ADMIN,"COL_LIGHTBLUE" From fixed system", GetRPName(playerid));
+  SendClientMessage(playerid, -1, string);
+  format(string, sizeof(string), "~g~+RICHED~n~%s",GetRPName(playerid));
+  GameTextForPlayer(playerid, string, 2000, 1);
+  return 1;
+}
+
+
+CMD:flock(playerid)
+{
+	if(IsPlayerInRangeOfPoint(playerid, Float:2.0,-42.049,148.570,998.049))
+	{
+		if(GetPlayerVirtualWorld(playerid) == -1 )
+		{
+			if(DoorStatus == 1)
+			{
+				
+				SendClientMessage(playerid, -1, ""COL_GREEN"FLAT:"COL_WHITE" Door now has locked bye your key.");
+				DestroyDynamicObject(DoorFlat);
+				DoorFlatClosed = CreateDynamicObject(1569,-42.049,148.570,998.049,0.000,0.000,0.000,-1,-1,-1,400.000,400.000);
+				SetDynamicObjectMaterial(DoorFlatClosed, 0, 14853, "paperchase_bits2", "ab_medbag", 0); 
+				DoorStatus=0;
+				Streamer_Update(playerid);
+				return 1;
+			}
+			else if(DoorStatus == 0)
+			{
+				SendClientMessage(playerid, -1, ""COL_GREEN"FLAT:"COL_WHITE" Door has open from now, stay safe with the key.");
+				DestroyDynamicObject(DoorFlatClosed);
+				DoorFlat = CreateDynamicObject(1502,-42.049,148.570,998.049,0.000,0.000,0.000,-1,-1,-1,400.000,400.000);
+				SetDynamicObjectMaterial(DoorFlat, 1, 14853, "paperchase_bits2", "ab_medbag", 0); 
+				SetDynamicObjectMaterial(DoorFlat, 0, 14853, "paperchase_bits2", "ab_medbag", 0); 
+				DoorStatus=1;
+				Streamer_Update(playerid);
+				return 1;
+			}
+		}
+		else
+		{
+			SendClientMessage(playerid, -1, ""COL_RED"ERROR:"COL_WHITE" Please find the right word ID and re command "COL_YELLOW"'/flock' ");
+		}
+	}
+	else
+	{
+		SendClientMessage(playerid, -1, ""COL_RED"ERROR:"COL_WHITE" Need to behind the door to use this coomand "COL_YELLOW"'/flock' ");
+	}
+	
+	
+
+	return 1;
+}
+
+
+CMD:auction(playerid, params[], inputtext[])
+{
+	new offering[2], string[250];
+	if(isnull(params)) return SendClientMessage(playerid, COLOR_ERROR, "USAGE"COL_YELLOW": '/auction ( offer/start/bid )'");
+	if(!strcmp(params, "offer", true, 4))
+	{
+		format(string, sizeof(string), "AUCTION: "COL_BLUE"%s"COL_GREEN" Please be patient "COL_WHITE" you in params data"COL_RED" /restar"COL_WHITE" to have a nice script.", params);
+			
+		SendClientMessage(playerid, -1, string);
+		
+		SendClientMessage(playerid, -1, "AUCTION: Dialog input is calling");
+		
+		//return 1;
+		ShowPlayerDialog(playerid, DIALOG_INPUT_offerINGAUCTION,	DIALOG_STYLE_INPUT, ""COL_WHITE"What is the item for auction sir?", "\n "COL_ORANGE"Just type on one word :\n\n", "Change", "Cancel");
+	}
+	if(isnull(Itemofferings))
+	{
+		SendClientMessage(playerid, COLOR_ERROR, "USAGE"COL_YELLOW": '/auction offer (Your Item Brand Company)'");
+    pInfo[playerid][JoinedAuction] = 0;
+    KillTimer(TimerLimitForAuction);
+    CountDownAuction = 0;
+		ShowPlayerDialog(playerid, DIALOG_INPUT_offerINGAUCTION,	DIALOG_STYLE_INPUT, ""COL_WHITE"What is the item for auction sir?", "\n "COL_ORANGE"Just type on one word :\n\n", "Change", "Cancel");
+		return 1;
+	} 
+	if(strcmp(params, "start", true) == 0)
+	{
+		SendClientMessage(playerid, COLOR_WHITE, "AUCTION: You have thinking to start a auction.");
+		
+    if(AuctionRunning == 0 | CountDownAuction == 0)
+		{
+      strunpack(WinnerOfAuction, "NO BODY", 20);
+			CountDownAuction = 10;
+			//TimerLimitForAuction = SetTimer("AuctionWasEnded", 10000, 0);
+			if(pInfo[playerid][JoinedAuction] == 0)
+      {
+        CountOfParticipants = CountOfParticipants+1;
+        format(string, sizeof(string), ""COL_WHITE"'%s'\n new joined auction \nfor price"COL_BLUE"$ %d ", GetRPName(playerid), BidPrice);
+        
+        SendClientMessageToAll( -1, string);
+        pInfo[playerid][JoinedAuction] = 1;
+      }
+			format(string, sizeof(string), "*"COL_LRED"Wellcome "COL_LGREEN"%s *\nstarting the auction offering \nfor item: "COL_WHITE"%s,\n"COL_LRED"on this auction.", GetRPName(playerid), Itemofferings);
+			UpdateDynamic3DTextLabelText(TempatDisplayIklan, COLOR_AQUAGREEN, string);
+      SetDynamicObjectMaterialText(layariklanbadara, 0, string, OBJECT_MATERIAL_SIZE_512x512, "Tahoma", 30, 1, COLOR_GREEN, 0x00000000, OBJECT_MATERIAL_TEXT_ALIGN_RIGHT);
+      SetDynamicObjectMaterialText(AuctionMartChartBoard, 0, string,  130, "Arial", 40, 1, -1250582, 0, 1);
+      PlayerPlaySound(playerid, 1100, 0.0, 0.0, 0.0);
+			SendClientMessage(playerid, COLOR_WHITE, "AUCTION:You have succes running a Auction");
+			AuctionRunning = 1;
+			return 1;
+		}
+		else
+		{
+			SendClientMessage(playerid, COLOR_WHITE, "AUCTION: Has running please wait until the auction done.");
+			KillTimer(TimerLimitForAuction);
+			SendClientMessage(playerid, COLOR_WHITE, "AUCTION: Auction was succes to stopped.");
+			CountDownAuction = 0;
+      HighestBidder = 0;
+      pInfo[playerid][JoinedAuction] = 0;
+			return 1;
+		}
+		
+	}
+
+	if(strcmp(params, "bid", true) == 0)
+	{
+		SendClientMessage(playerid, COLOR_WHITE, "AUCTION: You have thinking for joinning bid on auction");
+		if(pInfo[playerid][JoinedAuction] == 0)
+    {
+      CountOfParticipants = CountOfParticipants+1;
+      format(string, sizeof(string), "* "COL_WHITE"%s *\n new joined auction \nfor price"COL_BLUE"$ %d ", GetRPName(playerid), BidPrice);
+      
+      SendClientMessageToAll( -1, string);
+      pInfo[playerid][JoinedAuction] = 1;
+    }
+		if(AuctionRunning == 1)
+		{
+			inputtext[0]= 0;
+			return ShowPlayerDialog(playerid, DIALOG_INPUT_BID_AUCTION,	DIALOG_STYLE_INPUT, ""COL_WHITE"What is price your offer sir?", "\n "COL_ORANGE"Just type the number bellow :\n\n", "Bid", "Cancel");
+			
+		}
+		else
+		if(AuctionRunning == 0)
+		{
+			SendClientMessage(playerid,COLOR_WHITE, " * sorry the "COL_YELLOW"Auction"COL_WHITE" has not available. Please start it and again bye"COL_RED"USE CMD: /auction bid");
+			return ShowPlayerDialog(playerid,DIALOG_ACCEPT_AUCTION,DIALOG_STYLE_MSGBOX,""COL_LGREEN"Permission to acces start a auction sir\n\n",""COL_ORANGE"Start and offering auction now?\n"COL_WHITE"(Please select your choice)","Start","Cancel");
+			//ShowPlayerDialog(playerid,PILIHAN_LAMPU,DIALOG_STYLE_MSGBOX,"Tombol lampu kendaraan",""COL_RED"Anda ingin menyalakan lampu?\n\n"COL_WHITE"(Lampu juga bisa tekan NUM 8)","Nyalakan","Matikan");
+		}
+		
+	}
+	
+	
+	
+	
+}
+
 
 
 
@@ -11215,13 +12374,37 @@ CMD:setvehhealth(playerid, params[])
     extract params -> new Float:health;
     new vehicleid = GetClosestCar(playerid, INVALID_VEHICLE_ID);
     SetVehicleHealth(vehicleid, Float:health);
+
+
+    //================================================================================
+    // this function for get vehicle data status value healt
+    new Float:healthmp1; // variabel float for healt
+    GetVehicleHealth(VehiclePlayerPrimary[playerid][VehID], Float:healthmp1); // with ID car player id get from player connect
+    if(vehicleid == VehiclePlayerPrimary[playerid][VehID])
+    {
+        new Query[500];
+        // saving to mysql
+        format(Query, 500, "UPDATE `playerdata` SET `healthm1` = '%f' WHERE `id` = '%d' LIMIT 1", Float:healthmp1, pInfo[playerid][ID]);
+        mysql_query(MySQL:g_Sql, Query, bool:true);
+        // notit to the SAMP server console
+        printf("The vehicle from player %s, with %s in engine value %f was saved on MYSQL_TYPE_LONG", GetRPName(playerid), VehiclePlayerPrimary[playerid][VehID], Float:healthmp1);
+        // information for console so the owner can be get notif instanly.
+        SendClientMessage(playerid, -1, "ENGINE: Your vehicle health of engine saved on SQL data");
+
+    }
+    
+    //================================================================================
+
     if(IsPlayerInAnyVehicle(playerid))
     {
         
-        SendClientMessage(playerid, -1, "Kesehatan mesin di rubah");
+        SendClientMessage(playerid, -1, "ENGINE: Your changed the vehicle healt from inside");
+        return 1;
     }
-    else return GameTextForPlayer(playerid, "Anda memperbaiki dari luar mobil", 5000, 4);
+    else return GameTextForPlayer(playerid, "ENGINE: Your changed the vehicle healt from outside", 5000, 4);
 }
+
+
 
 CMD:sethealth(playerid, params[])
 {
@@ -11421,6 +12604,100 @@ CMD:rentalsepeda(playerid)
 
 
 
+CMD:trunk(playerid, params[])
+{
+  new closestcar = GetClosestCar(playerid, INVALID_VEHICLE_ID);
+  new x,y,z;
+  GetVehiclePos(closestcar, Float:x, Float:y, Float:z);
+  SEM(playerid, "DEBUG: GetClosestCar ID, GetVehiclePos was taken");
+  LoadTrunks(); // make new fuction about stock load the trunks data from SQL
+  if(!IsPlayerInAnyVehicle(playerid))
+  {
+
+    if(IsPlayerInRangeOfPoint(playerid, Float:4.0,  Float:x, Float:y, Float:z))
+    {
+          
+          if(GetPlayerData( playerid, VehID) == closestcar)
+          {
+
+            pInfo[playerid][LastVehicleID] = closestcar;
+            ToggleBoot( GetPlayerData( playerid, LastVehicleID), VEHICLE_PARAMS_ON); 
+            new string[259];
+            format(string, sizeof(string), "* %s walk away to the trunk and open it with both hand.", GetRPName(playerid));
+            LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, string);
+            LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, "* You can see the trunk has open with key of vehicle.((Staff of Cityes))");
+
+
+            new DialogTitle[200];
+            format(DialogTitle, sizeof(DialogTitle), ""COL_GREEN"Trunk Item Of Vehicle ID ["COL_RED"%d"COL_GREEN"] Example", closestcar);
+            SEM(playerid, "DEBUG: Trunk Item Of Vehicle ID now in show dialog.");
+
+            strunpack(VehiclePlayerPrimary[playerid][item], "Camera SLR x100", 20);
+            VehiclePlayerPrimary[playerid][amountofitem] = 3;
+            new trunkdataslot1items[1000];
+            format(trunkdataslot1items, sizeof(trunkdataslot1items),
+             ""COL_RED"Owner\t"COL_BLUE"Items\t"COL_GREEN"Amount\n\
+             %s\t%s\t%i\n\
+             ", 
+            GetRPName(playerid), VehiclePlayerPrimary[playerid][item],  VehiclePlayerPrimary[playerid][amountofitem]);
+            ShowPlayerDialog(playerid, DIALOG_OPEN_VEHICLE_TRUNK, DIALOG_STYLE_TABLIST_HEADERS, DialogTitle , trunkdataslot1items, "Take it", "Close");
+            /*
+
+            #define     TRUNK_ITEMS "\
+            "COL_RED"Owner\tItem\t"COL_GREEN"Amount\n\
+            Alif Wahyudi\tHelmet\t1\n\
+            Hatsune Miku\tSmartphone\t2\n\
+            Putu Suhartawan\tLaptop\t1\n\
+            "
+
+            //ShowPlayerDialog(playerid, dialogid, style, caption[], info[], button1[], button2[]);
+            new profiftrading = random(1000)+random(2000)-random(1000);
+            if(profiftrading > 3000)
+            {
+              new infosaham[200];
+              format(infosaham, sizeof(infosaham), "* Anda dapat profit terjual sangat besar hingga $%i dan pemerintah memberikan reward sebesar $2999", profiftrading);
+              SendClientMessage(playerid, COLOR_GREEN, infosaham);
+              pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+2999;
+              cmd_makan(playerid);
+            }
+            pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+profiftrading;
+            GivePlayerMoney(playerid, profiftrading);
+            
+            new infosaham[200];
+            format(infosaham, sizeof(infosaham), "* Anda dapat profit sebesar $%i", profiftrading);
+            SendClientMessage(playerid, COLOR_LGREEN, infosaham);
+            GameTextForPlayer(playerid, infosaham, 2000, 1);
+            //TextDrawSetString(UI[0], infosaham);
+
+            ApplyAnimation(playerid, "MISC", "SEAT_LR", 4.0,0,0,0,0,0,0);
+            new infosaham2[200];
+            format(infosaham2, sizeof(infosaham2),""COL_WHITE"KOMPUTER PRIBADI\nTulis /tradingsaham \n"COL_GREEN" Untuk mulai trading\n\n"COL_WHITE"Anda telah mendapatkan $ %i keuntungan\n"COL_LRED"silahkan kembali deposit", profiftrading);
+            Update3DTextLabelText( Text3D:HasilTrading, COLOR_WHITE, infosaham2);
+            if(profiftrading > 3000)
+            {
+
+            }
+            */
+          }
+    
+    
+      return 1;
+    }
+    else
+    {
+      SEM(playerid, "VEHICLE: Need near of the trunk for command like this sir.");
+      //SendClientMessage(playerid, COLOR_ERROR, "* Anda harus login di akun saham");
+    }
+  }
+  else
+  {
+    SEM(playerid, "VEHICLE: Need on foot for trunk of acces the back car.");
+    //SendClientMessage(playerid, COLOR_ERROR, "* Anda harus login di akun saham");
+  }
+
+  return 1;
+}
+
 
 
 CMD:tradingsaham(playerid, params[])
@@ -11471,67 +12748,31 @@ CMD:untow(playerid, params[])
 }
 
 
-CMD:objekkendaraan(playerid, params[])
+
+CMD:editgaragedoor(playerid, params)
 {
 	
-	//SetPlayerArmour(playerid, Float:70.1);
-	//pakaiarmour[playerid] = 1; // kondisi sedang pakai armour
-	//SetPlayerAttachedObject(playerid, 3, 19515, 1 , 0.096999,0.058999,0.012999,4.199995,0.999981,8.800023,1.000000,1.221000,0.797000, 0xFFFFA500, 0xFFFFA500);
-	//EditAttachedObject(playerid, 3);
+    	
+      SEM(playerid, "Sir try to edit near the door of garage.");
+    	EditDynamicObject(playerid, MechanicGarageDoor);
+      Streamer_Update(playerid);
 
-
-	
-	//contohdikendaraan = CreateDynamicObject(18649, 0,0,0,0,0,0);
-	//CreateDynamicObject(modelid, Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz, worldid = -1, interiorid = -1, playerid = -1, Float:streamdistance = STREAMER_OBJECT_SD, Float:drawdistance = STREAMER_OBJECT_DD, STREAMER_TAG_AREA areaid = STREAMER_TAG_AREA -1, priority = 0)
-	//CreateDynamicObject(modelid, Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz, worldid = -1, interiorid = -1, playerid = -1, Float:streamdistance = STREAMER_OBJECT_SD, Float:drawdistance = STREAMER_OBJECT_DD, STREAMER_TAG_AREA areaid = STREAMER_TAG_AREA -1, priority = 0)
-	contohdikendaraan = CreateDynamicObject(18649, Float:0.0, Float:0.0, Float:0.0, Float:0.0, Float:0.0, Float:0.0, 0, 0, -1, Float:20.0,Float:20.0, -1, 0);
-	SendClientMessage(playerid, COLOR_GREEN, "Anda pasang neon hijau.");
-	//SetDynamicObjectMaterialText(tmpobjid, 0, "Pesawat Putu", 140, "Arial", 70, 1, 0xFFFFFFFF, 0x00000000, 1);
-	
-	//SetDynamicObjectMaterialText(STREAMER_TAG_OBJECT contohdikendaraan, 0, "Solusi", 140, "Arial", 70, 1,  0xFFFFFFFF, 0, 1);
-
-	//AttachObjectToVehicle(objectid, vehicleid, Float:OffsetX, Float:OffsetY, Float:OffsetZ, Float:RotX, Float:RotY, Float:RotZ)
-	pInfo[playerid][pNeon] = AttachDynamicObjectToVehicle( contohdikendaraan,
-	 GetPlayerVehicleID(playerid),
-	  Float:0.0, // kanan kiri
-	   Float:-2.0, // kedepan
-	    Float:0.0, // ke atas
-	     Float:2.0, Float:0.0, Float:0.0);
-	//AttachDynamicObjectToVehicle(STREAMER_TAG_OBJECT objectid, vehicleid, Float:offsetx, Float:offsety, Float:offsetz, Float:rx, Float:ry, Float:rz)
-	//EditPlayerObject(playerid, objectid);
-	//RemovePlayerFromVehicle(playerid);
-	//EditAttachedObject(playerid, idterttach);
-	//EditObject(playerid, contohdikendaraan);
-	//contohdikendaraan = false;
-	Streamer_Update(playerid);
-	EditDynamicObject(playerid, contohdikendaraan);
-	//EditDynamicObject(playerid, pInfo[playerid][pNeon]);
-	//EditAttachedObject(playerid, contohdikendaraan);
-	return 1;
-}
-
-
-CMD:editpintugarasi(playerid, params)
-{
-	
-	Streamer_Update(playerid);
-	EditDynamicObject(playerid, PintuGarasiMechanic);
 }
 
 CMD:editneon(playerid, params)
 {
 	
 	Streamer_Update(playerid);
-	EditDynamicObject(playerid, contohdikendaraan);
+	EditDynamicObject(playerid, ExampleAttachedDynamic);
 }
 
-CMD:gspawn(playerid, params)
+CMD:savemyvehhealt(playerid, params)
 {
-	GetPlayerPos(playerid, pInfo[playerid][pPx], pInfo[playerid][pPy], pInfo[playerid][pPz]);
+  	GetPlayerPos(playerid, pInfo[playerid][pPx], pInfo[playerid][pPy], pInfo[playerid][pPz]);
 
-	
-	//mysql_query(MySQL:handle, const query[], bool:use_cache = true)
-	mysql_query(MySQL:g_Sql, "SELECT * FROM `playerdata` ORDER BY `playerdata`.`id` ASC", bool:true);
+  	
+  	//mysql_query(MySQL:handle, const query[], bool:use_cache = true)
+  	mysql_query(MySQL:g_Sql, "SELECT * FROM `playerdata` ORDER BY `playerdata`.`id` ASC", bool:true);
 
     new Query[500];
     format(Query, 500, "UPDATE `playerdata` SET `ppx` = '%f',`ppy` = '%f',`ppz` = '%f' WHERE `id` = '%d' LIMIT 1",
@@ -11539,34 +12780,48 @@ CMD:gspawn(playerid, params)
     pInfo[playerid][ID]);
     mysql_query(MySQL:g_Sql, Query, bool:true);
     
+    //================================================================================
+    // this function for get vehicle data status value healt
+    new Float:healthmp1; // variabel float for healt
+    //GetVehicleHealth(VehiclePlayerPrimary[playerid][VehID], Float:healthmp1); 
+    
+    GetVehicleHealth(VehiclePlayerPrimary[playerid][VehID], Float:healthmp1); // with ID car player id get from player connect
+    //new Query[500];
+    // saving to mysql
+    format(Query, 500, "UPDATE `playerdata` SET `healthm1` = '%f' WHERE `id` = '%d' LIMIT 1", Float:healthmp1, pInfo[playerid][ID]);
+    mysql_query(MySQL:g_Sql, Query, bool:true);
+    printf("The vehicle from player %s, with %s in engine value %f was saved on MYSQL_TYPE_LONG", GetRPName(playerid), VehiclePlayerPrimary[playerid][VehID], Float:healthmp1);
+    // information for console so the owner can be get notif instanly.
+    SendClientMessage(playerid, -1, "ENGINE: Your vehicle health of engine saved on SQL data with CMD:savemyvehhealt");
+    //================================================================================
 
-    new lokasidisimpan[500];
-    format(lokasidisimpan, 500, "Disimpan pada posisi %f, %f, %f", pInfo[playerid][pPx], pInfo[playerid][pPy], pInfo[playerid][pPz] );
-    SendClientMessage(playerid, -1, lokasidisimpan);
+    new SaveThePlayerPosition[500];
+    format(SaveThePlayerPosition, 500, "SAVED: New position for: %f, %f, %f", pInfo[playerid][pPx], pInfo[playerid][pPy], pInfo[playerid][pPz] );
+    SendClientMessage(playerid, -1, SaveThePlayerPosition);
     SavePlayer(playerid);
 
     pInfo[playerid][pWord] = GetPlayerVirtualWorld(playerid);
-    new simpanpword[200];
-    format(simpanpword, 200, "UPDATE `playerdata` SET `pword` = '%i' WHERE `id` = '%d' LIMIT 1",pInfo[playerid][pWord],pInfo[playerid][ID]);
-    mysql_query(MySQL:g_Sql, simpanpword, bool:true);
+    new SaveWordPlayerPosition[200];
+    format(SaveWordPlayerPosition, 200, "UPDATE `playerdata` SET `pword` = '%i' WHERE `id` = '%d' LIMIT 1",pInfo[playerid][pWord],pInfo[playerid][ID]);
+    mysql_query(MySQL:g_Sql, SaveWordPlayerPosition, bool:true);
 
     pInfo[playerid][pInterior] = GetPlayerInterior(playerid);
-    new simpanpinterior[200];
-    format(simpanpinterior, 200, "UPDATE `playerdata` SET `pinterior` = '%i' WHERE `id` = '%d' LIMIT 1",pInfo[playerid][pInterior],pInfo[playerid][ID]);
-    mysql_query(MySQL:g_Sql, simpanpinterior, bool:true);
+    new SaveInteriorPlayerPosition[200];
+    format(SaveInteriorPlayerPosition, 200, "UPDATE `playerdata` SET `pinterior` = '%i' WHERE `id` = '%d' LIMIT 1",pInfo[playerid][pInterior],pInfo[playerid][ID]);
+    mysql_query(MySQL:g_Sql, SaveInteriorPlayerPosition, bool:true);
 
-    printf("Di tempat word %i di interior %i ",pInfo[playerid][pWord], pInfo[playerid][pInterior]);
+    printf("SAVED: Player Word %i and interior %i from %s", pInfo[playerid][pWord], pInfo[playerid][pInterior], GetRPName(playerid));
 
 
     //GetVehiclePos(vehicleid, Float:x, Float:y, Float:z)
-    GetVehiclePos(mobilplayer1[playerid], Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz]);
+    GetVehiclePos(VehiclePlayerPrimary[playerid][VehID], Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz]);
 
     new kordinatmobil[500];
    	format(kordinatmobil, 500, "UPDATE `playerdata` SET `pmx` = '%f',`pmy` = '%f',`pmz` = '%f' WHERE `id` = '%d' LIMIT 1", Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz], pInfo[playerid][ID]);
     mysql_query(MySQL:g_Sql, kordinatmobil, bool:true);
-    printf("Mobil pindah posisi ke %f, %f, %f ke pemilik ID %i", Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz], pInfo[playerid][ID]);
+    printf("SAVED: New vehicle position on %f, %f, %f has owned bye ID %i", Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz], pInfo[playerid][ID]);
     
-
+    return 1;
 }
 
 
@@ -11577,6 +12832,33 @@ CMD:changename(playerid, inputtext)
 
 
 }
+
+CMD:specplayer(playerid, params[])
+{
+  if(isnull(params)) return SendClientMessage(playerid, COLOR_ERROR, "USAGE"COL_YELLOW": '/specplayer [ID]'");
+  new specplayerid = strval(params);
+  GetPlayerPos(playerid, pInfo[playerid][pPx], pInfo[playerid][pPy], pInfo[playerid][pPz]);
+
+  TogglePlayerSpectating(playerid, 1);
+  PlayerSpectatePlayer(playerid, specplayerid);
+  SetPlayerInterior(playerid,GetPlayerInterior(specplayerid));
+  SetPlayerVirtualWorld(playerid, GetPlayerVirtualWorld(specplayerid));
+  SEM(playerid, "SYSTEM: Specating");
+  return 1;
+}
+
+CMD:despec(playerid, params[])
+{
+
+ 
+  TogglePlayerSpectating(playerid, 0);
+  SetPlayerPos(playerid, Float:pInfo[playerid][pPx], Float:pInfo[playerid][pPy], Float:pInfo[playerid][pPz]);
+  SEM(playerid, "SYSTEM: Specating has ended");
+  return 1;
+}
+
+
+
 
 
 public OnPlayerCommandPerformed(playerid, cmdtext[], success)
@@ -11594,6 +12876,55 @@ public OnPlayerCommandPerformed(playerid, cmdtext[], success)
 
     //return SendClientMessage(playerid,COLOR_RED,"* Tolong perhatikan command yang anda berikan.");
 } 
+
+CMD:lock(playerid,params[])
+{
+  //new carid = GetPlayerVehicleID(playerid);
+  new closestcar = GetClosestCar(playerid, INVALID_VEHICLE_ID);
+  //new vehid = GetPlayerVehicleID(playerid); 
+  PlayerPlaySound(playerid,6401,0.0,0.0,0.0);
+  if(pInfo[playerid][Logged] == 1)
+  {
+      if(VehiclePlayerPrimary[playerid][VehID] == closestcar ) // fuction for player cars
+      {
+        new engine, lights, alarm, doors, bonnet, boot, objective;
+        GetVehicleParamsEx(closestcar, engine, lights, alarm, doors, bonnet, boot, objective);
+        SetVehicleParamsEx(closestcar, engine, lights, alarm, ((doors == 1) ? (0) : (1)), bonnet, boot, objective);
+        if(doors == 1)
+        {
+          SendClientMessage(playerid, COLOR_RED, "VEHICLE: "COL_WHITE"The doors has "COL_RED"unlocked");
+          GameTextForPlayer(playerid, "~g~UNLOCKED", 1000, 1);
+        }  
+
+        else 
+        {
+          SendClientMessage(playerid, COLOR_RED, "VEHICLE: "COL_WHITE"The doors has "COL_GREEN"locked");
+          GameTextForPlayer(playerid, "~r~LOCKED", 1000, 1);
+        }
+      }
+      else 
+      {
+        SendClientMessage(playerid, COLOR_LIGHTRED, "VEHICLE: You are commit to rob a vehicle, warning!");
+        new engine, lights, alarm, doors, bonnet, boot, objective;
+        GetVehicleParamsEx(closestcar, engine, lights, alarm, doors, bonnet, boot, objective); // door variabel get here
+        SetVehicleParamsEx(closestcar, engine, lights, alarm, ((doors == 1) ? (0) : (1)) , bonnet, boot, objective); // value switched here
+        // now change notif locked
+        if(doors == 1)
+        {
+          SendClientMessage(playerid, COLOR_RED, "VEHICLE: "COL_WHITE"The doors has "COL_RED"unlocked");
+          GameTextForPlayer(playerid, "~g~UNLOCKED", 1000, 1);
+        }  
+
+        else 
+        {
+          SendClientMessage(playerid, COLOR_RED, "VEHICLE: "COL_WHITE"The doors has "COL_GREEN"locked");
+          GameTextForPlayer(playerid, "~r~LOCKED", 1000, 1);
+        }
+      }  
+  }
+  else SendClientMessage(playerid, COLOR_LIGHTRED, "WARNING: You you must login first!");
+  return 1;
+}
 
 
 CMD:spawn(playerid)
@@ -11638,27 +12969,48 @@ CMD:bikinobject(playerid, params[]) //[COLOR="Green"]//
 	format(string, sizeof(string), "You have created a new object [modelID untuk coding : %i, idobject di baris : %i, position: %f, %f, %f, 0.0, 0.0, %f].", model, object, pos[0], pos[1], pos[2], angle);
 	SendClientMessage(playerid, COLOR_RED, string);
 	EditObject(playerid, object);
-	SendClientMessage(playerid, 0xFFFFFFFF, "TIPS INFO: Pakailah tombal tahan {FFFF00}~k~~PED_SPRINT~{FFFFFF} hanya untuk lihat kiri kanan atas bawah.");
+	SendClientMessage(playerid, 0xFFFFFFFF, "TIPS INFO: Sir Please use {FFFF00}~k~~PED_SPRINT~{FFFFFF} button for looking left right up down with cursor too.");
 
 	return 1;
 }
 
-
+CMD:select(playerid)
+{
+  SelectTextDraw(playerid, COLOR_BLUE);
+  SendClientMessage(playerid, COLOR_RED, "Select Textdraw");
+}
 
 CMD:selectob(playerid, params[])
 {
 
 
-		SendClientMessage(playerid, 0xFFFFFFFF, "TIPS INFO: Pakailah tombal tahan {FFFF00}~k~~PED_SPRINT~{FFFFFF} hanya untuk lihat kiri kanan atas bawah.");
+		SendClientMessage(playerid, 0xFFFFFFFF, "TIPS INFO: Sir Please use {FFFF00}~k~~PED_SPRINT~{FFFFFF} button for looking left right up down with cursor too.");
 
 		
-		SelectObject(playerid);
+		SelectObjectEx(playerid);
 
 
 
 	    return 1;
 	
 }
+
+CMD:selecdynamicobject(playerid, params[])
+{
+
+
+    SendClientMessage(playerid, 0xFFFFFFFF, "TIPS INFO: Sir Please use {FFFF00}~k~~PED_SPRINT~{FFFFFF} button for looking left right up down with cursor too.");
+
+    
+    SelectObjectEx(playerid);
+
+
+
+      return 1;
+  
+}
+
+
 
 
 CMD:editobject(playerid, params[])
@@ -11668,7 +13020,7 @@ CMD:editobject(playerid, params[])
 		if(sscanf(params, "i", model)) return SendClientMessage(playerid, COLOR_RED, "USAGE: /editobject [ID object di server sekarang]");
 
 
-		SendClientMessage(playerid, 0xFFFFFFFF, "TIPS INFO: Pakailah tombal tahan {FFFF00}~k~~PED_SPRINT~{FFFFFF} hanya untuk lihat kiri kanan atas bawah.");
+		SendClientMessage(playerid, 0xFFFFFFFF, "TIPS INFO: Sir Please use {FFFF00}~k~~PED_SPRINT~{FFFFFF} button for looking left right up down with cursor too.");
 		Streamer_Update(playerid);
 		
 		EditObject(playerid, objectid);
@@ -11687,7 +13039,7 @@ CMD:editdynamicobject(playerid, params[])
 		if(sscanf(params, "i", model)) return SendClientMessage(playerid, COLOR_RED, "USAGE: /editdynamicobject [ID object di server sekarang]");
 
 
-		SendClientMessage(playerid, 0xFFFFFFFF, "TIPS INFO: Pakailah tombal tahan {FFFF00}~k~~PED_SPRINT~{FFFFFF} hanya untuk lihat kiri kanan atas bawah.");
+		SendClientMessage(playerid, 0xFFFFFFFF, "TIPS INFO: Sir Please use {FFFF00}~k~~PED_SPRINT~{FFFFFF} button for looking left right up down with cursor too.");
 		Streamer_Update(playerid);
 		EditDynamicObject(playerid, objectid);
 		new string[250];
@@ -11720,8 +13072,8 @@ CMD:stats(playerid)
     GetPlayerFacingAngle(playerid, facing);
 
 	new infokarakter[1000];
-	format(infokarakter, 1000, "Bekerja : [ %s ]"COL_RWHITE" Virtuarl Word di angka : [ %d ]  Interior sekarang di angka : [ %d ] \n Anda pemilik %s terdaftar di kode %i \n kini telah merubah password menjadi "COL_RED"[ %s ] \n Skin ID yang di kenakan Adalah [ %d ] \n "COL_YELLOW"Kordinat sekarang ada di %f, %f, %f dan menghadap ke arah %f. \n Anda dalam status login (%i)",
-	pekerjaan, GetPlayerVirtualWorld(playerid), GetPlayerInterior(playerid), pInfo[playerid][Nick], pInfo[playerid][ID], pInfo[playerid][Sandi], skinid, x, y, z, facing, pInfo[playerid][Logged]);
+	format(infokarakter, 1000, "Bekerja : [ %s ]"COL_RWHITE" Virtuarl Word di angka : [ %d ]  Interior sekarang di angka : [ %d ] \n Anda pemilik %s terdaftar di kode %i \n kini telah merubah password menjadi "COL_RED"[ %s ] \n Skin ID yang di kenakan Adalah [ %d ] \n "COL_YELLOW"Kordinat sekarang ada di %f, %f, %f dan menghadap ke arah %f. \n Anda dalam status login (%i), "COL_WHITE"Time Played : [ "COL_BLUE"%d hours %d minutes %d seconds "COL_WHITE"]",
+	pekerjaan, GetPlayerVirtualWorld(playerid), GetPlayerInterior(playerid), pInfo[playerid][Nick], pInfo[playerid][ID], pInfo[playerid][PasswordAccount], skinid, x, y, z, facing, pInfo[playerid][Logged], pInfo[playerid][pHours], pInfo[playerid][pMinutes], pInfo[playerid][pSeconds] );
 	ShowPlayerDialog(playerid, RESPONDDIALOGKOSONG, DIALOG_STYLE_MSGBOX, "Database Karakter", infokarakter, "Paham", "");
 
 }
@@ -11730,33 +13082,9 @@ CMD:stats(playerid)
 CMD:gantipw(playerid, params[])
 {
 	
-	/*
-	new Query[250];
-    format(Query, sizeof(Query), "SELECT * FROM `playerdata` WHERE `nick` COLLATE latin1_general_cs = '%s' LIMIT 1", pInfo[playerid][Nick]);
-    mysql_query(g_Sql, Query); */
-
-   	new passworddariuser[500];
-    format(passworddariuser, 500, "SELECT * FROM `playerdata` WHERE `id` = '%d' LIMIT 1", pInfo[playerid][ID]); // now here check the database if the player has given the proper password.HTTP
-    mysql_query(MySQL:g_Sql, passworddariuser, bool:true);
-    //cache_get_value_name(0, "password", pInfo[playerid][Sandi]);
-    new masukpw[500];
-    //new params[1],params[2];
-    //format(masukpw, 500, "UPDATE `playerdata` SET `money` = '%s', `password` = '%s' WHERE `playerdata`.`id` = %d;", params, pInfo[playerid][ID] );
-    //mysql_query(g_Sql, masukpw);
-    format(masukpw, 500, "UPDATE `playerdata` SET `password` = '%s' WHERE `playerdata`.`id` = %d;", params, pInfo[playerid][ID] );
-
-    mysql_query(MySQL:g_Sql, masukpw, bool:true);
-    mysql_query(MySQL:g_Sql, passworddariuser, bool:true);
-	SendClientMessage(playerid, COLOR_RED, "[DATA MYSQL] * Sudah di prosses dan berhasil di input di server.");
-	cache_get_value_name(0, "password", pInfo[playerid][Sandi], 100);
-
-	// lokasi konek
-	
-	new yangdiinput[600];
-	format(yangdiinput, 600, "Anda pemilik %s terdaftar di kode %i kini telah merubah password menjadi "COL_RED" %s", pInfo[playerid][Nick], pInfo[playerid][ID], pInfo[playerid][Sandi]);
-    SendClientMessage(playerid, COLOR_SPRINGGREEN, yangdiinput); 
-  
-   
+	ShowPlayerDialog(playerid, DIALOG_GANTI_PW,	DIALOG_STYLE_INPUT, ""COL_WHITE"Anda ingin ganti Password akun?", "\n "COL_ORANGE"Tuliskan password anda disini tuan :\n\n", "Change", "Cancel");
+    
+	return 1;
     
 }
 
@@ -11802,6 +13130,7 @@ CMD:bandara(playerid)
 	PindahinOrangnya(playerid, 1494.7446,-2293.4832,18.2991);
 	pInfo[playerid][pKills] = pInfo[playerid][pKills]+1;
 	SavePlayer(playerid);
+	SetPlayerSpecialAction(playerid, SPECIAL_ACTION_USEJETPACK);
 	//1560.9934,-2309.1362,13.0200,90.7824
 	//ShowPlayerDialog(playerid,2,DIALOG_STYLE_TABLIST_HEADERS,"{FFFF00}Barang Senjata", AMMUNATION_SMGS_DIALOG, "Beli", "Batal");
 
@@ -11928,7 +13257,8 @@ CMD:kill(playerid)
 CMD:rumahsakit(playerid)
 {
 	//ShowPlayerDialog(playerid,2,DIALOG_STYLE_TABLIST_HEADERS,"{FFFF00}Barang Senjata", AMMUNATION_SMGS_DIALOG, "Beli", "Batal");
-	PindahinOrangnya(playerid, Float:-45.0102, Float:152.1082, Float:999.0637);
+	TogglePlayerSpectating(playerid, 0);
+  PindahinOrangnya(playerid, Float:-45.0102, Float:152.1082, Float:999.0637);
 	SetPlayerVirtualWorld(playerid, -1);
 	SetPlayerInterior(playerid, -1);
 	//ApplyAnimation(playerid, "ped", "ARRESTgun",4.0,0,0,0,0,0);
@@ -12028,13 +13358,13 @@ CMD:kegunung(playerid,params[])
 
 
 
-CMD:v(playerid,params[])
+CMD:v(playerid)
 {
 	new Float:X, Float:Y, Float:Z;
 	new mobilbaru;
 	//new pickupsaatspawnv;
 	//new mobilhitamini:
-	ProcessActionText(playerid, "menyewa mobil dari pihak bandara.", ACTION_ME, params);
+	ProcessActionText(playerid, "menyewa mobil dari pihak bandara.", ACTION_ME);
 	//DestroyPickup(pickupsaatspawnv);
 	if(IsValidVehicle(mobilbaru) == 1)
 	{
@@ -12043,10 +13373,10 @@ CMD:v(playerid,params[])
 	
 	PlayerPlaySound(playerid, 1055, 0.0, 0.0, 0.0);
 	GetPlayerPos(playerid, Float:X, Float:Y, Float:Z);
-    mobilbaru = CreateVehicle(416, X, Y, Z + 1.0, 1, 0, 0, 0);
+    mobilbaru = CreateVehicle(431, X, Y, Z + 1.0, 1, 0, 0, 0); // 416 kode mobil ambulance 431 kode bus
     SendClientMessage(playerid, COLOR_ERROR, "* Peringatan anda sedang menambah mobil sport yang keren mohon di jarangkan.");
     new platcantik[100];
-    format(platcantik, 100, "OWNER\n %s \n [%s]", pInfo[playerid][Nick], params);
+    format(platcantik, 100, "OWNER\n %s \n [%s]", pInfo[playerid][Nick]);
     CreatePlayer3DTextLabel(playerid, platcantik, COLOR_YELLOW,0.0,-1.6,-0.35,20.0,INVALID_PLAYER_ID,mobilbaru,1);
     PutPlayerInVehicle(playerid, mobilbaru, 0);
     SetVehicleHealth(mobilbaru, 3000);
@@ -12058,7 +13388,7 @@ CMD:v(playerid,params[])
     //pickupsaatspawnv = CreatePickup(19295, 14, X, Y, Z, -1);
     
 
-    return cmd_objekkendaraan(playerid);
+    return cmd_addattachedobject(playerid);
 }
 
 
@@ -12067,6 +13397,7 @@ CMD:v(playerid,params[])
 
 CMD:rumahkecil(playerid, params[])
 {
+
         
         PindahinOrangnya(playerid,594.2203,-1178.2686,45.3405);
 		SetPlayerInterior( playerid, 0 );
@@ -12124,39 +13455,105 @@ CMD:lsb(playerid)
 	return 1;
 }
 
+CMD:gotoapartmentls(playerid, params[])
+{
+  SetVehiclePos(GetPlayerVehicleID(playerid),1430.1747,-1221.6278,152.8182);
+  SetVehicleZAngle(GetPlayerVehicleID(playerid), 234.1955);
+  PlayerPlaySound(playerid,1057,0.0,0.0,0.0);
+  SetPlayerFacingAngle(playerid, Float:234.1955);
+  // world dari kendaraan bisa berubah
+  SetVehicleVirtualWorld( playerid, 0 );
+  SetPlayerInterior( playerid, 0 );
+  // player bisa berubah worldnya dengan ini
+  SetPlayerVirtualWorld( playerid, 0 );
+  //SendGuiInformation(playerid, "Bersantai", "Mohon nikmati dulu menu yang tersedia tuan.");
 
+  PindahinOrangnya(playerid,1430.1747,-1221.6278,152.8182);
+  //ApplyAnimation(playerid,"BAR","dnk_stndF_loop",4.0,0,0,0,0,0);
+  //PutPlayerInVehicle(playerid, vehicleid, seatid)
+
+  PutPlayerInVehicle(playerid,GetPlayerVehicleID(playerid),0);
+  SetCameraBehindPlayer(playerid);
+  //SetVehicleZAngle(GetPlayerVehicleID(playerid), 1760.2146);
+  SetVehicleVelocity(GetPlayerVehicleID(playerid), 1.0, 1.0, 0.2);
+  //SetPlayerSkin(playerid, 29999); printf("[SKin baru ID 29999]: Skin berhasil di pasang ke: %s !", GetRPName(playerid));
+  new unfreezeplayer = playerid; // variabel playerid itu sama dengan variabel unfreeplayer
+  SetTimer("UnFreezeMe",3000,0);
+  //ProcessActionText(playerid, "fokus ke jalur bakapan untuk menghadapi stunt mendadak.", ACTION_ME, params);
+  new string[140];
+  format(string, sizeof(string), "* %s joining the aparment party.", GetRPName(playerid));
+  //SendClientMessage(playerid, COLOR_ME, string);
+  LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, string);
+
+  return 1;
+}
+
+
+
+
+CMD:gotoauctionmart(playerid, params[])
+{
+  SetVehiclePos(GetPlayerVehicleID(playerid),1351.3654,-1749.7643,13.3675);
+  SetVehicleZAngle(GetPlayerVehicleID(playerid), 180.0042);
+  PlayerPlaySound(playerid,1057,0.0,0.0,0.0);
+  SetPlayerFacingAngle(playerid, Float:180.0042);
+  // world dari kendaraan bisa berubah
+  SetVehicleVirtualWorld( playerid, 0 );
+  SetPlayerInterior( playerid, 0 );
+  // player bisa berubah worldnya dengan ini
+  SetPlayerVirtualWorld( playerid, 0 );
+  //SendGuiInformation(playerid, "Bersantai", "Mohon nikmati dulu menu yang tersedia tuan.");
+
+  PindahinOrangnya(playerid,1351.3654,-1749.7643,13.3675);
+  //ApplyAnimation(playerid,"BAR","dnk_stndF_loop",4.0,0,0,0,0,0);
+  //PutPlayerInVehicle(playerid, vehicleid, seatid)
+
+  PutPlayerInVehicle(playerid,GetPlayerVehicleID(playerid),0);
+  SetCameraBehindPlayer(playerid);
+  //SetVehicleZAngle(GetPlayerVehicleID(playerid), 1760.2146);
+  SetVehicleVelocity(GetPlayerVehicleID(playerid), 1.0, 1.0, 0.2);
+  //SetPlayerSkin(playerid, 29999); printf("[SKin baru ID 29999]: Skin berhasil di pasang ke: %s !", GetRPName(playerid));
+
+  //ProcessActionText(playerid, "fokus ke jalur bakapan untuk menghadapi stunt mendadak.", ACTION_ME, params);
+  new string[140];
+  format(string, sizeof(string), "* %s joining the auction in the centar mart with his cellphone.", GetRPName(playerid));
+  //SendClientMessage(playerid, COLOR_ME, string);
+  LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, string);
+
+  return 1;
+}
 
 
 CMD:dr(playerid, params[])
 {
-        SetVehiclePos(GetPlayerVehicleID(playerid),-1720.2146,481.0942,38.0289);
-        SetVehicleZAngle(GetPlayerVehicleID(playerid), 1760.2146);
-        PlayerPlaySound(playerid,1057,0.0,0.0,0.0);
-		// world dari kendaraan bisa berubah
-		SetVehicleVirtualWorld( playerid, 0 );
-		SetPlayerInterior( playerid, 0 );
-		// player bisa berubah worldnya dengan ini
-		SetPlayerVirtualWorld( playerid, 0 );
-        //SendGuiInformation(playerid, "Bersantai", "Mohon nikmati dulu menu yang tersedia tuan.");
+  SetVehiclePos(GetPlayerVehicleID(playerid),-1720.2146,481.0942,38.0289);
+  SetVehicleZAngle(GetPlayerVehicleID(playerid), 1760.2146);
+  PlayerPlaySound(playerid,1057,0.0,0.0,0.0);
+  // world dari kendaraan bisa berubah
+  SetVehicleVirtualWorld( playerid, 0 );
+  SetPlayerInterior( playerid, 0 );
+  // player bisa berubah worldnya dengan ini
+  SetPlayerVirtualWorld( playerid, 0 );
+  //SendGuiInformation(playerid, "Bersantai", "Mohon nikmati dulu menu yang tersedia tuan.");
 
-        PindahinOrangnya(playerid,-1720.2146,481.0942,38.0289);
-		//ApplyAnimation(playerid,"BAR","dnk_stndF_loop",4.0,0,0,0,0,0);
-		//PutPlayerInVehicle(playerid, vehicleid, seatid)
+  PindahinOrangnya(playerid,-1720.2146,481.0942,38.0289);
+  //ApplyAnimation(playerid,"BAR","dnk_stndF_loop",4.0,0,0,0,0,0);
+  //PutPlayerInVehicle(playerid, vehicleid, seatid)
 
-        PutPlayerInVehicle(playerid,GetPlayerVehicleID(playerid),0);
-        SetCameraBehindPlayer(playerid);
-  		//SetVehicleZAngle(GetPlayerVehicleID(playerid), 1760.2146);
-        SetVehicleVelocity(GetPlayerVehicleID(playerid), 1.0, 1.0, 0.2);
-        SetPlayerSkin(playerid, 29999); printf("[SKin baru ID 29999]: Skin berhasil di pasang ke: %s !", GetRPName(playerid));
+  PutPlayerInVehicle(playerid,GetPlayerVehicleID(playerid),0);
+  SetCameraBehindPlayer(playerid);
+  //SetVehicleZAngle(GetPlayerVehicleID(playerid), 1760.2146);
+  SetVehicleVelocity(GetPlayerVehicleID(playerid), 1.0, 1.0, 0.2);
+  SetPlayerSkin(playerid, 29999); printf("[SKin baru ID 29999]: Skin berhasil di pasang ke: %s !", GetRPName(playerid));
 
-        //ProcessActionText(playerid, "fokus ke jalur bakapan untuk menghadapi stunt mendadak.", ACTION_ME, params);
-        new string[140];
-		format(string, sizeof(string), "* %s mengemudi dengan kecepatan penuh di speedometer dan fokus sekali untuk menyetir.", GetRPName(playerid));
-		//SendClientMessage(playerid, COLOR_ME, string);
-		LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, string);
+  //ProcessActionText(playerid, "fokus ke jalur bakapan untuk menghadapi stunt mendadak.", ACTION_ME, params);
+  new string[140];
+  format(string, sizeof(string), "* %s mengemudi dengan kecepatan penuh di speedometer dan fokus sekali untuk menyetir.", GetRPName(playerid));
+  //SendClientMessage(playerid, COLOR_ME, string);
+  LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, string);
 
-         return 1;
-    }
+  return 1;
+}
 
 
 CMD:labelbadan(playerid, params[])
@@ -12396,13 +13793,13 @@ CMD:m(playerid, params[])
 	}
 	
 	
-CMD:teleportasi(playerid, params[])
+CMD:teleport(playerid, params[])
 {
 	new Float:gotoPos[3];
 	//sscanf(const data[], const format[], ...)
 
-    if(sscanf(params, "fffdd", gotoPos[0], gotoPos[1], gotoPos[2], params[4], params[5])) return SendClientMessage(playerid, -1, "Caranya: /teleportasi (X) (Y) (Z) (world ID berapa) (Interior ID berapa) ");
-    GameTextForPlayer(playerid, "~r~INGAT KODE INTERIORNYA YA dengan /save ", 10000, 5);
+    if(sscanf(params, "fffdd", gotoPos[0], gotoPos[1], gotoPos[2], params[4], params[5])) return SendClientMessage(playerid, -1, "Caranya: /teleport (X) (Y) (Z) (world ID) (Interior ID) ");
+    GameTextForPlayer(playerid, "~r~Type /save to get the coordinate.", 10000, 5);
 	SetPlayerPos(playerid, gotoPos[0], gotoPos[1], gotoPos[2]);
     SetPlayerVirtualWorld( playerid, params[4] );
     SetPlayerInterior(playerid, params[5]);
@@ -12682,6 +14079,7 @@ CMD:ado(playerid, params[])
     	new IDkendaraan = GetPlayerVehicleID(playerid);
     	new Float:AdoX, Float:AdoY, Float:AdoZ;
         GetPlayerPos(playerid, AdoX, AdoY, AdoZ);
+		
         new string[200];
         format(string, sizeof(string), "** %s **\n(( %s ))", params, GetRPName(playerid));
         ado[playerid] = CreateDynamic3DTextLabel(string, COLOR_ME, AdoX, AdoY, AdoZ, 20.0);
@@ -12753,7 +14151,354 @@ CMD:ado(playerid, params[])
 public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 {
 	new message[526+1];
-	
+  new string[140];
+  new Float:pos[2];
+  
+  if(dialogid == DIALOG_OPTION_ATTACHED_DYNAMIC_OBJECT)
+  {
+               if(response)
+              {
+
+                    
+
+                    inEditingMode[playerid]=1;
+                    SEM(playerid, "Sir now you are in Editing Attached dynamic object mode.");
+                    //SelectObject(playerid);
+                    EditDynamicObject(playerid, DynamicObjectID[playerid]);
+                    
+                    return 1;
+              }
+
+              if(!response)
+              { 
+                    inEditingMode[playerid] = 0;
+                    SEM(playerid, "Sir now your in Editing non Attached dynamic object mode.");
+                    EditDynamicObject(playerid, DynamicObjectID[playerid]);
+
+                    return 1;
+
+              }
+
+
+             
+  }
+
+  if(dialogid == DIALOG_SHOW_GPS) //If Dialog GPS data offering
+    {
+              
+
+              switch(listitem) 
+                {
+                  case 0:
+                  {
+                    SendClientMessage(playerid, COLOR_RED, "GPS: On process going to Gate location");
+                     //pos[0]=;  pos[1]=;  pos[2]=; 
+                    EnablePlayerGPS(playerid,1642.3168,-2332.6909,13.5469,"{FFFF00}[WARNING]{FFFFFF} Keep make the GPS turn ON sir!");
+                    
+                  } 
+                  case 1:
+                  {
+                    SendClientMessage(playerid, COLOR_RED,  "TRUNK: Item 2");
+                    //return cmd_dr(playerid);
+                  } 
+                  case 2:
+                  {
+                     SendClientMessage(playerid, COLOR_NORMAL_PLAYER,  "TRUNK: Item 3");
+                     // return cmd_rumahsakit(playerid);
+                  }
+                  case 3: SendClientMessage(playerid, COLOR_YELLOW,  "TRUNK: Item 4");
+              }
+
+              if(!response)
+              {
+                    DisablePlayerGPS(playerid);
+                    format(string, sizeof(string), "* %s get turn off his GPS", GetRPName(playerid));
+                    LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, string);
+                    LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, "* You can see the The GPS has put in his pocket.((Staff of Cityes))");
+                    
+                    return cmd_stats(playerid);
+              }
+
+
+              if(response)
+              {
+
+                    
+                    SendClientMessage(playerid, COLOR_WHITE, "GPS: Thank you sir, now have tracking.");
+                    PlayerPlaySound(playerid, 1100, 0.0, 0.0, 0.0);
+                    return 1;
+                  
+              }
+  }
+
+
+
+  if(dialogid == DIALOG_OPEN_VEHICLE_TRUNK) //If Dialog auctiong data offering
+    {
+    new string[140];
+
+    switch(listitem) 
+      {
+        case 0:
+        {
+          SendClientMessage(playerid, COLOR_RED, "TRUNK: Item 1");
+          //GivePlayerMoney(playerid, -100);
+          //return cmd_kegunung(playerid);
+        } 
+        case 1:
+        {
+          SendClientMessage(playerid, COLOR_RED,  "TRUNK: Item 2");
+          //return cmd_dr(playerid);
+        } 
+        case 2:
+        {
+           SendClientMessage(playerid, COLOR_NORMAL_PLAYER,  "TRUNK: Item 3");
+           // return cmd_rumahsakit(playerid);
+        }
+        case 3: SendClientMessage(playerid, COLOR_YELLOW,  "TRUNK: Item 4");
+    }
+
+    if(!response)
+    {
+      
+      ToggleBoot(pInfo[playerid][LastVehicleID], VEHICLE_PARAMS_OFF);
+
+      format(string, sizeof(string), "* %s get out from the car", GetRPName(playerid));
+      LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, string);
+      LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, "* You can see the trunk has closed.((Staff of Cityes))");
+      
+      return cmd_stats(playerid);
+    }
+
+
+    if(response)
+    {
+
+      ToggleBoot(pInfo[playerid][LastVehicleID], VEHICLE_PARAMS_OFF);
+      SendClientMessage(playerid, COLOR_WHITE, "TRUNK: You take the item");
+      PlayerPlaySound(playerid, 1100, 0.0, 0.0, 0.0);
+      return 1;
+        
+    }
+  }
+
+	if(dialogid == DIALOG_INPUT_BID_AUCTION) //If Dialog auctiong data offering
+    {
+		new string[140];
+    	if(!response)
+    	{
+			
+			format(string, sizeof(string), "* %s cancel input bid auction on his smartphone.", GetRPName(playerid));
+			LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, string);
+			LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, "* The stock market has changing bid.((Staff of Cityes))");
+			
+			return cmd_stats(playerid);
+		}
+
+
+    	if(response)
+    	{
+    		SendClientMessage(playerid, COLOR_WHITE, "You have to input your bid to a auction.");
+			// this is how change variabel string to valuable integer variabel.
+			CountDownAuction = CountDownAuction+5;
+      PlayerPlaySound(playerid, 1052, 0.0, 0.0, 0.0);
+      BidPrice = strval(inputtext);
+      
+      
+     
+			//extract inputtext[20] -> new BidPrice;
+			//BidPrice = BidPrice;
+			SendClientMessage(playerid, -1, inputtext);
+			format(string, sizeof(string), ""COL_WHITE"'%s'\nare Bid new Price \nfor"COL_BLUE"$ %d ", GetRPName(playerid), BidPrice);
+			SendClientMessage(playerid, -1, string);
+			UpdateDynamic3DTextLabelText(TempatDisplayIklan, COLOR_AQUAGREEN, string);
+      SetDynamicObjectMaterialText(layariklanbadara, 0, string, OBJECT_MATERIAL_SIZE_512x512, "Tahoma", 30, 1, COLOR_GREEN, 0x00000000, OBJECT_MATERIAL_TEXT_ALIGN_RIGHT);
+      SetDynamicObjectMaterialText(AuctionMartChartBoard, 0, string,  130, "Arial", 40, 1, -1250582, 0, 1);
+                                                                                  // 40 is size of text form id acution mart board
+      
+			
+			SetPlayerArmedWeapon(playerid, 0);
+			ApplyAnimation(playerid, "CARRY", "crry_prtial", 2.0, 0, 0, 0, 1, 1);
+
+			if(pInfo[playerid][pMoney] < 2000)
+			{
+				SendClientMessage(playerid, COLOR_LIGHTRED, "AUCTION: You are need more money for joining this auction system, please make a profit able job");
+				ApplyAnimation(playerid, "GANGS", "Invite_Yes", 2.0, 0, 0, 0, 1, 1);
+				return 1;
+			}
+			format(string, sizeof(string), "* "COL_LGREEN"%s *\n "COL_WHITE"Bid for "COL_LIME"$%d \n"COL_WHITE"on top chart value\nitem has "COL_LGREEN"%s's", GetRPName(playerid), BidPrice, Itemofferings);
+			SendClientMessage(playerid, -1, string);
+      PlayerPlaySound(playerid, 1085, 0.0, 0.0, 0.0);
+			SendClientMessage(playerid, COLOR_WHITE, "AUCTION: Thank you for paid bidder cost is $200");
+      ResetPlayerMoney(playerid);
+      GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
+			GivePlayerMoney(playerid, -200);
+			pInfo[playerid][pMoney] = pInfo[playerid][pMoney]-200;
+			if(BidPrice > HighestBidder)
+			{
+				HighestBidder = BidPrice;
+				//GetPlayerName(playerid, WinnerOfAuction, 50);
+				strunpack(WinnerOfAuction, GetRPName(playerid), 50);
+				SendClientMessage(playerid, -1, WinnerOfAuction);
+				SendClientMessage(playerid, -1, "AUCTION: Behavior name winner was reveal");
+				GivePlayerMoney(playerid, -BidPrice);
+				pInfo[playerid][pMoney] = pInfo[playerid][pMoney]-BidPrice;
+				SendClientMessage(playerid, COLOR_LGREEN, "AUCTION: You are get top chart on this auction, Congratulation.");
+				GameTextForPlayer(playerid, "~g~You are get top chart auction", 2000, 3);
+        UpdateDynamic3DTextLabelText(TempatDisplayIklan, COLOR_AQUAGREEN, string);
+        SetDynamicObjectMaterialText(layariklanbadara, 0, string, OBJECT_MATERIAL_SIZE_512x512, "Tahoma", 30, 1, COLOR_GREEN, 0x00000000, OBJECT_MATERIAL_TEXT_ALIGN_RIGHT);
+        SetDynamicObjectMaterialText(AuctionMartChartBoard, 0, string,  130, "Arial", 30, 1, -1250582, 0, 1);
+        PlayerPlaySound(playerid, 1100, 0.0, 0.0, 0.0);
+				
+			} 
+			if(BidPrice < HighestBidder)
+			{
+				ApplyAnimation(playerid, "RIOT", "RIOT_shout", 2.0, 0, 0, 0, 1, 1);
+				GameTextForPlayer(playerid, "~r~You are get losing on this auction, sorry sir.", 2000, 1);
+				SendClientMessage(playerid, COLOR_LIGHTRED, "AUCTION: You are get losing on this auction, sorry sir.");
+			} 
+
+			return inputtext[0]= 0;
+    		
+    		
+    	}
+	}
+
+	if(dialogid == DIALOG_ACCEPT_AUCTION) //If Dialog auctiong data offering
+    {
+		new string[140];
+    	if(!response)
+    	{
+			
+			format(string, sizeof(string), "* %s stand up and thinking fo be a starter on trader", GetRPName(playerid));
+			LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, string);
+			LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, "* The stock market has cancel.((Staff of Cityes))");
+			
+			return cmd_stats(playerid);
+		}
+
+
+    	if(response)
+    	{
+    		SendClientMessage(playerid, COLOR_WHITE, "You have thinking to start a auction.");
+			if(pInfo[playerid][JoinedAuction] == 0)
+      {
+        CountOfParticipants = CountOfParticipants+1;
+        format(string, sizeof(string), "* "COL_WHITE"%s *\n new joined auction \nfor price"COL_BLUE"$ %d ", GetRPName(playerid), BidPrice);
+        
+        SendClientMessageToAll( -1, string);
+        pInfo[playerid][JoinedAuction] = 1;
+      }
+			if(AuctionRunning == 0)
+			{
+        strunpack(WinnerOfAuction, "NO BODY", 20);
+        CountDownAuction = 10;
+
+				//TimerLimitForAuction = SetTimer("AuctionWasEnded", 10000, false);
+				format(string, sizeof(string), ""COL_LRED"* Wellcome "COL_LGREEN"%s *\nstarting the auction offering \nfor item: "COL_WHITE"%s,\n"COL_LRED"on this auction. Countdown:%d ", GetRPName(playerid), Itemofferings, CountDownAuction);
+				UpdateDynamic3DTextLabelText(TempatDisplayIklan, COLOR_AQUAGREEN, string);
+        SetDynamicObjectMaterialText(layariklanbadara, 0, string, OBJECT_MATERIAL_SIZE_512x512, "Tahoma", 30, 1, COLOR_GREEN, 0x00000000, OBJECT_MATERIAL_TEXT_ALIGN_RIGHT);
+        SetDynamicObjectMaterialText(AuctionMartChartBoard, 0, string,  130, "Arial", 30, 1, -1250582, 0, 1);
+        SendClientMessage(playerid, COLOR_WHITE, string);
+        PlayerPlaySound(playerid, 1100, 0.0, 0.0, 0.0);
+				SendClientMessage(playerid, COLOR_WHITE, "You have succes running a Auction");
+				AuctionRunning = 1;
+				return 1;
+			}
+			else
+			{
+				SendClientMessage(playerid, COLOR_WHITE, "* Auction was running please wait until the auction done.");
+				KillTimer(TimerLimitForAuction);
+				SendClientMessage(playerid, COLOR_WHITE, "* Auction was stopped sir.");
+        AuctionRunning = 0;
+        HighestBidder = 0;
+        CountDownAuction = 0;
+       
+        pInfo[playerid][JoinedAuction] = 0;
+				return 1;
+			}
+    		
+    		
+    	}
+	}
+
+	if(dialogid == DIALOG_INPUT_offerINGAUCTION) //If Dialog auctiong data offering
+    {
+		new string[140];
+    	if(!response)
+    	{
+			
+			format(string, sizeof(string), "* %s stand up and thinking fo be a trader", GetRPName(playerid));
+			LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, string);
+			LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, "* The stock market has slain.((Staff of Cityes))");
+			
+			return cmd_stats(playerid);
+		}
+
+
+    	if(response)
+    	{
+    	SendClientMessage(playerid, COLOR_WHITE, "* Auction is try offering....");
+			//GetSVarString(Itemofferings, inputtext, 50);
+      //SetSVarString(Itemofferings, inputtext);
+      //strpack(Itemofferings, inputtext, 50);
+      strunpack(Itemofferings, inputtext, 50);
+      //strcat(Itemofferings,inputtext, 50);
+			//Itemofferings[49] = inputtext[50];
+
+			format(string, sizeof(string), "* "COL_BLUE"UPDATED *\n"COL_GREEN"%s "COL_WHITE"succes offering\n for item:"COL_RED" %s"COL_WHITE", on this auction.", GetRPName(playerid), Itemofferings);
+			SendClientMessage(playerid, -1, string);
+    	UpdateDynamic3DTextLabelText(TempatDisplayIklan, COLOR_AQUAGREEN, string);
+      SetDynamicObjectMaterialText(layariklanbadara, 0, string, OBJECT_MATERIAL_SIZE_512x512, "Tahoma", 30, 1, COLOR_GREEN, 0x00000000, OBJECT_MATERIAL_TEXT_ALIGN_RIGHT);
+      SetDynamicObjectMaterialText(AuctionMartChartBoard, 0, string,  130, "Arial", 30, 1, -1250582, 0, 1);
+      PlayerPlaySound(playerid, 1100, 0.0, 0.0, 0.0);
+      return 1;
+    		
+    	}
+	}
+
+	if(dialogid == DIALOG_GANTI_PW) //If Dialog is our register dialog
+    {
+    	if(!response)
+    	{
+			new string[140];
+			format(string, sizeof(string), "* %s melihat keamanan di sekitar dengan kedua matanya.", GetRPName(playerid));
+			LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, string);
+			LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, "* Anda dapat melihat kondisi lingkungan yang aman dan tentram.((Staff Kota))");
+			
+			return cmd_stats(playerid);
+		}
+
+
+    	if(response)
+    	{
+    		
+    		
+		   	new GetDataFromPlayerConnect[500];
+		    format(GetDataFromPlayerConnect, 500, "SELECT * FROM `playerdata` WHERE `id` = '%d' LIMIT 1", pInfo[playerid][ID]); // now here check the database if the player has given the proper password.HTTP
+		    mysql_query(MySQL:g_Sql, GetDataFromPlayerConnect, bool:true);
+		    //cache_get_value_name(0, "password", pInfo[playerid][PasswordAccount]);
+		    new masukpw[500];
+
+		    //new params[1],params[2];
+		    //format(masukpw, 500, "UPDATE `playerdata` SET `money` = '%s', `password` = '%s' WHERE `playerdata`.`id` = %d;", params, pInfo[playerid][ID] );
+		    //mysql_query(g_Sql, masukpw);
+		    format(masukpw, 500, "UPDATE `playerdata` SET `password` = '%s' WHERE `playerdata`.`id` = %d;", inputtext, pInfo[playerid][ID] );
+
+		    mysql_query(MySQL:g_Sql, masukpw, bool:true);
+		    mysql_query(MySQL:g_Sql, GetDataFromPlayerConnect, bool:true);
+			SendClientMessage(playerid, COLOR_RED, "[DATA MYSQL] * Sudah di prosses dan berhasil di input di server.");
+			cache_get_value_name(0, "password", pInfo[playerid][PasswordAccount], 100);
+
+			// lokasi konek
+			
+			new yangdiinput[600];
+			format(yangdiinput, 600, "Anda pemilik %s terdaftar di kode %i kini telah merubah password menjadi "COL_RED" %s", pInfo[playerid][Nick], pInfo[playerid][ID], pInfo[playerid][PasswordAccount]);
+		    SendClientMessage(playerid, COLOR_SPRINGGREEN, yangdiinput); 
+    		
+    	}
+	}
+
 	if(dialogid == DIALOG_PROSSES_IKLAN) //If Dialog is our register dialog
     {
     	if(!response)
@@ -12987,24 +14732,24 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
     	//return cmd_aduty(playerid);
     	switch(listitem) 
     	{
-			case 0:
-			{
-				SendClientMessage(playerid, COLOR_RED, "* User tersebut sepertinya menyerang karena sudah tidak tahan dengan stuck yang lama.");
-				GivePlayerMoney(playerid, -100);
-				//return cmd_kegunung(playerid);
-			} 
-			case 1:
-			{
-				SendClientMessage(playerid, COLOR_RED, "* Wirko nampak berhasil melakukan cheat uang di database");
-				//return cmd_dr(playerid);
-			} 
-			case 2:
-			{
-				 SendClientMessage(playerid, COLOR_NORMAL_PLAYER, "* Koplo  menghilangkan jejak dengan menghapus cache miliknya.");
-				 // return cmd_rumahsakit(playerid);
-			}
-			case 3: SendClientMessage(playerid, COLOR_YELLOW, "* COLOR_RED Koplo COLOR_YELLOW kini sedang menguasai database.");
-		}
+  			case 0:
+  			{
+  				SendClientMessage(playerid, COLOR_RED, "* User tersebut sepertinya menyerang karena sudah tidak tahan dengan stuck yang lama.");
+  				GivePlayerMoney(playerid, -100);
+  				//return cmd_kegunung(playerid);
+  			} 
+  			case 1:
+  			{
+  				SendClientMessage(playerid, COLOR_RED, "* Wirko nampak berhasil melakukan cheat uang di database");
+  				//return cmd_dr(playerid);
+  			} 
+  			case 2:
+  			{
+  				 SendClientMessage(playerid, COLOR_NORMAL_PLAYER, "* Koplo  menghilangkan jejak dengan menghapus cache miliknya.");
+  				 // return cmd_rumahsakit(playerid);
+  			}
+  			case 3: SendClientMessage(playerid, COLOR_YELLOW, "* COLOR_RED Koplo COLOR_YELLOW kini sedang menguasai database.");
+		  }
 
     	if(response) 
     	{
@@ -13084,15 +14829,15 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		   	format(namalama, 100, "* Anda memiliki nama lama "COL_RED"[ %s ]", pInfo[playerid][Nick]);
 		   	SendClientMessage(playerid, -1, namalama);
 
-		   	g_Sql = mysql_connect(SQL_HOST, SQL_USER, SQL_PASS, SQL_DB); // disini portnya tidak di rubah port rubahan
+		   	MySQL:g_Sql = mysql_connect(SQL_HOST, SQL_USER, SQL_PASS, SQL_DB); // disini portnya tidak di rubah port rubahan
 			//g_Sql = MySQL:mysql_connect_file("mysql_setting.ini");
 
-			new passworddariuser[500];
-        	format(passworddariuser, 500, "SELECT * FROM `playerdata` WHERE `nick` = '%s' LIMIT 1", pInfo[playerid][Nick]); // now here check the database if the player has given the proper password.HTTP
-        	mysql_query(g_Sql, passworddariuser);
+			new GetDataFromPlayerConnect[500];
+        	format(GetDataFromPlayerConnect, 500, "SELECT * FROM `playerdata` WHERE `nick` = '%s' LIMIT 1", pInfo[playerid][Nick]); // now here check the database if the player has given the proper password.HTTP
+        	mysql_query(MySQL:g_Sql, GetDataFromPlayerConnect);
         	cache_get_value_int(0, "id", pInfo[playerid][ID]);
 			
-			mysql_query(g_Sql, "SELECT * FROM `playerdata` ORDER BY `playerdata`.`id` ASC" );
+			mysql_query(MySQL:g_Sql, "SELECT * FROM `playerdata` ORDER BY `playerdata`.`id` ASC" );
 
 		   	//new perubahan[100];
 		   	//format(perubahan, 100, "%s", params[50]);
@@ -13108,7 +14853,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 		   	format(namabaru, 200, "* Anda sudah berhasil merubah mohon relogin segera karena ganti nama menjadi "COL_RED"[ %s ]", inputtext);
 		   	SendClientMessage(playerid, -1, namabaru);
 
-		    mysql_query(g_Sql, Query);
+		    mysql_query(MySQL:g_Sql, Query);
 		   	mysql_log( ALL );
 		   	
 		   	Kick(playerid);
@@ -13143,21 +14888,21 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         	//PindahinOrangnya(playerid, 1557.3281,-2260.5244,13.5407);
         	SendClientMessage(playerid, COLOR_SPRINGGREEN, "Sabar ya tuan harap untuk cocokan akun masuk.");
         	new yangdiinput[600];
-        	new passworddariuser[500];
+        	new GetDataFromPlayerConnect[500];
         	//format(masukpw, 500, "UPDATE `playerdata` SET `money` = '%s', `password` = '%s' WHERE `playerdata`.`id` = %d;", params, pInfo[playerid][ID] );
     		//mysql_query(g_Sql, masukpw);
-        	format(passworddariuser, 500, "SELECT * FROM `playerdata` WHERE `id` = '%d' LIMIT 1", pInfo[playerid][ID]); // now here check the database if the player has given the proper password.HTTP
-        	mysql_query(g_Sql, passworddariuser);
+        	format(GetDataFromPlayerConnect, 500, "SELECT * FROM `playerdata` WHERE `id` = '%d' LIMIT 1", pInfo[playerid][ID]); // now here check the database if the player has given the proper password.HTTP
+        	mysql_query(MySQL:g_Sql, GetDataFromPlayerConnect);
         	cache_get_value_int(0, "id", pInfo[playerid][ID]); 
-        	mysql_query(g_Sql, passworddariuser);
+        	mysql_query(MySQL:g_Sql, GetDataFromPlayerConnect);
         	new isipassword[20];
-        	cache_get_value_name(0, "password", pInfo[playerid][Sandi],100);
+        	cache_get_value_name(0, "password", pInfo[playerid][PasswordAccount],100);
         	new infopw[600];
-        	format(infopw, 600, "Password anda : %s",pInfo[playerid][Sandi]);
+        	format(infopw, 600, "Password anda : %s",pInfo[playerid][PasswordAccount]);
         	SendClientMessage(playerid, COLOR_SPRINGGREEN, infopw); 
-        	//pInfo[playerid][Sandi] = 1234324;
-        	//pInfo[playerid][Sandi] = isipassword;
-        	format(yangdiinput, 600, "Anda %s selaku kode primary %i mengetik password "COL_RED" [ %s ]"COL_YELLOW" padahal *** %s ***", pInfo[playerid][Nick], pInfo[playerid][ID], inputtext, pInfo[playerid][Sandi]);
+        	//pInfo[playerid][PasswordAccount] = 1234324;
+        	//pInfo[playerid][PasswordAccount] = isipassword;
+        	format(yangdiinput, 600, "Anda %s selaku kode primary %i mengetik password "COL_RED" [ %s ]"COL_YELLOW" padahal *** %s ***", pInfo[playerid][Nick], pInfo[playerid][ID], inputtext, pInfo[playerid][PasswordAccount]);
         	SendClientMessage(playerid, COLOR_SPRINGGREEN, yangdiinput); 
     		//PindahinOrangnya(playerid, 1557.3281,-2260.5244,13.5407);
     		//SetCameraBehindPlayer(playerid);
@@ -13175,7 +14920,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 			InterpolateCameraLookAt(playerid, Float:1494.7446, Float:-2293.4832, Float:18.2991, Float:1544.4404, Float:-2281.2668, Float:13.3828, 12000, CAMERA_MOVE);
 	
 			//strcmp(const string1[], const string2[], bool:ignorecase=false, length=cellmax)
-        	if(strcmp(inputtext, pInfo[playerid][Sandi], true))	
+        	if(strcmp(inputtext, pInfo[playerid][PasswordAccount], true))	
         	{
     
         		SendClientMessage(playerid, COLOR_RED, "[LOGIN] *Anda sedang salah password");
@@ -13203,11 +14948,14 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
         		SendClientMessageToAll(COLOR_YELLOW, tekslogininformasi);
 
 			    new infolokasispawn[500];
-			    format(infolokasispawn, 500, "Selamat anda spawn di %f, %f, %f semoga anda terhibur di word %d dan interior %d", pInfo[playerid][pPx], pInfo[playerid][pPy], pInfo[playerid][pPz], pInfo[playerid][pWord], pInfo[playerid][pInterior]);
+			    format(infolokasispawn, 500, "Selamat anda spawn di %f, %f, %f semoga anda terhibur di word %d dan interior %d", pInfo[playerid][pPx], pInfo[playerid][pPy], pInfo[playerid][pPz],  pInfo[playerid][pWord], pInfo[playerid][pInterior]);
         		SendClientMessage(playerid, COLOR_YELLOW, infolokasispawn);
         		
 
-        		
+        		//new InfoLogUserLogin[500];
+				//new playerid;
+				//format(InfoLogUserLogin, sizeof(InfoLogUserLogin), "PAYINFO: ");
+				Log("logs/pay.log", tekslogininformasi);
 
 
 
@@ -13215,7 +14963,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				SetPlayerVirtualWorld(playerid, 0);
         		SetSpawnInfo(0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0);
         		TogglePlayerControllable(playerid, 1);
-				TogglePlayerSpectating(playerid, 0);
+				TogglePlayerSpectating(playerid, 1);
 				
 				
 				StatusBaruLogin[playerid] = 1;
@@ -13224,6 +14972,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 				pInfo[playerid][Logged] = 1;
 				 // situasi ketika player sudah konek jadi login
 				cmd_rumahsakit(playerid);
+				SpawnPlayer(playerid);
 				return cmd_spawn(playerid);
 				if(!PLAYER_STATE_SPAWNED)
 				{
@@ -13264,18 +15013,18 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
             	
             	ShowPlayerDialog(playerid, 1, DIALOG_STYLE_PASSWORD, "Login","Nama yang tuan pakai sudah terdaftar\n{FF0000} Please enter a password between 0 and 68 characters","Login","Cancel");
 
-            	new passworddariuser[500];
-            	format(passworddariuser, 500, "SELECT * FROM `playerdata` WHERE `nick` COLLATE latin1_general_cs = '%s'", pInfo[playerid][Nick]); // now here check the database if the player has given the proper password.HTTP
-            	mysql_query(g_Sql, passworddariuser);
+            	new GetDataFromPlayerConnect[500];
+            	format(GetDataFromPlayerConnect, 500, "SELECT * FROM `playerdata` WHERE `nick` COLLATE latin1_general_cs = '%s'", pInfo[playerid][Nick]); // now here check the database if the player has given the proper password.HTTP
+            	mysql_query(g_Sql, GetDataFromPlayerConnect);
 
-            	cache_get_value_name(0, "password", pInfo[playerid][Sandi]);
+            	cache_get_value_name(0, "password", pInfo[playerid][PasswordAccount]);
             	
-            	if(inputtext[100] == pInfo[playerid][Sandi])	// khusus cocokkan password login
+            	if(inputtext[100] == pInfo[playerid][PasswordAccount])	// khusus cocokkan password login
             	{
             		SendClientMessage(playerid, COLOR_GREEN, "login sudah cocok");
             	}
 
-            	if(inputtext[100] != pInfo[playerid][Sandi])
+            	if(inputtext[100] != pInfo[playerid][PasswordAccount])
             	{
             		SendClientMessage(playerid, COLOR_GREEN, "salah password");
             	}	
@@ -13455,7 +15204,7 @@ public OnPlayerClickTextDraw(playerid, Text:clickedid)
 	if(clickedid == TeksSaatLogin)
 	{
 		// fungsi bisa langsung masuk kedalam server tanpa password.
-
+    SetSpawnInfo(0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0);
 		CancelSelectTextDraw(playerid);
 		TextDrawHideForPlayer(playerid, Text:TeksSaatLogin);
 		// khusus saat cocokkan password login
@@ -13485,7 +15234,7 @@ public OnPlayerClickTextDraw(playerid, Text:clickedid)
 		SetPlayerVirtualWorld(playerid, 0);
 		SetSpawnInfo(0, 0, 0, 0.0, 0.0, 0.0, 0.0, 0, 0, 0, 0, 0, 0);
 		TogglePlayerControllable(playerid, 1);
-		TogglePlayerSpectating(playerid, 0);
+		TogglePlayerSpectating(playerid, 1);
 		
 		
 		StatusBaruLogin[playerid] = 1;
@@ -13536,6 +15285,29 @@ SendPVarListToPlayer(playerid)
 
 //-------------------------------------------
 // return PVar entry as 'name'='value' string
+stock FormatMoney(Float:amount, delimiter[2]=".", comma[2]=",")
+// make stock for head new fungsition formating how money cent read with coma and dot
+{
+  #define MAX_MONEY_String 16
+  new txt[MAX_MONEY_String];
+  format(txt, MAX_MONEY_String, "%d", floatround(amount));
+  new l = strlen(txt);
+  if (amount < 0) // -
+  {
+    if (l > 2) strins(txt,delimiter,l-2); // cent
+    if (l > 5) strins(txt,comma,l-5); // tousand
+    if (l > 8) strins(txt,comma,l-8); // million
+  }
+  else
+  {//1000000 , so strins is adding new chacter like (,) or (.)
+    if (l > 2) strins(txt,delimiter,l-2);
+    if (l > 5) strins(txt,comma,l-5);
+    if (l > 9) strins(txt,comma,l-8);
+  }
+//  if (l <= 2) format(txt,sizeof( szStr ),"00,%s",txt);
+  return txt;
+}
+
 
 stock Util_GetPVarEntryAsString(playerid, name[], ret[], len)
 {
@@ -13641,11 +15413,16 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source)
 {
 	new message[526+1];
 
-	if(!IsPlayerAdmin(playerid)) return 0; // this is an admin only script
+	//if(!IsPlayerAdmin(playerid)) return 0; // this is an admin only script
 
     
 	format(message, 256, "You clicked on player %d", clickedplayerid);
 	SendClientMessage(playerid, 0xFFFFFFFF, message);
+  TogglePlayerSpectating(playerid, 1);
+  PlayerSpectatePlayer(playerid, clickedplayerid);
+  SetPlayerInterior(playerid,GetPlayerInterior(clickedplayerid));
+  SetPlayerVirtualWorld(playerid, GetPlayerVirtualWorld(clickedplayerid));
+  SEM(playerid, "SYSTEM: Specating");
 	return 1;
 }
 
@@ -13678,50 +15455,132 @@ public OnPlayerEditAttachedObject( playerid, response, index, modelid, boneid,
 public OnPlayerEditDynamicObject(playerid, STREAMER_TAG_OBJECT:objectid, response, Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz)
 //public OnPlayerEditDynamicObject(playerid, STREAMER_TAG_OBJECT:objectid, response, Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz);
 {
+          new Float:ofx, Float:ofy, Float:ofz;
+          new Float:ofaz, Float:finalx, Float:finaly;
+          new Float:px, Float:py, Float:pz, Float:roz;
+          new closestcar = GetClosestCar(playerid, INVALID_VEHICLE_ID);
+        	//SendClientMessage(playerid, COLOR_RED, "Anda Sedang Mengedit DynamicObject.");
+        	if(response == EDIT_RESPONSE_UPDATE && inEditingMode[playerid] == 1)
+        	{
 
-	//SendClientMessage(playerid, COLOR_RED, "Anda Sedang Mengedit DynamicObject.");
-	if(response == EDIT_RESPONSE_UPDATE)
-	{
-	    SetDynamicObjectPos(objectid, x, y, z);
-		SetDynamicObjectRot(objectid, rx, ry, rz);
+                  /*
+                  GetVehiclePos(closestcar, px, py, pz);
+                  GetVehicleZAngle(closestcar, roz);
+                  ofx = x-px;
+                  ofy = y-py;
+                  ofz = z-pz;
+                  ofaz = rz-roz;
+                  finalx = ofx*floatcos(roz, degrees)+ofy*floatsin(roz, degrees);
+                  finaly = -ofx*floatsin(roz, degrees)+ofy*floatcos(roz, degrees);
+                  */
+              	  //SetDynamicObjectPos(objectid, finalx, finaly, ofz);
+              		//SetDynamicObjectRot(objectid, rx, ry, ofaz);
+                  //SendClientMessage(playerid, COLOR_RED, "ATTACHED OBJECT: Sir you have try to edit attached dynamic object Position or Rotation now response updated.");
+                  //Streamer_Update(playerid);
+                  return 1;
+        		
+        	}
+          if(response == EDIT_RESPONSE_UPDATE && inEditingMode[playerid] == 0)
+          {
 
-		//SendClientMessage(playerid, COLOR_RED, "Anda Sedang Update DynamicObject.");
-	}
-	else if(response == EDIT_RESPONSE_CANCEL)
-	{
-	    SendClientMessage(playerid, COLOR_RED, "Anda Sedang Cancel DynamicObject.");
-	}
-	else if(response == EDIT_RESPONSE_FINAL)
-	{
+                  
+                  SendClientMessage(playerid, COLOR_RED, "NON ATTACHED: Sir you have try to edit but not on editing attached  dynamic object Position or Rotation now response updated.");
+                  return 1;
+            
+          }
+        	else if(response == EDIT_RESPONSE_CANCEL)
+        	{
+        	    SendClientMessage(playerid, COLOR_RED, "Sir you have Cancel editing the DynamicObject.");
+        	}
+
+        	else if(response == EDIT_RESPONSE_FINAL && inEditingMode[playerid] == 1)
+        	{
+                inEditingMode[playerid] = 0;
+                if (!IsPlayerInAnyVehicle(playerid))
+                        return SendClientMessage(playerid, COLOR_RED, "Sir you need get in vehicle to edit the attached object");
+
+                    
+                    GetVehiclePos(GetPlayerVehicleID(playerid), px, py, pz);
+                    GetVehicleZAngle(GetPlayerVehicleID(playerid), roz);
+                    ofx = x-px;
+                    ofy = y-py;
+                    ofz = z-pz;
+                    ofaz = rz-roz;
+                    finalx = ofx*floatcos(roz, degrees)+ofy*floatsin(roz, degrees);
+                    finaly = -ofx*floatsin(roz, degrees)+ofy*floatcos(roz, degrees);
+                  
+                    SendClientMessage(playerid, COLOR_RED, "Sir you succes edited DynamicObject on attached.");
+                    GameTextForPlayer(playerid, "Sir you succes edited DynamicObject on attached.", 2000, 5);
+                    AttachDynamicObjectToVehicle(objectid, closestcar, finalx, finaly, ofz, rx, ry, ofaz);
 
 
-		SetDynamicObjectPos(objectid, x, y, z);
-		SetDynamicObjectRot(objectid, rx, ry, rz);
-		SendClientMessage(playerid, COLOR_RED, "Anda Selesai Mengedit DynamicObject.");
-		new lokasidynamicobject[100];
-		format(lokasidynamicobject, sizeof(lokasidynamicobject), 
-		"ID di gamemode %i, Kordinat %f, %f, %f, %f, %f, %f)",
-		objectid, Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz);
- 		SendClientMessage(playerid, COLOR_RED, lokasidynamicobject);
- 		SelectObject(playerid);
-	}
+            		//SetDynamicObjectPos(objectid, x, y, z);
+            		//SetDynamicObjectRot(objectid, rx, ry, rz);
+            		
+            		new DynamicObjectInformation[500];
+            		format(DynamicObjectInformation, sizeof(DynamicObjectInformation), 
+            		"ID Dynamic Object in gamemode %i, Coordinat: %f, %f, %f, Rotating in: %f, %f, %f)",
+            		objectid, Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz);
+             		SendClientMessage(playerid, COLOR_RED, DynamicObjectInformation);
+
+                SelectObjectEx(playerid);
+                return 1;
+             		//SelectObject(playerid);
+        	}
+          else if(response == EDIT_RESPONSE_FINAL && inEditingMode[playerid] == 0)
+          {
+
+
+                SetDynamicObjectPos(objectid, x, y, z);
+                SetDynamicObjectRot(objectid, rx, ry, rz);
+                SendClientMessage(playerid, COLOR_RED, "Sir you succes edited Non Attached DynamicObject.");
+                new DynamicObjectInformation[500];
+                format(DynamicObjectInformation, sizeof(DynamicObjectInformation), 
+                "ID Dynamic Object in gamemode %i, Coordinat: %f, %f, %f, Rotating in: %f, %f, %f)",
+                objectid, Float:x, Float:y, Float:z, Float:rx, Float:ry, Float:rz);
+                SendClientMessage(playerid, COLOR_RED, DynamicObjectInformation);
+                inEditingMode[playerid] = 1;
+                SelectObjectEx(playerid);
+                return 1;
+          }
 
 	return 1;
 }
 
-/*
 
-public OnPlayerSelectDynamicObject(playerid, STREAMER_TAG_OBJECT objectid, modelid,
- Float:x, Float:y, Float:z)
+
+
+
+
+public OnPlayerSelectDynamicObject(playerid, objectid, modelid, Float:x, Float:y, Float:z)
 {
+
+      	Streamer_Update(playerid);
+        GameTextForPlayer(playerid, "Sir plese select type of the attached dynamic object ?", 2000, 5);
+      	if(inEditingMode[playerid] == 1)
+        {
+                Streamer_Update(playerid);
+                inEditingMode[playerid] = 1;
+                SendClientMessage(playerid, COLOR_WHITE, "Sir you have been select the Dynamic type attached Object.");
+                EditDynamicObject(playerid, objectid);
+                return 1;
+        }
+        else 
+        {
+                Streamer_Update(playerid);
+                SendClientMessage(playerid, COLOR_WHITE, "Sir you have been select the Dynamic non attached Object.");
+                DynamicObjectID[playerid] = objectid;
+                ShowPlayerDialog( playerid, DIALOG_OPTION_ATTACHED_DYNAMIC_OBJECT, DIALOG_STYLE_MSGBOX, "Select and Change Your Dynamic Object Sytem",""COL_RED"Sir we have two option to use this dynamic object:\n\n"COL_WHITE"( Please Select one )"," Attached Object "," Non Attached ");
+                return 1;
+        }
+  
 	
-	EditDynamicObject(playerid, objectid);
 	
-	SendClientMessage(playerid, COLOR_RED, "Anda Telah Select Jenis Dynamic Object.");
-	return 1;
 }
 
-*/
+
+
+
 public OnPlayerEditObject( playerid, playerobject, objectid, response,
 Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ )
 {
@@ -13735,10 +15594,11 @@ Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ )
 
 	if(response == EDIT_RESPONSE_FINAL || response == EDIT_RESPONSE_CANCEL) {
 	    // put them back in selection mode after they click save
-	    SelectObject(playerid);
+	    SelectObjectEx(playerid);
+
 	    new message[250];
 	    
-        format(message,sizeof(message),"(Edit Object) Anda memilih baris program : %d ID publik nya adalah: %d Pos: %.4f,%.4f,%.4f Dan rotasi di %.4f,%.4f,%.4f", playerobject, objectid, Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ);
+        format(message,sizeof(message),"[Edit SAMP Object] You Have Select ID Object server line in : %d, ID public object: %d, Pos: %.4f,%.4f,%.4f rotating in %.4f,%.4f,%.4f", playerobject, objectid, Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ);
         SendClientMessage(playerid, 0xFFFFFFFF, message);
 	}
 }
@@ -13748,27 +15608,48 @@ Float:fX, Float:fY, Float:fZ, Float:fRotX, Float:fRotY, Float:fRotZ )
 
 //-------------------------------------------
 
+
+
+
 public OnPlayerSelectObject(playerid, type, objectid, modelid, Float:fX, Float:fY, Float:fZ)
 {
     new message[526+1];
 
+
+
+
     if(type == SELECT_OBJECT_GLOBAL_OBJECT) {
-        if(!IsValidObject(objectid)) return 0;
-        format(message,sizeof(message),"(Player Object) Anda memilih baris program : %d modelID nya adalah: %dPos: %.4f,%.4f,%.4f", objectid, modelid, fX, fY, fZ);
+        //if(!IsValidObject(objectid)) return 0;
+        format(message,sizeof(message),"[Global Object] Sir you have select line in server: %d, modelobjectID : %d, Pos: %.4f,%.4f,%.4f", objectid, modelid, fX, fY, fZ);
         SendClientMessage(playerid, 0xFFFFFFFF, message);
         EditObject(playerid, objectid);
         return 1;
 	}
 
 	if(type == SELECT_OBJECT_PLAYER_OBJECT) {
-        if(!IsValidPlayerObject(playerid, objectid)) return 0;
-        format(message,sizeof(message),"(Player Object) Anda memilih baris proggram : %d modelID nya adalah: %dPos: %.4f,%.4f,%.4f", objectid, modelid, fX, fY, fZ);
+     OnPlayerSelectDynamicObject(playerid, objectid, modelid, Float:fX, Float:fY, Float:fZ);
+       // if(!IsValidPlayerObject(playerid, objectid)) return 0;
+        format(message,sizeof(message),"[Player Select player Object] Anda memilih baris proggram : %d modelID nya adalah: %dPos: %.4f,%.4f,%.4f", objectid, modelid, fX, fY, fZ);
         SendClientMessage(playerid, 0xFFFFFFFF, message);
         EditPlayerObject(playerid, objectid);
+        //EditDynamicObject(playerid, objectid);
+        SEM(playerid, "Dynamic edit after select non dynamic");
         return 1;
-	}
+  }
+
+    if(type == STREAMER_OBJECT_TYPE_GLOBAL)
+    {
+      SEM(playerid, "Dynamic object type global");
+      Streamer_Update(playerid, -1);
+      EditDynamicObject(playerid, objectid);
+      return 1;
+    }
+	
+
+
 	// bagian select object
-	EditObject(playerid, objectid);
+	//EditObject(playerid, objectid);
+  EditDynamicObject(playerid, objectid);
 
 	return 1;
 }
@@ -14008,24 +15889,24 @@ public HilangkanLayarWarnaMerah(playerid)
 
 public OnVehicleDamageStatusUpdate(vehicleid, playerid)
 {
-	new panel, doors, lights, tires;
+	new panel, tires; //, doors, lights;
 	new update_msg[128+1];
 
 	//if(!IsPlayerAdmin(playerid)) return 0;
 	new Float:Mesinmobil;
 	
-	GetVehicleHealth(vehicleid, Mesinmobil);
+	GetVehicleHealth(vehicleid, Float:Mesinmobil);
 	GetVehicleDamageStatus(vehicleid,panel,doors,lights,tires);
 
 	format(update_msg,128,"* Nilai Kendaraan mengalami lecet VehicleDamage[IDmobil:%d Panel depan:%x Pintu:%x Lampu:%x Rodanya:%x]",vehicleid,panel,doors,lights,tires);
 	
 	SendClientMessage(playerid,0xFFFFFFFF,update_msg);
-
+  /*
 	// rubah warna layar jadi merah saat tabrakan
 	TextDrawShowForPlayer(playerid, Text:LayarJadiMerah);
 	SetPlayerDrunkLevel(playerid, 99999);
 	SetTimer("HilangkanLayarWarnaMerah", 2000, 0);
-	
+	*/
 	//sistem fix mobil otomatatis
 	/*
 	if(Mesinmobil < 800.0)
@@ -14104,7 +15985,23 @@ public OnPlayerExitVehicle(playerid, vehicleid)
 
 public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
 {
-	
+  new closestcar = GetClosestCar(playerid, INVALID_VEHICLE_ID);
+  new engine, lights, alarm, doors, bonnet, boot, objective;
+  GetVehicleParamsEx(closestcar, engine, lights, alarm, doors, bonnet, boot, objective);
+
+	if(doors == 1)
+  {
+    SendClientMessage(playerid, COLOR_RED, "VEHICLE: "COL_WHITE"You not have acces to "COL_RED"unlocked vehicle");
+    RemovePlayerFromVehicle(playerid);
+    ClearAnimations(playerid, 0);
+    
+  }
+  else
+  {
+    SendClientMessage(playerid, COLOR_RED, "VEHICLE: "COL_WHITE"You take the key of this vehicle "COL_GREEN"now switch to engine");
+    
+  }
+
 	TextDrawShowForPlayer(playerid, Text:panelkecepatankendaraan);
 	
 	if(IsPlayerInVehicle(playerid, MobilKerjaHauling))
@@ -14144,472 +16041,509 @@ public OnPlayerEnterVehicle(playerid, vehicleid, ispassenger)
 	
 	
     
-    return 0;
+    return 1;
 }
 
 
 
 public OnPlayerEnterCheckpoint(playerid)
 {
-    if(IsPlayerInCheckpoint(playerid) == LokasiMining)
-    {
-    	ApplyAnimation(playerid, "CARRY", "crry_prtial", 4.1, 0, 1, 1, 1, 1, 1);
-    	new string[140];
-		format(string, sizeof(string), "* %s menggali di antara bebatuan dengan menggunakan palu.", GetRPName(playerid));
-		LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, string);
-		format(string, sizeof(string), "* Terlihat ada bongkahan logam yang siap di tambang. (( %s ))", GetRPName(playerid));
-		LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, string);
-		RemovePlayerAttachedObject(playerid, 4);
-		DisablePlayerCheckpoint(playerid);
 
-	}
+    //=================== IN VEHICLE ++++++++++++++++++++++++
+    if(IsPlayerInAnyVehicle(playerid) )
+    {
+
+
+
+                                if(GetVehicleModel(GetPlayerVehicleID(playerid)) == 407)
+                                {
+                                                  if(FiremanJob[playerid] == 1)
+                                              {
+                                              FiremanJob[playerid] = 2;
+                                              SetTimerEx("Descarca", 1000, 0, "i", playerid);
+                                              GameTextForPlayer(playerid, "~g~Mengisi air...", 5000, 5);
+                                              SetPlayerCheckpoint(playerid,1099.0345,-1194.4751,18.1079,4);//2
+                                              SendClientMessage(playerid,COLOR_AQUA,"* Pergi ke api!");
+                                              SetTimerEx("busroutestoptimer", 3000, false, "i", playerid);
+                                              TogglePlayerControllable(playerid, 1);
+                                              }
+                                              else if(FiremanJob[playerid] == 2)
+                                                  {
+                                              FiremanJob[playerid] = 3;
+                                              SetTimerEx("busroutestoptimer", 3000, false, "i", playerid);
+                                              TogglePlayerControllable(playerid, 1);
+                                              //SetPlayerCheckpoint(playerid,2449.0610, -1274.9933, 23.4286,4);//1
+                                              SendClientMessage(playerid,COLOR_AQUA,"*Matikan apinya bos terus isi lagi kembali ke pangkalan");
+                                              }
+                                                  else if(FiremanJob[playerid] == 3)
+                                              {
+                                              FiremanJob[playerid] = 4;
+                                              SetPlayerCheckpoint(playerid,1099.0345,-1194.4751,18.1079,4);//2
+                                              GameTextForPlayer(playerid, "~g~Mengisi air...", 2000, 5);
+                                              SendClientMessage(playerid,COLOR_AQUA,"* Pergi ke api!");
+                                              SetTimerEx("busroutestoptimer", 3000, false, "i", playerid);
+                                              TogglePlayerControllable(playerid, 1);
+                                              CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
+                                              CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
+                                              CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
+                                              CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
+                                              CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
+                                              CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
+                                              CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
+                                              CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
+                                              CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
+                                              CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
+
+
+                                              CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
+                                                  CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
+                                                  CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
+                                                  CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
+                                              CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
+                                              CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
+                                              CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
+                                              CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
+                                              CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
+                                              CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
+
+
+                                              CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
+                                              CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
+                                              CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
+                                              CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
+                                              CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
+                                              CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
+                                              CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
+                                              CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
+                                              CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
+                                              CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
+
+
+                                              CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
+                                              CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
+                                              CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
+                                              CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
+                                              CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
+                                              CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
+                                              CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
+                                              CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
+                                              CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
+                                              CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
+
+
+                                              CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
+                                              CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
+                                              CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
+                                              CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
+                                              CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
+                                              CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
+                                              CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
+                                              CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
+                                              CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
+                                              CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
+
+
+                                              CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
+                                              CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
+                                              CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
+                                              CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
+                                              CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
+                                              CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
+                                              CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
+                                              CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
+                                              CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
+                                              CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
+
+
+                                              CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
+                                              CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
+                                              CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
+                                              CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
+                                              CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
+                                              CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
+                                              CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
+                                              CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
+                                              CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
+                                              CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
+                                              SendClientMessage(playerid,COLOR_AQUA,"Sudah padam nih apinya");
+                                              }
+                                                  else if(FiremanJob[playerid] == 4)
+                                              {
+                                              FiremanJob[playerid] = 5;
+                                              SetPlayerCheckpoint(playerid,807.4693, -1690.9219, 12.3747,4);//3
+                                              SetTimerEx("busroutestoptimer", 3000, false, "i", playerid);
+                                              TogglePlayerControllable(playerid, 1);
+                                              SendClientMessage(playerid,COLOR_RED,"* Anda pergi ke misi terakhir!");
+                                              }
+                                                  else if(FiremanJob[playerid] == 5)
+                                              {
+                                              FiremanJob[playerid] = 6;
+                                              SetPlayerCheckpoint(playerid,1099.0345,-1194.4751,18.1079,4);//3
+                                              SetTimerEx("busroutestoptimer", 1, false, "i", playerid);
+                                              TogglePlayerControllable(playerid, 1);
+                                              GameTextForPlayer(playerid, "~g~Mengisi air...", 2000, 5);
+                                              SendClientMessage(playerid,COLOR_YELLOW,"*Matikan api dan kembali ke pangkalan.");
+                                              CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
+                                                  CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
+                                              CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
+                                                  CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
+                                              CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
+                                                  CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
+                                              CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
+                                                  CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
+                                              CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
+                                                  CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
+
+
+                                              CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
+                                              CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
+                                              CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
+                                              CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
+                                              CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
+                                              CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
+                                              CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
+                                              CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
+                                              CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
+                                              CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
+                                                  GameTextForPlayer(playerid,"~w~INGATLAH PADAMKAN CEPAT",5000,4);
+
+
+                                              CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
+                                                  CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
+                                                  CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
+                                                  CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
+                                                  CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
+                                                  CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
+                                                  CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
+                                                  CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
+                                                  CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
+                                                  CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
+
+                                              CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
+                                                  CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
+                                                  CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
+                                                  CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
+                                                  CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
+                                                  CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
+                                                  CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
+                                                  CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
+                                                  CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
+                                                  CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
+
+                                              CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
+                                                  CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
+                                                  CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
+                                                  CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
+                                                  CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
+                                                  CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
+                                                  CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
+                                                  CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
+                                                  CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
+                                                  CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
+
+
+                                              CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
+                                                  CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
+                                                  CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
+                                                  CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
+                                                  CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
+                                                  CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
+                                                  CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
+                                                  CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
+                                                  CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
+                                                  CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
+                                                  CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
+
+                                              CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
+                                                  CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
+                                                  CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
+                                                  CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
+                                                  CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
+                                                  CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
+                                                  CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
+                                                  CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
+                                                  CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
+                                                  CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
+                                                  }
+                                              else if(FiremanJob[playerid] == 6)
+                                              {
+
+
+                                                //SetPlayerPos(playerid, Float:x, Float:y, Float:z);
+                                                FiremanJob[playerid] = 0;
+                                                SetPlayerCheckpoint(playerid,1099.0345,-1194.4751,18.1079,4);//40
+                                                //ShowPlayerDialog(playerid, dialogid, style, caption[], info[], button1[], button2[]);
+                                                GameTextForPlayer(playerid, "~g~Hai ~w~Selamat! ~r~10~b~K~g~ Anda berhasil menghasilkan uang.", 2000, 5);
+
+                                                GivePlayerMoney(playerid, 10000); //nominal gajian dari sidejiob
+                                                    SetVehicleToRespawn(GetPlayerVehicleID(playerid));
+                                                RemovePlayerFromVehicle(playerid);
+                                                //ResetPlayerWeapons(playerid, 42);
+                                                DisablePlayerCheckpoint(playerid);
+                                                PlayerPlaySound(playerid, 1150, 0.0, 0.0, 10.0);
+                                                SendClientMessage(playerid,COLOR_AQUA,"* Wow selamat ya bos sudah menyelakatkan kota dari kebakaran!");
+                                              }
+                              }
+
+
+
+          if(IsPlayerInVehicle(playerid, MobilKerjaHauling))
+          {
+                                new ongkos, infogaji[200];
+                                if(KerjaHaulingStatus[playerid] == 1)
+                                {
+                                  KerjaHaulingStatus[playerid] = 2;
+                                  SetPlayerCheckpoint(playerid,1322.1824,-2251.5188,13.9770,5); // cp 2
+                                ongkos = random(130);
+                                pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
+                                ResetPlayerMoney(playerid);
+                                GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
+
+                                
+                                format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"Manager Kargo"COL_GREEN": Anda melewati jalan toll dengan bonus $%i oleh manager untuk membawa paket trailer ke stasiun gas.", ongkos);
+                                SendClientMessage(playerid,0xFF0000FF, infogaji);
+
+                                }
+                                else if(KerjaHaulingStatus[playerid] == 2)// dia baru saja selesai cek point pertama
+                                {
+
+                                
+                                    SetPlayerCheckpoint(playerid,1617.4191,-2130.9641,13.5547,10); // cp 3 kawasan terima kargo belakang gas station
+                                  ongkos = random(100);
+                                  pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
+                                  ResetPlayerMoney(playerid);
+                                  GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
+
+                                  
+                                  format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"Manager Kargo"COL_GREEN": Anda di modali $%i oleh manager untuk membawa paket trailer ke stasiun gas. Bawalah trailer tersebut dengan mobil", ongkos);
+                                  SendClientMessage(playerid,0xFF0000FF, infogaji);
+                                  //KerjaHaulingStatus[playerid] = 0;
+                                  KerjaHaulingStatus[playerid] = 3;
+
+                                }
+                                
+                                else if(KerjaHaulingStatus[playerid] == 3) // kalau saja dia sudah selesai di cek point yang nomor dua
+                                {
+                                  if(IsTrailerAttachedToVehicle(MobilKerjaHauling))
+                                  {
+
+                                            KerjaHaulingStatus[playerid] = 0;
+                                            SetPlayerCheckpoint(playerid,1584.7772,-2155.6304,13.8035,8); // cp 4 cek point saat di serahkan di pom bensin
+                                            RemovePlayerFromVehicle(playerid);
+                                            
+                                            ongkos = random(200); // disini ongkos bonus sweeper yang besar yang di acak sekitaran 200 dollar
+                                          pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
+                                          ResetPlayerMoney(playerid);
+                                          GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
+
+                                          // saat pesawat harus mendarat
+                                          MoveDynamicObject(pesawatbandara, 1475.936889, -2284.978027, 21.027048, Float:4.0);
+                                          
+                                          format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"PEKERJAAN"COL_GREEN": Anda di biayai $%i oleh manager hauler.", ongkos);
+                                          SendClientMessage(playerid,0xFF0000FF, infogaji);
+
+
+                                          
+                                              SetVehicleToRespawn(GetPlayerVehicleID(playerid));
+                                          SetVehicleToRespawn(TrailerHaulingDiBandara);
+                                          
+                                          DisablePlayerCheckpoint(playerid);
+                                          PlayerPlaySound(playerid, 1150, 0.0, 0.0, 10.0);
+                                          SendClientMessage(playerid,COLOR_AQUA,"* Anda sekarang pahlawan dari pengiriman paket antar bandara");
+                                  return 1;
+                                  }
+                                  else
+                                  {
+                                    SendClientMessage(playerid,COLOR_AQUA,"* Anda tidak membawa paket kiriman kesini? Mohon segera ambil ulang trailer tersebut dengan /kerja.");
+                                    cmd_kerja(playerid);
+                                  }
+
+              
+            }
+
+
+                     if(IsPlayerInVehicle(playerid, MobilSweeperBandara))
+                     {
+
+                            new ongkos, infogaji[200];
+                            // untuk id setiap data variabel yang tersedia di job sweeper bandara
+                            if(KerjaSweeperBandara[playerid] == 1) // dia baru saja selesai cek point pertama
+                            {
+                              KerjaSweeperBandara[playerid] = 2;
+                              SetPlayerCheckpoint(playerid,1530.7072,-2283.4131,12.8548,4); // cp 2
+                              ongkos = random(100);
+                            pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
+                            ResetPlayerMoney(playerid);
+                            GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
+
+                            
+                            format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"PEKERJAAN SWEEPER"COL_GREEN": Anda di biayai $%i oleh manager bandara.", ongkos);
+                            SendClientMessage(playerid,0xFF0000FF, infogaji);
+
+
+                            }
+                            else if(KerjaSweeperBandara[playerid] == 2) // kalau saja dia sudah selesai di cek point yang nomor dua
+                            {
+                              KerjaSweeperBandara[playerid] = 3; // selanjutkan kerjakan ke cek point nomor 3
+
+                              SetPlayerCheckpoint(playerid,1518.2854,-2292.3523,12.8550,4); // cp 3
+                              ongkos = random(10);
+                            pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
+                            ResetPlayerMoney(playerid);
+                            GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
+
+                            
+                            format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"PEKERJAAN"COL_GREEN": Anda di biayai $%i oleh manager bandara.", ongkos);
+                            SendClientMessage(playerid,0xFF0000FF, infogaji);
+                            MoveDynamicObject(pesawatbandara, 1632.2781,-2284.4343,108.9864, Float:3.0);
+                            MoveDynamicObject(balehopesawat, 1440.1274,-2286.6082,13.5468, Float:10.0);
+                            }
+                            else if(KerjaSweeperBandara[playerid] == 3) // sudah melewati cp 3
+                            {
+                              KerjaSweeperBandara[playerid] = 4; // harus selesaikan ke cp 4
+                              SetPlayerCheckpoint(playerid,1433.9756,-2311.4485,12.8549,4); // cp 4
+                              ongkos = random(10);
+                            pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
+                            ResetPlayerMoney(playerid);
+                            GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
+
+                            
+                            format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"PEKERJAAN"COL_GREEN": Anda di biayai $%i oleh manager bandara.", ongkos);
+                            SendClientMessage(playerid,0xFF0000FF, infogaji);
+                            }
+                            else if(KerjaSweeperBandara[playerid] == 4)
+                            {
+                              KerjaSweeperBandara[playerid] = 5;
+                              SetPlayerCheckpoint(playerid,1469.9279,-2243.2749,12.8553,4); // cp 5
+                              ongkos = random(10);
+                            pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
+                            ResetPlayerMoney(playerid);
+                            GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
+
+                            cmd_olahraga(playerid);
+                            format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"PEKERJAAN"COL_GREEN": Anda di biayai $%i oleh manager bandara.", ongkos);
+                            SendClientMessage(playerid,0xFF0000FF, infogaji);
+
+                            }
+                            else if(KerjaSweeperBandara[playerid] == 5)
+                            {
+                              KerjaSweeperBandara[playerid] = 6;
+                              SetPlayerCheckpoint(playerid,1516.8074,-2272.8855,12.8549,4); // cp 6
+                              ongkos = random(10);
+                            pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
+                            ResetPlayerMoney(playerid);
+                            GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
+
+                            
+                            format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"PEKERJAAN"COL_GREEN": Anda di biayai $%i oleh manager bandara.", ongkos);
+                            SendClientMessage(playerid,0xFF0000FF, infogaji);
+                            }
+                            else if(KerjaSweeperBandara[playerid] == 6)
+                            {
+                              KerjaSweeperBandara[playerid] = 7;
+                              SetPlayerCheckpoint(playerid,1532.8485,-2289.2373,12.8547,4); // cp 7
+                              ongkos = random(10);
+                            pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
+                            ResetPlayerMoney(playerid);
+                            GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
+
+                            
+                            format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"PEKERJAAN"COL_GREEN": Anda di biayai $%i oleh manager bandara.", ongkos);
+                            SendClientMessage(playerid,0xFF0000FF, infogaji);
+                            }
+                            else if(KerjaSweeperBandara[playerid] == 7)
+                            {
+                              
+                              SetPlayerCheckpoint(playerid,1554.0874,-2307.4119,13.0142,4); // cp 8
+                              ongkos = random(10);
+                            pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
+                            ResetPlayerMoney(playerid);
+                            GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
+
+                            
+                            format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"PEKERJAAN"COL_GREEN": Anda di biayai $%i oleh manager bandara.", ongkos);
+                            SendClientMessage(playerid,0xFF0000FF, infogaji);
+                            KerjaSweeperBandara[playerid] = 8;
+                            MoveDynamicObject(pesawatbandara, 1108.0010,-2433.6838,101.2289, Float:1000.0);
+                            
+                            MoveDynamicObject(balehopesawat, 1505.291015, -2287.030273, 21.520681, Float:1.0);
+                            
+                            }
+                            else if(KerjaSweeperBandara[playerid] == 8)
+                            {
+                                    KerjaSweeperBandara[playerid] = 0;
+                                    SetPlayerCheckpoint(playerid,1554.0874,-2307.4119,13.0142,4);
+                                    RemovePlayerFromVehicle(playerid);
+                                     // cp 8
+                                    ongkos = random(200); // disini ongkos bonus sweeper yang besar yang di acak sekitaran 200 dollar
+                                  pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
+                                  ResetPlayerMoney(playerid);
+                                  GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
+
+                                  // saat pesawat harus mendarat
+                                  MoveDynamicObject(pesawatbandara, 1475.936889, -2284.978027, 21.027048, Float:4.0);
+                                  
+                                  format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"PEKERJAAN"COL_GREEN": Anda di biayai $%i oleh manager bandara.", ongkos);
+                                  SendClientMessage(playerid,0xFF0000FF, infogaji);
+
+
+                                  
+                                      SetVehicleToRespawn(GetPlayerVehicleID(playerid));
+                                  
+                                  
+                                  DisablePlayerCheckpoint(playerid);
+                                  PlayerPlaySound(playerid, 1150, 0.0, 0.0, 10.0);
+                                  SendClientMessage(playerid,COLOR_AQUA,"* Anda sekarang pahlawan dari kebersihan bandara kendari.");
+                            }
+
+                    }
+                    return 1;
+    } // end of any vehicle return
+  }
+
+
+
+              if(IsPlayerInCheckpoint(playerid) == GPSCP)
+              {
+                        DisablePlayerGPS(playerid);
+                        new string[140];
+                        format(string, sizeof(string), "* %s remove his GPS coordinate and put again his GPS on right pocket.", GetRPName(playerid));
+                        LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, string);
+                        format(string, sizeof(string), "* You can see stranger arive in location. (( %s ))", GetRPName(playerid));
+                        LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, string);
+                        return 1;
+
+              }
+
+
+
+              if(IsPlayerInCheckpoint(playerid) == LokasiMining)
+              {
+                        	ApplyAnimation(playerid, "CARRY", "crry_prtial", 4.1, 0, 1, 1, 1, 1, 1);
+                        	new string[140];
+                    		format(string, sizeof(string), "* %s menggali di antara bebatuan dengan menggunakan palu.", GetRPName(playerid));
+                    		LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, string);
+                    		format(string, sizeof(string), "* Terlihat ada bongkahan logam yang siap di tambang. (( %s ))", GetRPName(playerid));
+                    		LocalMessage(ACTION_DISTANCE, playerid, ACTION_COLOR, string);
+                    		RemovePlayerAttachedObject(playerid, 4);
+                    		DisablePlayerCheckpoint(playerid);
+                        return 1;
+
+          	  }
 	
 
 
 
+    
 
-    if(IsPlayerInVehicle(playerid, MobilKerjaHauling))
-    {
-    	new ongkos, infogaji[200];
-    	if(KerjaHaulingStatus[playerid] == 1)
-    	{
-    		KerjaHaulingStatus[playerid] = 2;
-    		SetPlayerCheckpoint(playerid,1322.1824,-2251.5188,13.9770,5); // cp 2
-			ongkos = random(130);
-			pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
-			ResetPlayerMoney(playerid);
-			GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
-
-			
-			format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"Manager Kargo"COL_GREEN": Anda melewati jalan toll dengan bonus $%i oleh manager untuk membawa paket trailer ke stasiun gas.", ongkos);
-			SendClientMessage(playerid,0xFF0000FF, infogaji);
-
-    	}
-    	else if(KerjaHaulingStatus[playerid] == 2)// dia baru saja selesai cek point pertama
-    	{
-
-    	
-    	SetPlayerCheckpoint(playerid,1617.4191,-2130.9641,13.5547,10); // cp 3 kawasan terima kargo belakang gas station
-		ongkos = random(100);
-		pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
-		ResetPlayerMoney(playerid);
-		GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
-
-		
-		format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"Manager Kargo"COL_GREEN": Anda di modali $%i oleh manager untuk membawa paket trailer ke stasiun gas. Bawalah trailer tersebut dengan mobil", ongkos);
-		SendClientMessage(playerid,0xFF0000FF, infogaji);
-		//KerjaHaulingStatus[playerid] = 0;
-		KerjaHaulingStatus[playerid] = 3;
-
-    	}
-    	
-    	else if(KerjaHaulingStatus[playerid] == 3) // kalau saja dia sudah selesai di cek point yang nomor dua
-    	{
-    		if(IsTrailerAttachedToVehicle(MobilKerjaHauling))
-    		{
-
-    		KerjaHaulingStatus[playerid] = 0;
-    		SetPlayerCheckpoint(playerid,1584.7772,-2155.6304,13.8035,8); // cp 4 cek point saat di serahkan di pom bensin
-    		RemovePlayerFromVehicle(playerid);
-    		
-    		ongkos = random(200); // disini ongkos bonus sweeper yang besar yang di acak sekitaran 200 dollar
-			pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
-			ResetPlayerMoney(playerid);
-			GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
-
-			// saat pesawat harus mendarat
-			MoveDynamicObject(pesawatbandara, 1475.936889, -2284.978027, 21.027048, Float:4.0);
-			
-			format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"PEKERJAAN"COL_GREEN": Anda di biayai $%i oleh manager hauler.", ongkos);
-			SendClientMessage(playerid,0xFF0000FF, infogaji);
-
-
-			
-	        SetVehicleToRespawn(GetPlayerVehicleID(playerid));
-			SetVehicleToRespawn(TrailerHaulingDiBandara);
-			
-			DisablePlayerCheckpoint(playerid);
-			PlayerPlaySound(playerid, 1150, 0.0, 0.0, 10.0);
-			SendClientMessage(playerid,COLOR_AQUA,"* Anda sekarang pahlawan dari pengiriman paket antar bandara");
-    		return 1;
-    		}
-    		else
-    		{
-    			SendClientMessage(playerid,COLOR_AQUA,"* Anda tidak membawa paket kiriman kesini? Mohon segera ambil ulang trailer tersebut dengan /kerja.");
-    			cmd_kerja(playerid);
-    		}
-
-    		
-    	}
-    }
-
-    if(IsPlayerInVehicle(playerid, MobilSweeperBandara))
-    {
-    	new ongkos, infogaji[200];
-    	// untuk id setiap data variabel yang tersedia di job sweeper bandara
-    	if(KerjaSweeperBandara[playerid] == 1) // dia baru saja selesai cek point pertama
-    	{
-    		KerjaSweeperBandara[playerid] = 2;
-    		SetPlayerCheckpoint(playerid,1530.7072,-2283.4131,12.8548,4); // cp 2
-    		ongkos = random(100);
-			pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
-			ResetPlayerMoney(playerid);
-			GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
-
-			
-			format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"PEKERJAAN SWEEPER"COL_GREEN": Anda di biayai $%i oleh manager bandara.", ongkos);
-			SendClientMessage(playerid,0xFF0000FF, infogaji);
-
-
-    	}
-    	else if(KerjaSweeperBandara[playerid] == 2) // kalau saja dia sudah selesai di cek point yang nomor dua
-    	{
-    		KerjaSweeperBandara[playerid] = 3; // selanjutkan kerjakan ke cek point nomor 3
-
-    		SetPlayerCheckpoint(playerid,1518.2854,-2292.3523,12.8550,4); // cp 3
-    		ongkos = random(10);
-			pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
-			ResetPlayerMoney(playerid);
-			GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
-
-			
-			format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"PEKERJAAN"COL_GREEN": Anda di biayai $%i oleh manager bandara.", ongkos);
-			SendClientMessage(playerid,0xFF0000FF, infogaji);
-			MoveDynamicObject(pesawatbandara, 1632.2781,-2284.4343,108.9864, Float:3.0);
-			MoveDynamicObject(balehopesawat, 1440.1274,-2286.6082,13.5468, Float:10.0);
-    	}
-    	else if(KerjaSweeperBandara[playerid] == 3) // sudah melewati cp 3
-    	{
-    		KerjaSweeperBandara[playerid] = 4; // harus selesaikan ke cp 4
-    		SetPlayerCheckpoint(playerid,1433.9756,-2311.4485,12.8549,4); // cp 4
-    		ongkos = random(10);
-			pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
-			ResetPlayerMoney(playerid);
-			GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
-
-			
-			format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"PEKERJAAN"COL_GREEN": Anda di biayai $%i oleh manager bandara.", ongkos);
-			SendClientMessage(playerid,0xFF0000FF, infogaji);
-    	}
-    	else if(KerjaSweeperBandara[playerid] == 4)
-    	{
-    		KerjaSweeperBandara[playerid] = 5;
-    		SetPlayerCheckpoint(playerid,1469.9279,-2243.2749,12.8553,4); // cp 5
-    		ongkos = random(10);
-			pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
-			ResetPlayerMoney(playerid);
-			GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
-
-			cmd_olahraga(playerid);
-			format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"PEKERJAAN"COL_GREEN": Anda di biayai $%i oleh manager bandara.", ongkos);
-			SendClientMessage(playerid,0xFF0000FF, infogaji);
-
-    	}
-    	else if(KerjaSweeperBandara[playerid] == 5)
-    	{
-    		KerjaSweeperBandara[playerid] = 6;
-    		SetPlayerCheckpoint(playerid,1516.8074,-2272.8855,12.8549,4); // cp 6
-    		ongkos = random(10);
-			pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
-			ResetPlayerMoney(playerid);
-			GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
-
-			
-			format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"PEKERJAAN"COL_GREEN": Anda di biayai $%i oleh manager bandara.", ongkos);
-			SendClientMessage(playerid,0xFF0000FF, infogaji);
-    	}
-    	else if(KerjaSweeperBandara[playerid] == 6)
-    	{
-    		KerjaSweeperBandara[playerid] = 7;
-    		SetPlayerCheckpoint(playerid,1532.8485,-2289.2373,12.8547,4); // cp 7
-    		ongkos = random(10);
-			pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
-			ResetPlayerMoney(playerid);
-			GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
-
-			
-			format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"PEKERJAAN"COL_GREEN": Anda di biayai $%i oleh manager bandara.", ongkos);
-			SendClientMessage(playerid,0xFF0000FF, infogaji);
-    	}
-    	else if(KerjaSweeperBandara[playerid] == 7)
-    	{
-    		
-    		SetPlayerCheckpoint(playerid,1554.0874,-2307.4119,13.0142,4); // cp 8
-    		ongkos = random(10);
-			pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
-			ResetPlayerMoney(playerid);
-			GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
-
-			
-			format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"PEKERJAAN"COL_GREEN": Anda di biayai $%i oleh manager bandara.", ongkos);
-			SendClientMessage(playerid,0xFF0000FF, infogaji);
-			KerjaSweeperBandara[playerid] = 8;
-			MoveDynamicObject(pesawatbandara, 1108.0010,-2433.6838,101.2289, Float:1000.0);
-			
-			MoveDynamicObject(balehopesawat, 1505.291015, -2287.030273, 21.520681, Float:1.0);
-			
-    	}
-    	else if(KerjaSweeperBandara[playerid] == 8)
-    	{
-    		KerjaSweeperBandara[playerid] = 0;
-    		SetPlayerCheckpoint(playerid,1554.0874,-2307.4119,13.0142,4);
-    		RemovePlayerFromVehicle(playerid);
-    		 // cp 8
-    		ongkos = random(200); // disini ongkos bonus sweeper yang besar yang di acak sekitaran 200 dollar
-			pInfo[playerid][pMoney] = pInfo[playerid][pMoney]+ongkos;
-			ResetPlayerMoney(playerid);
-			GivePlayerMoney(playerid, pInfo[playerid][pMoney]);
-
-			// saat pesawat harus mendarat
-			MoveDynamicObject(pesawatbandara, 1475.936889, -2284.978027, 21.027048, Float:4.0);
-			
-			format(infogaji, sizeof(infogaji), ""COL_LIGHTBLUE"PEKERJAAN"COL_GREEN": Anda di biayai $%i oleh manager bandara.", ongkos);
-			SendClientMessage(playerid,0xFF0000FF, infogaji);
-
-
-			
-	        SetVehicleToRespawn(GetPlayerVehicleID(playerid));
-			
-			
-			DisablePlayerCheckpoint(playerid);
-			PlayerPlaySound(playerid, 1150, 0.0, 0.0, 10.0);
-			SendClientMessage(playerid,COLOR_AQUA,"* Anda sekarang pahlawan dari kebersihan bandara kendari.");
-    	}
-    }
+   
 
 
 
-    if(GetVehicleModel(GetPlayerVehicleID(playerid)) == 407)
-    {
-        if(FiremanJob[playerid] == 1)
-		{
-		FiremanJob[playerid] = 2;
-		SetTimerEx("Descarca", 1000, 0, "i", playerid);
-		GameTextForPlayer(playerid, "~g~Mengisi air...", 5000, 5);
-		SetPlayerCheckpoint(playerid,1099.0345,-1194.4751,18.1079,4);//2
-		SendClientMessage(playerid,COLOR_AQUA,"* Pergi ke api!");
-		SetTimerEx("busroutestoptimer", 3000, false, "i", playerid);
-		TogglePlayerControllable(playerid, 1);
-		}
-		else if(FiremanJob[playerid] == 2)
-        {
-		FiremanJob[playerid] = 3;
-		SetTimerEx("busroutestoptimer", 3000, false, "i", playerid);
-		TogglePlayerControllable(playerid, 1);
-		//SetPlayerCheckpoint(playerid,2449.0610, -1274.9933, 23.4286,4);//1
-		SendClientMessage(playerid,COLOR_AQUA,"*Matikan apinya bos terus isi lagi kembali ke pangkalan");
-		}
-        else if(FiremanJob[playerid] == 3)
-		{
-		FiremanJob[playerid] = 4;
-		SetPlayerCheckpoint(playerid,1099.0345,-1194.4751,18.1079,4);//2
-		GameTextForPlayer(playerid, "~g~Mengisi air...", 2000, 5);
-		SendClientMessage(playerid,COLOR_AQUA,"* Pergi ke api!");
-		SetTimerEx("busroutestoptimer", 3000, false, "i", playerid);
-		TogglePlayerControllable(playerid, 1);
-		CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
-		CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
-		CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
-		CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
-		CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
-		CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
-		CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
-		CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
-		CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
-		CreateExplosion(2438.04688, -1271.21838, 23.22764,1,100);
-
-
-		CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
-        CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
-        CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
-        CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
-		CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
-		CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
-		CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
-		CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
-		CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
-		CreateExplosion(2435.11060, -1270.86462, 23.22764,1,100);
-
-
-		CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
-		CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
-		CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
-		CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
-		CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
-		CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
-		CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
-		CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
-		CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
-		CreateExplosion(2434.60400, -1274.67651, 23.42864,1,100);
-
-
-		CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
-		CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
-		CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
-		CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
-		CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
-		CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
-		CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
-		CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
-		CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
-		CreateExplosion(2434.87476, -1278.60217, 23.42864,1,100);
-
-
-		CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
-		CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
-		CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
-		CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
-		CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
-		CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
-		CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
-		CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
-		CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
-		CreateExplosion(2438.10645, -1279.20044, 23.42864,1,100);
-
-
-		CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
-		CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
-		CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
-		CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
-		CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
-		CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
-		CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
-		CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
-		CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
-		CreateExplosion(2438.35132, -1275.54395, 23.42864,1,100);
-
-
-		CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
-		CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
-		CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
-		CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
-		CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
-		CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
-		CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
-		CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
-		CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
-		CreateExplosion(2433.57251, -1269.59546, 23.42864,1,100);
-		SendClientMessage(playerid,COLOR_AQUA,"Sudah padam nih apinya");
-		}
-        else if(FiremanJob[playerid] == 4)
-		{
-		FiremanJob[playerid] = 5;
-		SetPlayerCheckpoint(playerid,807.4693, -1690.9219, 12.3747,4);//3
-		SetTimerEx("busroutestoptimer", 3000, false, "i", playerid);
-		TogglePlayerControllable(playerid, 1);
-		SendClientMessage(playerid,COLOR_RED,"* Anda pergi ke misi terakhir!");
-		}
-        else if(FiremanJob[playerid] == 5)
-		{
-		FiremanJob[playerid] = 6;
-		SetPlayerCheckpoint(playerid,1099.0345,-1194.4751,18.1079,4);//3
-		SetTimerEx("busroutestoptimer", 1, false, "i", playerid);
-		TogglePlayerControllable(playerid, 1);
-		GameTextForPlayer(playerid, "~g~Mengisi air...", 2000, 5);
-		SendClientMessage(playerid,COLOR_YELLOW,"*Matikan api dan kembali ke pangkalan.");
-		CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
-        CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
-		CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
-        CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
-		CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
-        CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
-		CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
-        CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
-		CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
-        CreateExplosion(798.45123, -1689.74084, 13.06241,1,100);
-
-
-		CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
-		CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
-		CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
-		CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
-		CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
-		CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
-		CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
-		CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
-		CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
-		CreateExplosion(794.80164, -1690.99963, 13.78167,1,100);
-        GameTextForPlayer(playerid,"~w~INGATLAH PADAMKAN CEPAT",5000,4);
-
-
-		CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
-        CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
-        CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
-        CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
-        CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
-        CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
-        CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
-        CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
-        CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
-        CreateExplosion(797.27179, -1694.94678, 13.16647,1,100);
-
-		CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
-        CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
-        CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
-        CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
-        CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
-        CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
-        CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
-        CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
-        CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
-        CreateExplosion(798.41132, -1687.45667, 13.06241,1,100);
-
-		CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
-        CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
-        CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
-        CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
-        CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
-        CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
-        CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
-        CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
-        CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
-        CreateExplosion(799.21808, -1691.95740, 12.75940,1,100);
-
-
-		CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
-        CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
-        CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
-        CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
-        CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
-        CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
-        CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
-        CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
-        CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
-        CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
-        CreateExplosion(797.75031, -1693.45801, 13.06241,1,100);
-
-		CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
-        CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
-        CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
-        CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
-        CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
-        CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
-        CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
-        CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
-        CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
-        CreateExplosion(794.52057, -1687.30396, 13.78167,1,100);
-        }
-		else if(FiremanJob[playerid] == 6)
-		{
-
-
-			//SetPlayerPos(playerid, Float:x, Float:y, Float:z);
-			FiremanJob[playerid] = 0;
-			SetPlayerCheckpoint(playerid,1099.0345,-1194.4751,18.1079,4);//40
-			//ShowPlayerDialog(playerid, dialogid, style, caption[], info[], button1[], button2[]);
-			GameTextForPlayer(playerid, "~g~Hai ~w~Selamat! ~r~10~b~K~g~ Anda berhasil menghasilkan uang.", 2000, 5);
-
-			GivePlayerMoney(playerid, 10000); //nominal gajian dari sidejiob
-	        SetVehicleToRespawn(GetPlayerVehicleID(playerid));
-			RemovePlayerFromVehicle(playerid);
-			//ResetPlayerWeapons(playerid, 42);
-			DisablePlayerCheckpoint(playerid);
-			PlayerPlaySound(playerid, 1150, 0.0, 0.0, 10.0);
-			SendClientMessage(playerid,COLOR_AQUA,"* Wow selamat ya bos sudah menyelakatkan kota dari kebakaran!");
-		}
-	}
     return 1;
-}
+
+} // en of onplayerenterchekcpoint
+
 
 
 public busroutestoptimer(playerid)
@@ -14635,9 +16569,9 @@ public OnFilterScriptExit()
 forward SimpanMobilPlayerKeGarasi(playerid);
 public SimpanMobilPlayerKeGarasi(playerid)
 {
-	if(IsValidVehicle(mobilplayer1[playerid]))
+	if(IsValidVehicle(VehiclePlayerPrimary[playerid][VehID]))
 	{
-		DestroyVehicle(mobilplayer1[playerid]);
+		DestroyVehicle(VehiclePlayerPrimary[playerid][VehID]);
 		SendClientMessage(playerid, COLOR_RUSAK, "Mobil di amankan di garasi.");
 	}
 	else
@@ -14651,11 +16585,95 @@ public SimpanMobilPlayerKeGarasi(playerid)
 
 public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 {
+    new closestcar = GetClosestCar(playerid, INVALID_VEHICLE_ID);
+
+    // key on foot system
+    if(!IsPlayerInAnyVehicle(playerid))
+    {
+
+              if(PRESSED( KEY_WALK | KEY_SECONDARY_ATTACK))
+              {
+
+                cmd_lock(playerid);
+              }
+
+
+              if(PRESSED( KEY_SECONDARY_ATTACK))
+              {
+
+                GetVehicleParamsEx(closestcar, engine, lights, alarm, doors, bonnet, boot, objective); // door variabel get here
+                new x,y,z;
+                GetPlayerPos(playerid, Float:x, Float:y, Float:z);
+                new Float:Distance = GetDistanceToCar(playerid, closestcar, Float:x, Float:y, Float:z);
+                // now change notif locked
+                if(Distance < 3)
+                {
+                  va_SendClientMessage(playerid, COLOR_RED, "closestcar : %d Distance : %f ",  closestcar, Float:Distance );
+
+                  if(doors == 1)
+                  {
+                    SendClientMessage(playerid, COLOR_RED, "VEHICLE: "COL_WHITE"warning the vehicle has "COL_RED" locked");
+                    GameTextForPlayer(playerid, "~r~LOCKED", 1000, 1);
+                  }  
+
+                  else 
+                  {
+                    
+
+                    SendClientMessage(playerid, COLOR_RED, "VEHICLE: "COL_WHITE"This vehicle was "COL_GREEN"unlocked");
+                    GameTextForPlayer(playerid, "~g~UNLOCKED", 1000, 1);
+                  }
+                }
+
+              }
+
+      
+
+    }
+
+    // system key on vehicle
+    if(IsPlayerInAnyVehicle(playerid))
+    {
+      if(PRESSED(KEY_LOOK_BEHIND))
+      {
+        cmd_lock(playerid);
+      }
+
+      if (PRESSED(KEY_ANALOG_UP)) // Replace the 'playerid' with the id you want
+      {
+        
+          if(closestcar != INVALID_VEHICLE_ID)
+          {
+
+            // DISINI DIA AKAN MENYALAKAN MESIN DENGAN MENEKAN TOMBOL ALT KIRI DAN BERSAMAAN DENGAN TOMBOL N
+            //GetVehicleParamsEx(vid,engine,lights,alarm,doors,bonnet,boot,objective);
+            ToggleVehicleLights(closestcar);
+
+            //SetVehicleParamsEx(vid,engine,VEHICLE_PARAMS_ON,alarm,doors,bonnet,boot,objective);
+            //SetVehicleParamsEx(vid,VEHICLE_PARAMS_ON,lights,alarm,doors,bonnet,boot,objective);
+            SendClientMessage(playerid, COLOR_ME, "* Terlihat lampu mobil begitu berkilau. ((Bot Pengawal))");
+
+            //new vid = GetPlayerVehicleID(playerid);
+            //if(vid != INVALID_VEHICLE_ID) {
+
+
+            ProcessActionText(playerid, "menekan tombol switch lampu mobil dengan tangan kiri.", ACTION_ME);
+
+          }
+
+
+     
+      }
+
+    }
+
+
     if(StatusCrateTerangkat == true)
     {
     	if (!HOLDING (KEY_WALK))
     	{
     		PlayerPlaySound(playerid, 1151, 0.0, 0.0, 10.0);
+			
     		//ApplyAnimation(playerid, "MISC", "Idle_Chat_02", 4.1, 0, 0, 0, 0, 0, 0);
     		ApplyAnimation(playerid, "CARRY", "crry_prtial", 4.1, 0, 0, 0, 1, 1, 1);
     		GameTextForPlayer(playerid, "~r~Tahan Tombol ~n~ALT kiri", 2000, 1);
@@ -14682,10 +16700,10 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 		{
 			// minta mobil kembali dari garasi
 			//AddStaticVehicle(modelid, Float:spawn_x, Float:spawn_y, Float:spawn_z, Float:z_angle, color1, color2)
-			if(!IsValidVehicle(mobilplayer1[playerid]))
+			if(!IsValidVehicle(VehiclePlayerPrimary[playerid][VehID]))
 			{	
 				SendClientMessage(playerid, COLOR_RUSAK, "Mobil di ambil dari garasi.");
-				mobilplayer1[playerid] = AddStaticVehicle(pInfo[playerid][pTipeMobil],Float:1568.6168, Float:-2183.2439, Float:13.8467, Float:0.00, -1, -1);
+				VehiclePlayerPrimary[playerid][VehID] = AddStaticVehicle(pInfo[playerid][pTipeMobil],Float:1568.6168, Float:-2183.2439, Float:13.8467, Float:0.00, -1, -1);
 				SetPlayerPos(playerid, Float:1568.6168, Float:-2183.2439 + 5.0, Float:13.8467);
 				return 1;
 			}
@@ -14866,7 +16884,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
     	if(GetPlayerWeapon(playerid) == 0)
 		{
 			ApplyAnimation(playerid,"KISSING", "gfwave2",4.0,0,0,0,0,0);
-			return GameTextForPlayer(playerid, "~w~HAI !~n~~n~~y~APA KABAR", 2000, 5);
+			return GameTextForPlayer(playerid, "~w~HI !~n~~n~~y~HOW ARE YOU SIR? HAVE A NICE DAY", 2000, 5);
 			//SetVehicleVelocity(GetPlayerVehicleID(playerid), 0.0, 0.0, 0.1);
 			//OnVehicleDamageStatusUpdate(GetPlayerVehicleID(playerid), playerid);
 			
@@ -14881,7 +16899,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 	if (PRESSED( KEY_YES )) // Replace the 'playerid' with the id you want
 	{
 		ApplyAnimation(playerid,"KISSING", "gfwave2",4.0,0,0,0,0,0);
-		return GameTextForPlayer(playerid, "~w~HAI !~n~~n~~y~APA KABAR", 2000, 5);
+		return GameTextForPlayer(playerid, "~w~HI !~n~~n~~y~HOW ARE YOU SIR? HAVE A NICE DAY", 2000, 5);
     	if(IsPlayerInAnyVehicle(playerid))
 		{
 
@@ -14902,7 +16920,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 		{
 			if(IsPlayerInRangeOfPoint(playerid, Float:4.0, Float:1568.6168, Float:-2183.2439, Float:13.8467))
 			{
-				if(GetPlayerVehicleID(playerid) == mobilplayer1[playerid])
+				if(GetPlayerVehicleID(playerid) == VehiclePlayerPrimary[playerid][VehID])
 				{
 					RemovePlayerFromVehicle(playerid);
 					SetTimer("SimpanMobilPlayerKeGarasi", 5000, false);
@@ -14925,20 +16943,20 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 	//new engine,lights,alarm,doors,bonnet,boot,objective;
 	new vid = GetPlayerVehicleID(playerid);
 	
-    if (PRESSED( KEY_FIRE | KEY_NO )) // Replace the 'playerid' with the id you want
+  if (PRESSED( KEY_FIRE | KEY_NO )) // Replace the 'playerid' with the id you want
 	{
-	    	if(IsPlayerInAnyVehicle(playerid))
+	    if(IsPlayerInAnyVehicle(playerid))
 			{
 		
-		  		if(vid != INVALID_VEHICLE_ID)
-		  		{
+	  		if(vid != INVALID_VEHICLE_ID)
+	  		{
 
-		  			// DISINI DIA AKAN MENYALAKAN MESIN DENGAN MENEKAN TOMBOL ALT KIRI DAN BERSAMAAN DENGAN TOMBOL N
-			  	    ShowPlayerDialog(playerid,PILIHAN_LAMPU,DIALOG_STYLE_MSGBOX,"Tombol lampu kendaraan",""COL_RED"Anda ingin menyalakan lampu?\n\n"COL_WHITE"(Lampu juga bisa tekan NUM 8)","Nyalakan","Matikan");
-			  	    ToggleVehicleEngine(vid);
-			  	    
-		  	    	
-			  	    //SetVehicleParamsEx(vid,VEHICLE_PARAMS_ON,lights,alarm,doors,bonnet,boot,objective);
+	  			// DISINI DIA AKAN MENYALAKAN MESIN DENGAN MENEKAN TOMBOL ALT KIRI DAN BERSAMAAN DENGAN TOMBOL N
+		  	    ShowPlayerDialog(playerid,PILIHAN_LAMPU,DIALOG_STYLE_MSGBOX,"Tombol lampu kendaraan",""COL_RED"Anda ingin menyalakan lampu?\n\n"COL_WHITE"(Lampu juga bisa tekan NUM 8)","Nyalakan","Matikan");
+		  	    ToggleVehicleEngine(vid);
+		  	    
+	  	    	
+		  	    //SetVehicleParamsEx(vid,VEHICLE_PARAMS_ON,lights,alarm,doors,bonnet,boot,objective);
 				}
 
 				//new vid = GetPlayerVehicleID(playerid);
@@ -14959,33 +16977,7 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 	}
 
 
-	if (PRESSED(KEY_ANALOG_UP)) // Replace the 'playerid' with the id you want
-	{
-	    	if(IsPlayerInAnyVehicle(playerid))
-			{
-		
-		  		if(vid != INVALID_VEHICLE_ID)
-		  		{
-
-		  			// DISINI DIA AKAN MENYALAKAN MESIN DENGAN MENEKAN TOMBOL ALT KIRI DAN BERSAMAAN DENGAN TOMBOL N
-			  	    //GetVehicleParamsEx(vid,engine,lights,alarm,doors,bonnet,boot,objective);
-			  	    ToggleVehicleLights(vid);
-			  	    
-		  	    	//SetVehicleParamsEx(vid,engine,VEHICLE_PARAMS_ON,alarm,doors,bonnet,boot,objective);
-			  	    //SetVehicleParamsEx(vid,VEHICLE_PARAMS_ON,lights,alarm,doors,bonnet,boot,objective);
-				}
-
-				//new vid = GetPlayerVehicleID(playerid);
-		  		//if(vid != INVALID_VEHICLE_ID) {
-		  	    
-	    
-				return ProcessActionText(playerid, "menekan tombol switch lampu mobil dengan tangan kiri.", ACTION_ME);
-			}
-
-			
-		//etVehicleParamsEx(vid,VEHICLE_PARAMS_OFF,lights,alarm,doors,bonnet,boot,objective);
-		return SendClientMessage(playerid, COLOR_ME, "* Terlihat lampu mobil begitu berkilau. ((Bot Pengawal))");
-	}
+	
 
 
 	return 1;
@@ -14995,7 +16987,9 @@ public OnPlayerKeyStateChange(playerid, newkeys, oldkeys)
 
 public OnPlayerText(playerid, text[])
 {
-	ProcessChatText(playerid, text);
+	new AdaSays[90];
+	format(AdaSays, sizeof(AdaSays), ""COL_WHITE"Says: %s", text);
+	ProcessChatText(playerid, AdaSays);
 
 
 	return 1;
@@ -15472,6 +17466,195 @@ public MelangsungkanDance(playerid)
 	SendClientMessage(playerid, COLOR_LBLUE, "* Anda bergoyang mengikuti irama musik dari alat yang di lantai.");
 }
 
+
+//================== CMD LINE =============================
+
+CMD:addattachedobject(playerid, params[])
+{
+   new vid = GetClosestCar(playerid, INVALID_VEHICLE_ID);
+   if (inEditingMode[playerid] == 0 && !IsPlayerInAnyVehicle(playerid) ) return SEM(playerid, "Need on editing mode and get in to vehicle sir.");
+        
+    
+    new Float:VehPos[3];
+    GetVehiclePos( vid, VehPos[0], VehPos[1], VehPos[2]);
+    //objectid = CreateDynamicObject(11701, VehPos[0], VehPos[1], VehPos[2], 0, 0, 0);
+    if( IsValidDynamicObject(ExampleAttachedDynamic) )
+    {
+      DestroyDynamicObject(ExampleAttachedDynamic);
+      SEM(playerid, "Sir Old object ExampleAttachedDynamic has been destroyed");
+      cmd_addattachedobject(playerid);
+    }
+    else
+    {
+      ExampleAttachedDynamic = CreateDynamicObject(18649, VehPos[0], VehPos[1], VehPos[2] +1, 0, 0, 0);
+      Streamer_Update(playerid);
+      inEditingMode[playerid] = 1;
+      EditDynamicObject(playerid, ExampleAttachedDynamic);
+      
+      return SEM(playerid, "Sir you are now in editing Dynamic Object mode.");
+    }
+    
+  
+
+  return 1;
+}
+
+
+
+CMD:addmosque(playerid, params[])
+{
+  new Float:pos[6];
+  GetPlayerPos(playerid, pos[0], pos[1], pos[2]);
+
+  new Float:angle;
+  GetPlayerFacingAngle(playerid, angle);
+ 
+
+  
+
+  new object;// = CreateObject(model, pos[0] + (20.0 * floatsin(-angle, degrees)), pos[1] + (20.0 * floatcos(-angle, degrees)), pos[2] + 5, 0, 0, angle);
+  object = CreateObject( -20002, pos[0], pos[1], pos[2]+3, 0, 0, angle); // new ID models
+  //object = CreateDynamicObject(20002,pos[0], pos[1], pos[2]+3, Float:0, Float:0, Float:0, GetPlayerVirtualWorld(playerid), GetPlayerInterior(playerid) );
+  PlayerPlaySound(playerid, 1057, 0.0, 0.0, 0.0);
+
+  new string[144];
+  format(string, sizeof(string), "You have created a new object original : 5409, idobject in server : %i, position: %f, %f, %f, 0.0, 0.0, %f].", object, pos[0], pos[1], pos[2], angle);
+  SendClientMessage(playerid, COLOR_RED, string);
+  EditObject(playerid, object);
+  //Streamer_Update(playerid, -1);
+  //EditDynamicObject(playerid, labelajah[playerid]);
+  SendClientMessage(playerid, 0xFFFFFFFF, "MOVE OBJECT: Hold the button of {FFFF00}~k~~PED_SPRINT~{FFFFFF} for free looking at.");
+
+  return 1;
+}
+
+CMD:addtimeplayed(playerid, params[])
+{
+  new Hour, Minute, Second;
+
+  if(sscanf(params, "diii", playerid, Hour, Minute, Second)) return SendClientMessage(playerid, COLOR_ERROR, "[USAGE]: /addtimeplayed [playerid hour minute second].");
+          pInfo[playerid][pHours] = pInfo[playerid][pHours] + Hour; 
+          //SendClientMessage(playerid, COLOR_LBLUE, Hour);
+          pInfo[playerid][pMinutes] = strval(pInfo[playerid][pMinutes]) + Minute;
+          //SendClientMessage(playerid, COLOR_LBLUE, Minute);
+          pInfo[playerid][pSeconds] = strval(pInfo[playerid][pSeconds]) + Second;
+          //SendClientMessage(playerid, COLOR_LBLUE, Second);
+          
+          
+      
+  new notif[200];
+  format(notif, 200, ""COL_LGREEN"TIMEPLAYED:"COL_WHITE" Changed to new: "COL_LRED"%i Hours %i Minutes %i Second", pInfo[playerid][pHours], pInfo[playerid][pMinutes], pInfo[playerid][pSeconds]);
+  SendClientMessage(playerid, COLOR_LBLUE, notif);
+
+}
+
+
+CMD:time(playerid, params[])
+{
+      new
+   Float:x, Float:y, Float:z;
+   extract params -> new hour;
+   //new ID=strval(params);
+
+  if(sscanf(params, "d", hour)) return SendClientMessage(playerid, COLOR_ERROR, "[USAGE]: /time [hour].");
+  
+  SetWorldTime(hour);
+  
+  new notif[200];
+  format(notif, 200, ""COL_LGREEN"TIME:"COL_WHITE" Changed to hour: "COL_LRED"%d", hour);
+  SendClientMessageToAll(COLOR_BLUE, notif);
+
+}
+
+
+
+
+CMD:weather(playerid, params[])
+{
+      new
+   Float:x, Float:y, Float:z;
+   extract params -> new WeatherID;
+   //new ID=strval(params);
+
+  if(sscanf(params, "d", WeatherID)) return SendClientMessage(playerid, COLOR_ERROR, "[USAGE]: /weather [ID].");
+  
+  
+  SetWeather(WeatherID);
+  new notif[200];
+  format(notif, 200, ""COL_LGREEN"WEATHER:"COL_WHITE" Changed to ID: "COL_LRED"%d", WeatherID);
+  SendClientMessageToAll(COLOR_BLUE, notif);
+
+}
+
+
+CMD:gps(playerid)
+{
+      DisablePlayerGPS(playerid);
+      SEM(playerid, "DEBUG GPS");
+      ShowPlayerDialog(playerid, DIALOG_SHOW_GPS, DIALOG_STYLE_LIST, ""COL_GREEN"GPS Select location", ""COL_RED"Airport Gate\n"COL_GREEN"New Location\n"COL_WHITE"Garage Vehicle 1", ""COL_LGREEN"Go", "Close");
+
+}
+
+
+CMD:formatmoney(playerid)
+{
+
+  
+}
+
+CMD:readdinidata(playerid)
+{
+    LoadUser_dini_data(playerid);
+
+    new notif[200];
+    format(notif, 200, ""COL_LGREEN"DINI DATABASE:"COL_WHITE" You take query from Dini2 is: %s value", pInfo[playerid][PasswordAccount]);
+    SendClientMessage(playerid, COLOR_LBLUE, notif);
+
+}
+
+
+CMD:writeindinidata(playerid, params[])
+{
+
+    	 //SaveUser_dini_data(playerid, value[]);
+       SaveUser_dini_data(playerid, params);
+       new notif[200];
+        format(notif, 200, ""COL_LGREEN"DINI DATABASE:"COL_WHITE" You save query to Dini2 is: %s String value", params);
+        SendClientMessage(playerid, COLOR_LBLUE, notif);
+}
+
+
+CMD:go(playerid, params[])
+{
+  new
+   Float:x, Float:y, Float:z;
+  
+  //if(PlayerInfo[playerid][pAdmin] < 2) return SendClientMessage( playerid, COLOR_GREY, "You're not authorized to use this command.");
+  if(sscanf(params, "u", ID)) return SendClientMessage(playerid, COLOR_ERROR, "[Usage:] /got [partofname/playerid].");
+  else if(!IsPlayerConnected(ID)) return SendClientMessage(playerid, COLOR_ERROR, "That player is not connected.");
+  new ID = strval(params);
+  if(GetPlayerState(playerid)==PLAYER_STATE_DRIVER)
+  {
+      GetPlayerPos(ID, x, y, z);
+    new vehicle = GetPlayerVehicleID(playerid);
+      SetVehiclePos(vehicle, x+1, y+1, z);
+      SetPlayerPos(playerid, x+1, y+1, z);
+      PutPlayerInVehicle(playerid, vehicle, 0);
+      SetPlayerInterior(playerid, GetPlayerInterior(ID));
+      SetPlayerVirtualWorld(playerid, GetPlayerVirtualWorld(ID));
+      SetVehicleVirtualWorld(vehicle, GetPlayerVirtualWorld(ID));
+  }
+  else
+  {
+    GetPlayerPos(ID, x, y, z);
+        SetPlayerPos(playerid, x+1, y+1, z);
+      SetPlayerInterior(playerid, GetPlayerInterior(ID));
+      SetPlayerVirtualWorld(playerid, GetPlayerVirtualWorld(ID));
+  }
+    return 1;
+}
+
+
 CMD:boombox(playerid)
 {
 	// bisa beli boombox di toko minimarket dulu
@@ -15670,15 +17853,15 @@ CMD:vrecord(playerid, params[])
 {
 
 	if(!strlen(params)) {
-		SendClientMessage(playerid,0xFF0000FF,"Usage: /vrecord {name}");
+		SendClientMessage(playerid,0xFF0000FF,"Usage: /vrecord {name of file .rec}");
 		return 1;
 	}
 	if(!IsPlayerInAnyVehicle(playerid)) {
-        SendClientMessage(playerid,0xFF0000FF,"Recording: Get in a vehicle.");
+        SendClientMessage(playerid,0xFF0000FF,"Recording: Get in a vehicle for file .rec");
 		return 1;
 	}
 	StartRecordingPlayerData(playerid,PLAYER_RECORDING_TYPE_DRIVER,params);
-	SendClientMessage(playerid,0xFF0000FF,"Recording: started.");
+	SendClientMessage(playerid,0xFF0000FF,"Recording: in vehicle was started. use /stoprecord for done .rec file");
 	return 1;
 }
 
@@ -15692,7 +17875,7 @@ CMD:ofrecord(playerid, params[])
         SendClientMessage(playerid,0xFF0000FF,"Recording: Leave the vehicle and reuse the command.");
 		return 1;
 	}
-	//StartRecordingPlayerData(playerid,PLAYER_RECORDING_TYPE_ONFOOT,params);
+	StartRecordingPlayerData(playerid,PLAYER_RECORDING_TYPE_ONFOOT,params);
 	SendClientMessage(playerid,0xFF0000FF,"Recording: started.");
 	return 1;
 }
@@ -15718,7 +17901,7 @@ CMD:labelsaya(playerid, params[])
 		// id cadangan lain adalah spray tag 18659
 		// modelid label transparan 2659 tapi cadangan sedang 19366 
 		labelajah[playerid] = CreateDynamicObject(18659, pos[0], pos[1]+4.0, pos[2], 0.000000, 0.000000, angle); 
-		SetDynamicObjectMaterialText(labelajah[playerid], 0, params, 140, "Arial", 80, 1, 0xFFFFFFFF, 0x00000000, 1);
+		SetDynamicObjectMaterialText(labelajah[playerid], 0, params, 130, "Arial", 80, 1, 0xFFFFFFFF, 0x00000000, 1);
 		EditDynamicObject(playerid, labelajah[playerid]);
 		SendClientMessage(playerid,0xFF0000FF,"Edit posisi label anda dan tahan SPASI untuk melihat di sekeliling.");
 		return 1;
@@ -15760,17 +17943,18 @@ CMD:hapuslabelsaya(playerid)
 
 CMD:mobilsaya(playerid, params)
 {
-	if(IsValidVehicle(mobilplayer1[playerid]))
+
+	if(IsValidVehicle(VehiclePlayerPrimary[playerid][VehID]))
 	{
-		PutPlayerInVehicle(playerid, mobilplayer1[playerid], 0);
+		PutPlayerInVehicle(playerid, VehiclePlayerPrimary[playerid][VehID], 0);
 
 	}
 	else
 	{
-		new passworddariuser[500];
-	    format(passworddariuser, 500, "SELECT * FROM `playerdata` WHERE `id` COLLATE latin1_general_cs = '%s' LIMIT 1", pInfo[playerid][ID]); // now here check the database if the player has given the proper password.HTTP
+		new GetDataFromPlayerConnect[500];
+	    format(GetDataFromPlayerConnect, 500, "SELECT * FROM `playerdata` WHERE `id` COLLATE latin1_general_cs = '%s' LIMIT 1", pInfo[playerid][ID]); // now here check the database if the player has given the proper password.HTTP
 		//mysql_query(MySQL:handle, const query[], bool:use_cache = true)
-		mysql_query(MySQL:g_Sql, passworddariuser, bool:true);
+		mysql_query(MySQL:g_Sql, GetDataFromPlayerConnect, bool:true);
 
 		//new datapw[250];
 	    //format(datapw, sizeof(datapw), "SELECT * FROM `playerdata` WHERE `nick` COLLATE latin1_general_cs = '%s' LIMIT 1", pInfo[playerid][Nick]);
@@ -15780,21 +17964,22 @@ CMD:mobilsaya(playerid, params)
 		cache_get_value_int(0, "tipemobil", pInfo[playerid][pTipeMobil]);
 		//new stringmobil = pInfo[playerid][pTipeMobil];
 
-		//new mobilplayer1[playerid] = 
+		//new VehiclePlayerPrimary[playerid][VehID] = 
 		new tipemobil[10];
 		format(tipemobil, 10, "%i",pInfo[playerid][pTipeMobil] );
 		SendClientMessage(playerid, -1, tipemobil);
 		
 		//PindahinOrangnya(playerid, Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz]);
 		//AddStaticVehicle(modelid, Float:spawn_x, Float:spawn_y, Float:spawn_z, Float:z_angle, color1, color2)
-		mobilplayer1[playerid] = AddStaticVehicle(pInfo[playerid][pTipeMobil],Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz], Float:0.00, -1, -1);
-		//new mobilplayer1[playerid] = AddStaticVehicle(416,Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz]);
+		VehiclePlayerPrimary[playerid][VehID] = AddStaticVehicle(pInfo[playerid][pTipeMobil],Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz], Float:0.00, -1, -1);
+		//new VehiclePlayerPrimary[playerid][VehID] = AddStaticVehicle(416,Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz]);
 		
 		//CreateVehicle(543,Float:pInfo[playerid][pMx], Float:pInfo[playerid][pMy], Float:pInfo[playerid][pMz]);
-		//PutPlayerInVehicle(playerid, mobilplayer1[playerid], 0);
-		SetVehicleVirtualWorld(mobilplayer1[playerid], 0);
-		LinkVehicleToInterior(mobilplayer1[playerid], 0);
-		PutPlayerInVehicle(playerid, mobilplayer1[playerid], 0);
+		//PutPlayerInVehicle(playerid, VehiclePlayerPrimary[playerid][VehID], 0);
+		SetVehicleVirtualWorld(VehiclePlayerPrimary[playerid][VehID], 0);
+		LinkVehicleToInterior(VehiclePlayerPrimary[playerid][VehID], 0);
+		PutPlayerInVehicle(playerid, VehiclePlayerPrimary[playerid][VehID], 0);
+
 	}
 	
 }
@@ -15868,6 +18053,15 @@ CMD:restar(playerid, params[])
 	SendRconCommand("gmx");
 
 	return 1;
+}
+
+
+CMD:hapuslayarmerah(playerid, params[])
+{
+  
+  TextDrawHideForPlayer(playerid, Text:LayarJadiMerah);
+
+  return 1;
 }
 
 
