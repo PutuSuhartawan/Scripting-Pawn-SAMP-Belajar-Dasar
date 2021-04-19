@@ -1,10 +1,6 @@
 #include <progress2>
-[/font][/size][/color]
-
 
 #include <foreach>// color with string
-
-
 
 #include <3DTryg>
 
