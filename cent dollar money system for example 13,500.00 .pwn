@@ -24,6 +24,35 @@ stock FormatMoney(amount, delimiter[2]=".", comma[2]=",") // first type data on 
 }
 
 
+CMD:stats(playerid)
+{
+	new Float:x,Float:y,Float:z;
+	new Float:facing, pekerjaan[50];
+	new skinid = GetPlayerSkin(playerid);
+	// ini untuk cmd /stats
+
+	//pInfo[playerid][pJobMechanic] = 1; //percobaan ganti string
+
+	if(pInfo[playerid][pJobMechanic] == 1)
+	{
+		pekerjaan = ""COL_LIGHTBLUE"Mechanic";
+	}
+	else
+	{
+		pekerjaan = ""COL_GREEN"Tamu Kota";
+	}
+
+    GetPlayerPos(playerid, x, y, z);
+    GetPlayerFacingAngle(playerid, facing);
+
+	new infokarakter[1000];
+	format(infokarakter, 1000, "Primary Job : [ %s ],"COL_RWHITE" Player Virtuarl : [ %d ], Player Interior : [ %d ] \n PlayerNameID: %s, DatabaseID: %i, \nPassword: "COL_RED"[ %s ], Skin ID: [ %d ],\n "COL_YELLOW" Coordinat location: %f, %f, %f, Player Angeling: %f. \nLogin Status (%i), "COL_WHITE"Time Played : [ "COL_BLUE"%d hours, %d minutes, %d seconds "COL_WHITE"], Money: "COL_LGREEN" [$%s],",
+	pekerjaan, GetPlayerVirtualWorld(playerid), GetPlayerInterior(playerid), pInfo[playerid][Nick], pInfo[playerid][ID], pInfo[playerid][PasswordAccount], skinid, x, y, z, facing, pInfo[playerid][Logged], pInfo[playerid][pHours], pInfo[playerid][pMinutes], pInfo[playerid][pSeconds], FormatMoney( pInfo[playerid][pMoney] ) );
+	ShowPlayerDialog(playerid, RESPONDDIALOGKOSONG, DIALOG_STYLE_MSGBOX, "Player Statistic", infokarakter, "Understand", "");
+
+}
+
+
 
 /* ORIGINAL STOCK
 stock FormatMoney(Float:amount, delimiter[2]=".", comma[2]=",")
