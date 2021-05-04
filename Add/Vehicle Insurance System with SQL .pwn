@@ -1,4 +1,27 @@
 
+
+#include <a_samp>
+#include <sscanf2>
+//#include <a_npc>
+#include <a_http>
+
+
+
+#include <dc_cmd>
+
+#include <streamer>
+#include <a_mysql>
+#include <mxdate>
+
+#include <fix_Kick>
+#include <crashdetect>
+#include "../include/gl_common.inc"
+#include <foreach>
+#include <geoiplite>
+
+#define MAX_LOAD_CAR 2000
+
+
 enum cCar
 {
 	cNumber,
