@@ -1,6 +1,8 @@
 
 
 
+// UpDateSpeed(playerid) // used full
+
 UpDateSpeed(playerid)
 {
 	if(ShowTextSpeed[playerid]==false)return true;
@@ -19,8 +21,8 @@ UpDateSpeed(playerid)
 	    cLock2[carid]=cLock[carid];
 		switch(cLock[carid])
 		{
-		    case 0:PlayerTextDrawColor(playerid, Playaspeed[playerid][2], 0xFF9900AA);
-		    case 1:PlayerTextDrawColor(playerid, Playaspeed[playerid][2], 0x00490CFF);
+		    case 0:PlayerTextDrawColor(playerid, Playaspeed[playerid][2], 0xFF0000FF);
+		    case 1:PlayerTextDrawColor(playerid, Playaspeed[playerid][2], 0x00FF0CFF);
 		}
 		PlayerTextDrawShow(playerid,Playaspeed[playerid][2]);
 	}
@@ -29,8 +31,8 @@ UpDateSpeed(playerid)
 	    cEngine2[carid]=cEngine[carid];
 		switch(cEngine[carid])
 		{
-		    case 0:PlayerTextDrawColor(playerid, Playaspeed[playerid][1], 0xFF9900AA);
-		    case 1:PlayerTextDrawColor(playerid, Playaspeed[playerid][1], 0x00490CFF);
+		    case 0:PlayerTextDrawColor(playerid, Playaspeed[playerid][1], 0xFF0000FF);
+		    case 1:PlayerTextDrawColor(playerid, Playaspeed[playerid][1], 0x00FF0CFF);
 		}
 		PlayerTextDrawShow(playerid,Playaspeed[playerid][1]);
 	}
@@ -72,19 +74,19 @@ UpDateSpeed(playerid)
 		{
 		    case 0:
 			{
-				PlayerTextDrawColor(playerid, Playaspeed3[playerid][0], 0xFF9900AA);
-				PlayerTextDrawColor(playerid, Playaspeed3[playerid][1], 0xFF9900AA);
-				PlayerTextDrawColor(playerid, Playaspeed3[playerid][2], 0xFF9900AA);
-				PlayerTextDrawColor(playerid, Playaspeed3[playerid][3], 0xFF9900AA);
-				PlayerTextDrawColor(playerid, Playaspeed3[playerid][4], 0xFF9900AA);
+				PlayerTextDrawColor(playerid, Playaspeed3[playerid][0], 0xFF0000FF);
+				PlayerTextDrawColor(playerid, Playaspeed3[playerid][1], 0xFF0000FF);
+				PlayerTextDrawColor(playerid, Playaspeed3[playerid][2], 0xFF0000FF);
+				PlayerTextDrawColor(playerid, Playaspeed3[playerid][3], 0xFF0000FF);
+				PlayerTextDrawColor(playerid, Playaspeed3[playerid][4], 0xFF0000FF);
 			}
 		    case 1:
 			{
-				PlayerTextDrawColor(playerid, Playaspeed3[playerid][0], 0xC8A000FF);
-				PlayerTextDrawColor(playerid, Playaspeed3[playerid][1], 0xC8A000FF);
-				PlayerTextDrawColor(playerid, Playaspeed3[playerid][2], 0xC8A000FF);
-				PlayerTextDrawColor(playerid, Playaspeed3[playerid][3], 0xC8A000FF);
-				PlayerTextDrawColor(playerid, Playaspeed3[playerid][4], 0xC8A000FF);
+				PlayerTextDrawColor(playerid, Playaspeed3[playerid][0], 0x00FF00FF);
+				PlayerTextDrawColor(playerid, Playaspeed3[playerid][1], 0x00FF00FF);
+				PlayerTextDrawColor(playerid, Playaspeed3[playerid][2], 0x00FF00FF);
+				PlayerTextDrawColor(playerid, Playaspeed3[playerid][3], 0x00FF00FF);
+				PlayerTextDrawColor(playerid, Playaspeed3[playerid][4], 0x00FF00FF);
 			}
 		}
 		PlayerTextDrawShow(playerid,Playaspeed3[playerid][0]);
@@ -126,12 +128,12 @@ UpDateSpeed(playerid)
 	if(hpcar>647&&cHPpanel[playerid]==true)
 	{
 	    cHPpanel[playerid]=false;
-		PlayerTextDrawColor(playerid, Playaspeed6[playerid][0], 0xFF9900AA);
-		PlayerTextDrawColor(playerid, Playaspeed6[playerid][1], 0xFF9900AA);
-		PlayerTextDrawColor(playerid, Playaspeed6[playerid][2], 0xFF9900AA);
-		PlayerTextDrawColor(playerid, Playaspeed6[playerid][3], 0xFF9900AA);
-		PlayerTextDrawColor(playerid, Playaspeed6[playerid][4], 0xFF9900AA);
-		PlayerTextDrawColor(playerid, Playaspeed6[playerid][5], 0xFF9900AA);
+		PlayerTextDrawColor(playerid, Playaspeed6[playerid][0], 0x00FF00FF);
+		PlayerTextDrawColor(playerid, Playaspeed6[playerid][1], 0x00FF00FF);
+		PlayerTextDrawColor(playerid, Playaspeed6[playerid][2], 0x00FF00FF);
+		PlayerTextDrawColor(playerid, Playaspeed6[playerid][3], 0x00FF00FF);
+		PlayerTextDrawColor(playerid, Playaspeed6[playerid][4], 0x00FF00FF);
+		PlayerTextDrawColor(playerid, Playaspeed6[playerid][5], 0x00FF00FF);
 		PlayerTextDrawShow(playerid,Playaspeed6[playerid][0]);
 		PlayerTextDrawShow(playerid,Playaspeed6[playerid][1]);
 		PlayerTextDrawShow(playerid,Playaspeed6[playerid][2]);
@@ -154,9 +156,9 @@ UpDateSpeed(playerid)
 		if(Car[VID][cOil]>=1100&&cOilpanel[playerid]==true)
 		{
 		    cOilpanel[playerid]=false;
-			PlayerTextDrawColor(playerid, Playaspeed5[playerid][0], 0xFF9900AA);
-			PlayerTextDrawColor(playerid, Playaspeed5[playerid][1], 0xFF9900AA);
-			PlayerTextDrawColor(playerid, Playaspeed5[playerid][2], 0xFF9900AA);
+			PlayerTextDrawColor(playerid, Playaspeed5[playerid][0], 0x00FF00FF);
+			PlayerTextDrawColor(playerid, Playaspeed5[playerid][1], 0x00FF00FF);
+			PlayerTextDrawColor(playerid, Playaspeed5[playerid][2], 0x00FF00FF);
 			PlayerTextDrawShow(playerid,Playaspeed5[playerid][0]);
 			PlayerTextDrawShow(playerid,Playaspeed5[playerid][1]);
 			PlayerTextDrawShow(playerid,Playaspeed5[playerid][2]);
@@ -178,11 +180,11 @@ UpDateSpeed(playerid)
 		if(Car[VID][cAcc]>=100&&cAccpanel[playerid]==true)
 		{
 		    cAccpanel[playerid]=false;
-			PlayerTextDrawColor(playerid, Playaspeed4[playerid][0], 0xFF9900AA);
-			PlayerTextDrawColor(playerid, Playaspeed4[playerid][1], 0xFF9900AA);
-			PlayerTextDrawColor(playerid, Playaspeed4[playerid][2], 0xFF9900AA);
-			PlayerTextDrawColor(playerid, Playaspeed4[playerid][4], 0xFF9900AA);
-			PlayerTextDrawColor(playerid, Playaspeed4[playerid][5], 0xFF9900AA);
+			PlayerTextDrawColor(playerid, Playaspeed4[playerid][0], 0x00FF00FF);
+			PlayerTextDrawColor(playerid, Playaspeed4[playerid][1], 0x00FF00FF);
+			PlayerTextDrawColor(playerid, Playaspeed4[playerid][2], 0x00FF00FF);
+			PlayerTextDrawColor(playerid, Playaspeed4[playerid][4], 0x00FF00FF);
+			PlayerTextDrawColor(playerid, Playaspeed4[playerid][5], 0x00FF00FF);
 			PlayerTextDrawShow(playerid,Playaspeed4[playerid][0]);
 			PlayerTextDrawShow(playerid,Playaspeed4[playerid][1]);
 			PlayerTextDrawShow(playerid,Playaspeed4[playerid][2]);
@@ -196,28 +198,28 @@ UpDateVehiclePanel(playerid)
 {
 	PlayerTextDrawSetString(playerid,Playaspeed3[playerid][5],"_");
 
-	PlayerTextDrawColor(playerid, Playaspeed4[playerid][0], 0xFF9900AA);
-	PlayerTextDrawColor(playerid, Playaspeed4[playerid][1], 0xFF9900AA);
-	PlayerTextDrawColor(playerid, Playaspeed4[playerid][2], 0xFF9900AA);
-	PlayerTextDrawColor(playerid, Playaspeed4[playerid][4], 0xFF9900AA);
-	PlayerTextDrawColor(playerid, Playaspeed4[playerid][5], 0xFF9900AA);
+	PlayerTextDrawColor(playerid, Playaspeed4[playerid][0], 0x00FF00FF);
+	PlayerTextDrawColor(playerid, Playaspeed4[playerid][1], 0x00FF00FF);
+	PlayerTextDrawColor(playerid, Playaspeed4[playerid][2], 0x00FF00FF);
+	PlayerTextDrawColor(playerid, Playaspeed4[playerid][4], 0x00FF00FF);
+	PlayerTextDrawColor(playerid, Playaspeed4[playerid][5], 0x00FF00FF);
 	PlayerTextDrawShow(playerid,Playaspeed4[playerid][0]);
 	PlayerTextDrawShow(playerid,Playaspeed4[playerid][1]);
 	PlayerTextDrawShow(playerid,Playaspeed4[playerid][2]);
 	PlayerTextDrawShow(playerid,Playaspeed4[playerid][4]);
 	PlayerTextDrawShow(playerid,Playaspeed4[playerid][5]);
 
-	PlayerTextDrawColor(playerid, Playaspeed5[playerid][0], 0xFF9900AA);
-	PlayerTextDrawColor(playerid, Playaspeed5[playerid][1], 0xFF9900AA);
-	PlayerTextDrawColor(playerid, Playaspeed5[playerid][2], 0xFF9900AA);
+	PlayerTextDrawColor(playerid, Playaspeed5[playerid][0], 0x00FF00FF);
+	PlayerTextDrawColor(playerid, Playaspeed5[playerid][1], 0x00FF00FF);
+	PlayerTextDrawColor(playerid, Playaspeed5[playerid][2], 0x00FF00FF);
 	PlayerTextDrawShow(playerid,Playaspeed5[playerid][0]);
 	PlayerTextDrawShow(playerid,Playaspeed5[playerid][1]);
 	PlayerTextDrawShow(playerid,Playaspeed5[playerid][2]);
 
-	PlayerTextDrawColor(playerid, Playaspeed6[playerid][0], 0xFF9900AA);
-	PlayerTextDrawColor(playerid, Playaspeed6[playerid][1], 0xFF9900AA);
-	PlayerTextDrawColor(playerid, Playaspeed6[playerid][2], 0xFF9900AA);
-	PlayerTextDrawColor(playerid, Playaspeed6[playerid][3], 0xFF9900AA);
+	PlayerTextDrawColor(playerid, Playaspeed6[playerid][0], 0x00FF00FF);
+	PlayerTextDrawColor(playerid, Playaspeed6[playerid][1], 0x00FF00FF);
+	PlayerTextDrawColor(playerid, Playaspeed6[playerid][2], 0x00FF00FF);
+	PlayerTextDrawColor(playerid, Playaspeed6[playerid][3], 0x00FF00FF);
 	PlayerTextDrawColor(playerid, Playaspeed6[playerid][4], 0x202020FF);
 	PlayerTextDrawColor(playerid, Playaspeed6[playerid][5], 0x202020FF);
 	PlayerTextDrawShow(playerid,Playaspeed6[playerid][0]);
@@ -227,12 +229,12 @@ UpDateVehiclePanel(playerid)
 	PlayerTextDrawShow(playerid,Playaspeed6[playerid][4]);
 	PlayerTextDrawShow(playerid,Playaspeed6[playerid][5]);
 
-	PlayerTextDrawColor(playerid, Playaspeed2[playerid][0], 0xFF9900AA);
-	PlayerTextDrawColor(playerid, Playaspeed2[playerid][1], 0xFF9900AA);
-	PlayerTextDrawColor(playerid, Playaspeed2[playerid][2], 0xFF9900AA);
-	PlayerTextDrawColor(playerid, Playaspeed2[playerid][3], 0xFF9900AA);
-	PlayerTextDrawColor(playerid, Playaspeed2[playerid][4], 0xFF9900AA);
-	PlayerTextDrawColor(playerid, Playaspeed2[playerid][5], 0xFF9900AA);
+	PlayerTextDrawColor(playerid, Playaspeed2[playerid][0], 0x00FF00FF);
+	PlayerTextDrawColor(playerid, Playaspeed2[playerid][1], 0x00FF00FF);
+	PlayerTextDrawColor(playerid, Playaspeed2[playerid][2], 0x00FF00FF);
+	PlayerTextDrawColor(playerid, Playaspeed2[playerid][3], 0x00FF00FF);
+	PlayerTextDrawColor(playerid, Playaspeed2[playerid][4], 0x00FF00FF);
+	PlayerTextDrawColor(playerid, Playaspeed2[playerid][5], 0x00FF00FF);
 	PlayerTextDrawShow(playerid,Playaspeed2[playerid][0]);
 	PlayerTextDrawShow(playerid,Playaspeed2[playerid][1]);
 	PlayerTextDrawShow(playerid,Playaspeed2[playerid][2]);
