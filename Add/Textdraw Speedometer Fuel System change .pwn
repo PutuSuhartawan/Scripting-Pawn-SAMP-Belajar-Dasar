@@ -1,7 +1,284 @@
 
+new bool:cEngine[MAX_VEHICLES];
+new bool:cEngine2[MAX_VEHICLES];
+new bool:cLamp[MAX_VEHICLES];
+new bool:cLamp2[MAX_VEHICLES];
+new bool:cLock[MAX_VEHICLES];
+new bool:cLock2[MAX_VEHICLES];
+new bool:cTrunk[MAX_VEHICLES];
+new bool:cBonnet[MAX_VEHICLES];
+new bool:StatLights[MAX_PLAYERS];
+new bool:cHPpanel[MAX_PLAYERS];
+new bool:cOilpanel[MAX_PLAYERS];
+new bool:cAccpanel[MAX_PLAYERS];
+new bool:cGlove[MAX_VEHICLES];
+new SpeedAC[MAX_PLAYERS];
+new SpeedACKick[MAX_PLAYERS];
+new cFill[MAX_VEHICLES];
+new bool:cFillTick[MAX_VEHICLES];
+new Float:gCarH[MAX_VEHICLES];
+new bool:gRem[MAX_PLAYERS];
+new bool:gRem2[MAX_PLAYERS];
+new CarStartEngine[MAX_VEHICLES];
+new CarStartEngPlaya[MAX_VEHICLES];
+new SchoolCarPlayer[MAX_VEHICLES];
+new PlayerLeadPlaya[MAX_PLAYERS];
+new TimerCheckBonnet[MAX_PLAYERS];
+new NumberCheckBonnet[MAX_PLAYERS];
+new AdminDostup[MAX_PLAYERS];
+new AdminLox[MAX_PLAYERS];
+
+
+
+new PlayerGasCheck[MAX_PLAYERS];
+new PlayerGasLiter[MAX_PLAYERS];
+new VehicleGasFuel[MAX_VEHICLES];
 
 
 // UpDateSpeed(playerid) // used full
+
+
+ChowTextSpeed(playerid,num=0)
+{
+	switch(num)
+	{
+	    case 1:
+	    {
+	        switch(ShowTextSpeed[playerid])
+	        {
+	            case 1:// Menunjukkan
+	            {
+	                ShowTextSpeed[playerid]=false;
+	    	    	SetPlayerDrunkLevel(playerid,0);
+	    	    	ChowTextSpeed2(playerid,0);
+	    	    	ChowTextSpeed3(playerid,0);
+	    	    	ChowTextSpeed4(playerid,0);
+	    	    	ChowTextSpeed5(playerid,0);
+	    	    	ChowTextSpeed6(playerid,0);
+	                for(new i=0;i<sizeof(speed);i++)TextDrawHideForPlayer(playerid,speed[i]);
+			     	for(new i=0;i<6;i++)PlayerTextDrawHide(playerid,Playaspeed[playerid][i]);
+	            }
+	            case 0:// Menunjukkan
+	            {
+	                new vehicleid = GetPlayerVehicleID(playerid);
+	                if(IsVelo(vehicleid))return false;
+	                ShowTextSpeed[playerid]=true;
+	                for(new i=0;i<sizeof(speed);i++)TextDrawShowForPlayer(playerid,speed[i]);
+			     	for(new i=0;i<6;i++)PlayerTextDrawShow(playerid,Playaspeed[playerid][i]);
+	    	    	ChowTextSpeed2(playerid,1);
+	    	    	ChowTextSpeed3(playerid,1);
+	    	    	ChowTextSpeed4(playerid,1);
+	    	    	ChowTextSpeed5(playerid,1);
+	    	    	ChowTextSpeed6(playerid,1);
+	    	    	if(cEngine[vehicleid]==true)cEngine2[vehicleid]=false;
+	    	    	else cEngine2[vehicleid]=true;
+	    	    	if(cLamp[vehicleid]==true)cLamp2[vehicleid]=false;
+	    	    	else cLamp2[vehicleid]=true;
+	    	    	if(cLock[vehicleid]==true)cLock2[vehicleid]=false;
+	    	    	else cLock2[vehicleid]=true;
+	    	    	if(gRem[playerid]==true)gRem2[playerid]=false;
+	    	    	else gRem2[playerid]=true;
+	    	    	StatLights[playerid]=false;
+	    	    	cHPpanel[playerid]=false;
+	    	    	cOilpanel[playerid]=false;
+	    	    	cAccpanel[playerid]=false;
+	    	    	UpDateVehiclePanel(playerid);
+			     	new simv,string[15],stmon[7];
+					format(stmon,sizeof(stmon),"%i",Run[vehicleid]);
+					for(new i;i<strlen(stmon);i++){simv++;}
+					switch(simv)
+					{
+						case 1:{format(string,sizeof(string),"000000%i",Run[vehicleid]);}
+						case 2:{format(string,sizeof(string),"00000%i",Run[vehicleid]);}
+						case 3:{format(string,sizeof(string),"0000%i",Run[vehicleid]);}
+						case 4:{format(string,sizeof(string),"000%i",Run[vehicleid]);}
+						case 5:{format(string,sizeof(string),"00%i",Run[vehicleid]);}
+						case 6:{format(string,sizeof(string),"0%i",Run[vehicleid]);}
+						case 7:{format(string,sizeof(string),"%i",Run[vehicleid]);}
+					}
+					PlayerTextDrawSetString(playerid,Playaspeed[playerid][3],string);string="";
+					format(string,sizeof(string),"%i",Run2[vehicleid]);
+					PlayerTextDrawSetString(playerid,Playaspeed[playerid][4],string);
+					UpDateSpeed(playerid);
+	            }
+	        }
+	    }
+	    default:
+	    {
+	        if(ShowTextSpeed[playerid]==true)
+	        {
+				ShowTextSpeed[playerid]=false;
+	    	    SetPlayerDrunkLevel(playerid,0);
+    	    	ChowTextSpeed2(playerid,0);
+    	    	ChowTextSpeed3(playerid,0);
+    	    	ChowTextSpeed4(playerid,0);
+    	    	ChowTextSpeed5(playerid,0);
+    	    	ChowTextSpeed6(playerid,0);
+	           	for(new i=0;i<sizeof(speed);i++)TextDrawHideForPlayer(playerid,speed[i]);
+			 	for(new i=0;i<6;i++)PlayerTextDrawHide(playerid,Playaspeed[playerid][i]);
+	        }
+	    }
+	}
+	return true;
+}
+ChowTextSpeed2(playerid,num=0)
+{
+	switch(num)
+	{
+	    case 1:
+	    {
+	        switch(ShowTextSpeed2[playerid])
+	        {
+	            case 1:// ditampilkan
+	            {
+	                ShowTextSpeed2[playerid]=false;
+			     	for(new i=0;i<6;i++)PlayerTextDrawHide(playerid,Playaspeed2[playerid][i]);
+	            }
+	            case 0:// ditampilkan
+	            {
+	                ShowTextSpeed2[playerid]=true;
+			     	for(new i=0;i<6;i++)PlayerTextDrawShow(playerid,Playaspeed2[playerid][i]);
+	            }
+	        }
+	    }
+	    default:
+	    {
+	        if(ShowTextSpeed2[playerid]==true)
+	        {
+				ShowTextSpeed2[playerid]=false;
+			 	for(new i=0;i<6;i++)PlayerTextDrawHide(playerid,Playaspeed2[playerid][i]);
+	        }
+	    }
+	}
+	return true;
+}
+ChowTextSpeed3(playerid,num=0)
+{
+	switch(num)
+	{
+	    case 1:
+	    {
+	        switch(ShowTextSpeed3[playerid])
+	        {
+	            case 1:// ditampilkan
+	            {
+	                ShowTextSpeed3[playerid]=false;
+			     	for(new i=0;i<6;i++)PlayerTextDrawHide(playerid,Playaspeed3[playerid][i]);
+	            }
+	            case 0:// íå ditampilkan
+	            {
+	                ShowTextSpeed3[playerid]=true;
+			     	for(new i=0;i<6;i++)PlayerTextDrawShow(playerid,Playaspeed3[playerid][i]);
+	            }
+	        }
+	    }
+	    default:
+	    {
+	        if(ShowTextSpeed3[playerid]==true)
+	        {
+				ShowTextSpeed3[playerid]=false;
+			 	for(new i=0;i<6;i++)PlayerTextDrawHide(playerid,Playaspeed3[playerid][i]);
+	        }
+	    }
+	}
+	return true;
+}
+ChowTextSpeed4(playerid,num=0)
+{
+	switch(num)
+	{
+	    case 1:
+	    {
+	        switch(ShowTextSpeed4[playerid])
+	        {
+	            case 1:// ïîêàçàíà
+	            {
+	                ShowTextSpeed4[playerid]=false;
+			     	for(new i=0;i<6;i++)PlayerTextDrawHide(playerid,Playaspeed4[playerid][i]);
+	            }
+	            case 0:// íå ïîêàçàíà
+	            {
+	                ShowTextSpeed4[playerid]=true;
+			     	for(new i=0;i<6;i++)PlayerTextDrawShow(playerid,Playaspeed4[playerid][i]);
+	            }
+	        }
+	    }
+	    default:
+	    {
+	        if(ShowTextSpeed4[playerid]==true)
+	        {
+				ShowTextSpeed4[playerid]=false;
+			 	for(new i=0;i<6;i++)PlayerTextDrawHide(playerid,Playaspeed4[playerid][i]);
+	        }
+	    }
+	}
+	return true;
+}
+ChowTextSpeed5(playerid,num=0)
+{
+	switch(num)
+	{
+	    case 1:
+	    {
+	        switch(ShowTextSpeed5[playerid])
+	        {
+	            case 1:// ïîêàçàíà
+	            {
+	                ShowTextSpeed5[playerid]=false;
+			     	for(new i=0;i<6;i++)PlayerTextDrawHide(playerid,Playaspeed5[playerid][i]);
+	            }
+	            case 0:// íå ïîêàçàíà
+	            {
+	                ShowTextSpeed5[playerid]=true;
+			     	for(new i=0;i<6;i++)PlayerTextDrawShow(playerid,Playaspeed5[playerid][i]);
+	            }
+	        }
+	    }
+	    default:
+	    {
+	        if(ShowTextSpeed5[playerid]==true)
+	        {
+				ShowTextSpeed5[playerid]=false;
+			 	for(new i=0;i<6;i++)PlayerTextDrawHide(playerid,Playaspeed5[playerid][i]);
+	        }
+	    }
+	}
+	return true;
+}
+ChowTextSpeed6(playerid,num=0)
+{
+	switch(num)
+	{
+	    case 1:
+	    {
+	        switch(ShowTextSpeed6[playerid])
+	        {
+	            case 1:// ïîêàçàíà
+	            {
+	                ShowTextSpeed6[playerid]=false;
+			     	for(new i=0;i<9;i++)PlayerTextDrawHide(playerid,Playaspeed6[playerid][i]);
+	            }
+	            case 0:// íå ïîêàçàíà
+	            {
+	                ShowTextSpeed6[playerid]=true;
+			     	for(new i=0;i<9;i++)PlayerTextDrawShow(playerid,Playaspeed6[playerid][i]);
+	            }
+	        }
+	    }
+	    default:
+	    {
+	        if(ShowTextSpeed6[playerid]==true)
+	        {
+				ShowTextSpeed6[playerid]=false;
+			 	for(new i=0;i<9;i++)PlayerTextDrawHide(playerid,Playaspeed6[playerid][i]);
+	        }
+	    }
+	}
+	return true;
+}
+
+
+
 
 UpDateSpeed(playerid)
 {
@@ -964,6 +1241,470 @@ AllDownFuel()
 	}
 }
 
+
+forward PlayerTick();
+public PlayerTick()// 10 ticks per detik
+{
+	new Float:health,Float:Armour;
+	for(new playerid;playerid<=GetPlayerPoolSize();playerid++)
+	{
+	    if(!IsPlayerConnected(playerid))continue;
+	    if(IsPlayerNPC(playerid))continue;
+	    if(Player[playerid][pDeath]==true)continue;
+		if(Player[playerid][pConnect]==false)
+		{
+		    if(!PlayerToPoint(playerid,5,505.0840,-1638.0518,59.3248))
+		    {
+		        SetPlayerPos(playerid,505.0840,-1638.0518,59.3248);
+		        SetPVarInt(playerid,"SpawnZone",1+GetPVarInt(playerid,"SpawnZone"));
+		        if(GetPVarInt(playerid,"SpawnZone")>=300)
+				{
+				    DeletePVar(playerid,"SpawnZone");
+					r_Kick(playerid,"(¹0001) - AFC pada saat pendaftaran / otorisasi.");
+					continue;
+				}
+		    }
+		    continue;
+		}
+		if(GetPlayerSpecialAction(playerid) == SPECIAL_ACTION_USEJETPACK)
+			{
+				// tidak kick admin jetpack
+				if(Player[playerid][pAdmin]>1)
+				{
+					//return false;
+					//SCM(playerid, -1, "Selamat terbang tuan admin.");
+				}
+				else
+				{
+					r_Kick(playerid,"(¹0002) - Jetpack.");
+				}
+				
+			}
+		if(PauseHP[playerid]<=0)
+		{
+			GetPlayerHealth(playerid,health);
+			if(health>Player[playerid][pHealth]){SetPlayerHealth(playerid,Player[playerid][pHealth]);}
+			else{Player[playerid][pHealth]=health;}
+			GetPlayerArmour(playerid,Armour);
+			if(Armour>Player[playerid][pSlot14]){SetPlayerArmour(playerid,Player[playerid][pSlot14]);}
+			else if(Armour<Player[playerid][pSlot14])
+			{
+				Player[playerid][pSlot14]=floatround(Armour);
+				SavePlayer(playerid,Slotx);
+			}
+		}
+		else {PauseHP[playerid]--;}
+/*		if(GetPlayerState(playerid) != PLAYER_STATE_PASSENGER && IsPlayerMoving(playerid) && Player[playerid][pFreez]==true&&NoKickFreezeKick[playerid]<=0)
+		{
+		    if(GetPVarInt(playerid,"KickFreezeAH")>=5)
+		    {
+				r_Kick(playerid,"(¹0005) - Îáõîä çàìîðîçêè.");
+			}
+			else
+			{
+			    new strCheat[12];
+			    format(strCheat,sizeof(strCheat),"%i-[0005]",playerid);
+			    UpDateAdminCheat(strCheat);
+			    SetPVarInt(playerid,"KickFreezeAH",GetPVarInt(playerid,"KickFreezeAH")+1);
+			}
+		}*/
+		if(IsPlayerInAnyVehicle(playerid))
+		{
+		    if(NoCheetGun[playerid]<=0)
+		    {
+			    new weapons[13][2];
+				for (new i;i<13;i++)
+				{
+				    GetPlayerWeaponData(playerid, i, weapons[i][0], weapons[i][1]);
+				    if(weapons[i][0]>0)
+				    {
+				        if(Weapons[playerid][GetWeaponSlot(weapons[i][0])]<=0){TakePlayerWeponId(playerid,weapons[i][0],GetWeaponSlot(weapons[i][0]));}
+				    }
+				}
+			}
+			if(PauseAC[playerid]<=0)
+			{
+			    if(GetPVarInt(playerid,"noKICK0008")==0&&Player[playerid][pAFK2]<2)
+			    {
+					if(!PlayerToPoint(playerid,16,Player[playerid][pTPX],Player[playerid][pTPY],Player[playerid][pTPZ]))
+					{
+						new strCheat[12];
+						format(strCheat,sizeof(strCheat),"%i-[0008]",playerid);
+						UpDateAdminCheat(strCheat);
+					    SetPVarInt(playerid,"Ac008",GetPVarInt(playerid,"Ac008")+1);
+					    if(GetPVarInt(playerid,"Ac008")>2)
+					    {
+					        DeletePVar(playerid,"Ac008");
+					    	r_Kick(playerid,"(¹0008) - anti AirBreak/TP.");
+					    }
+					}
+				}
+				else
+				{
+				    if(GetPVarInt(playerid,"noKICK0008")>0){SetPVarInt(playerid,"noKICK0008",GetPVarInt(playerid,"noKICK0008")-1);}
+				}
+			}else PauseAC[playerid]--;
+        	new Float:vh,vehid=GetPlayerVehicleID(playerid);
+	    	GetVehicleHealth(vehid, vh);
+			new Float:dam = gCarH[vehid] - vh;
+		    if(dam>49&&IsValidVehicle(vehid)==1)
+		    {
+		        new dd;
+		        if(gRem[playerid]==false)dd=floatround(dam)/10;
+		        else dd=floatround(dam)/100;
+		        if(dd>0){GivePlayerHealth(playerid, -dd);}
+				for(new i=0;i<=GetPlayerPoolSize();i++)
+				{
+				    if(GetPlayerVehicleID(playerid) != GetPlayerVehicleID(i)) continue ;
+				    if(!IsPlayerConnected(i)) continue;
+				    if(playerid==i)continue;
+				    dd=0;
+			        if(gRem[i]==false)dd=floatround(dam)/10;
+			        else dd=floatround(dam)/100;
+			        if(dd>0){GivePlayerHealth(i, -dd);}
+				}
+			}
+			gCarH[vehid] = vh;
+			if(ShowTextSpeed[playerid]==true)
+			{
+				new spd=SpeedVehicle(playerid),str[14];
+				if(spd<0){spd=0;}
+				else if(spd>270){spd=270;}
+				new dospd=spd;
+				new Break,vid=CarN[vehid][2],maxspeed;
+				if(vid>0)
+				{
+					switch(CheckKolvSparkPlug(vehid))
+					{
+						case 2:
+						{
+						    if(Car[vid][cSparkPlug1]<30)Break++;
+						    if(Car[vid][cSparkPlug2]<30)Break++;
+							if(Break==1)maxspeed=40;
+							else if(Break==2&&cEngine[vehid]==true){EngineDown(playerid);}
+						}
+						case 4:
+						{
+						    if(Car[vid][cSparkPlug1]<30)Break++;
+						    if(Car[vid][cSparkPlug2]<30)Break++;
+						    if(Car[vid][cSparkPlug3]<30)Break++;
+						    if(Car[vid][cSparkPlug4]<30)Break++;
+							if(Break==1)maxspeed=60;
+							else if(Break==2)maxspeed=40;
+							else if(Break>2&&cEngine[vehid]==true){EngineDown(playerid);}
+						}
+						case 6:
+						{
+						    if(Car[vid][cSparkPlug1]<30)Break++;
+						    if(Car[vid][cSparkPlug2]<30)Break++;
+						    if(Car[vid][cSparkPlug3]<30)Break++;
+						    if(Car[vid][cSparkPlug4]<30)Break++;
+						    if(Car[vid][cSparkPlug5]<30)Break++;
+						    if(Car[vid][cSparkPlug6]<30)Break++;
+							if(Break==1)maxspeed=60;
+							else if(Break==2)maxspeed=50;
+							else if(Break==3)maxspeed=40;// 20
+							else if(Break>3&&cEngine[vehid]==true){EngineDown(playerid);}
+						}
+					}
+				}
+				if(dospd>maxspeed&&maxspeed!=0)
+				{
+				    new Float:x,Float:y,Float:z;
+				    GetVehicleVelocity(vehid,x,y,z);
+				    SetVehicleVelocity(vehid,x*0.88,y*0.88,z);
+				}
+				format(str,sizeof(str),"%i",spd);
+				PlayerTextDrawSetString(playerid,Playaspeed[playerid][0],str);
+				if(spd!=0)PlayerTextDrawShow(playerid,Playaspeed[playerid][0]);
+			}
+		}
+		else
+		{
+		    if(NoCheetGun[playerid]<=0)
+		    {
+				new weapon=GetPlayerWeapon(playerid);
+				if(weapon>0)
+				{
+				    if(Weapons[playerid][GetWeaponSlot(weapon)]!=weapon){TakePlayerWeponId(playerid,weapon,GetWeaponSlot(weapon));}
+				}
+			}
+			if(PauseAC[playerid]<=0)
+			{
+				if(!PlayerToPoint(playerid,15,Player[playerid][pTPX],Player[playerid][pTPY],Player[playerid][pTPZ]))
+				{
+				    if(GetPlayerSurfingVehicleID(playerid)==INVALID_VEHICLE_ID)
+					{
+					    if(PlayerSpector[playerid]==-1)
+					    {
+					        new kick0009=GetPVarInt(playerid,"KickIN0009");
+					        SetPVarInt(playerid,"KickIN0009",kick0009+1);
+					        if(kick0009>3)
+					        {
+								//r_Kick(playerid,"(¹0009) - anti AirBreak/TP.");
+					        }
+					        new strCheat[12];
+							format(strCheat,sizeof(strCheat),"%i-[0009]",playerid);
+							UpDateAdminCheat(strCheat);
+				        }
+				    }
+				}
+			}else PauseAC[playerid]--;
+		}
+		GetPlayerPos(playerid,Player[playerid][pTPX],Player[playerid][pTPY],Player[playerid][pTPZ]);
+		new animlib[32], animname[32];
+        GetAnimationName(GetPlayerAnimationIndex(playerid), animlib, 32, animname, 32);
+/*        new strrr[128];
+        //format(strrr,128,"%s %s %i",animlib,animname,GetPlayerAnimationIndex(playerid));
+        SCM(playerid,-1,strrr);*/
+        if(strcmp(animlib, "PED", true) == 0 && strcmp(animname, "IDLE_STANCE", true) == 0 && PauseAC[playerid]<=0)
+        {
+			new Float:itog=Player[playerid][pTPZ]-ApZz[playerid];
+			if(IsPlayerInAnyVehicle(playerid)&&GetPlayerState(playerid) != PLAYER_STATE_PASSENGER)
+			{
+			    new strre[120],spd=SpeedVehicle(playerid);
+		        if(spd-SpeedAC[playerid]>40)// 26
+		        {
+		            SpeedACKick[playerid]++;
+		            new strCheat[12];
+					format(strCheat,sizeof(strCheat),"%i-[0016]",playerid);
+					UpDateAdminCheat(strCheat);
+			        format(strre,sizeof(strre),"{FF8D23}- Pemain %s(%i) mungkin menggunakan cheat (speed hack - %i/%i)",GetRPName(playerid),playerid,spd,spd-SpeedAC[playerid]);
+				    for(new i;i<=GetPlayerPoolSize();i++)
+				    {
+				        if(Player[i][pConnect]==false)continue;
+				        if(Player[i][pAdmin]<=0)continue;
+				        SCM(i,WS,strre,1);
+				    }
+		            if(SpeedACKick[playerid]>2)
+		            {
+						//r_Kick(playerid,"(¹0016) - anti speed hack.");
+						SpeedACKick[playerid]=0;
+		            }
+		        }
+			    SpeedAC[playerid]=spd;
+			    if(itog>7)
+			    {
+			        format(strre,sizeof(strre),"{FF8D23}- Pemain %s(%i) mungkin menggunakan cheat (fly/airbreak)",GetRPName(playerid),playerid);
+			        new kolvkick=GetPVarInt(playerid,"Kick0015");
+			        new strCheat[12];
+					format(strCheat,sizeof(strCheat),"%i-[0015]",playerid);
+					UpDateAdminCheat(strCheat);
+			        SetPVarInt(playerid,"Kick0015",kolvkick+1);
+			        if(kolvkick>=7)
+			        {
+			            //return r_Kick(playerid,"(¹0015) - anti Fly.");
+			        }
+				    for(new i;i<=GetPlayerPoolSize();i++)
+				    {
+				        if(Player[i][pConnect]==false)continue;
+				        if(Player[i][pAdmin]<=0)continue;
+				        SCM(i,WS,strre,1);
+				    }
+			    }
+			    if(itog<(-7))
+			    {
+			        format(strre,sizeof(strre),"{FF8D23}- Pemain %s(%i) mungkin menggunakan cheat (fly/airbreak)",GetRPName(playerid),playerid);
+			        new kolvkick=GetPVarInt(playerid,"Kick0015");
+			        SetPVarInt(playerid,"Kick0015",kolvkick+1);
+					new strCheat[12];
+					format(strCheat,sizeof(strCheat),"%i-[0015]",playerid);
+					UpDateAdminCheat(strCheat);
+			        if(kolvkick>=7)
+			        {
+			            //return r_Kick(playerid,"(¹0015) - anti Fly.");
+			        }
+				    for(new i;i<=GetPlayerPoolSize();i++)
+				    {
+				        if(Player[i][pConnect]==false)continue;
+				        if(Player[i][pAdmin]<=0)continue;
+				        SCM(i,WS,strre,1);
+				    }
+			    }
+			}
+			else
+			{
+				if(GetPlayerSurfingVehicleID(playerid)==INVALID_VEHICLE_ID)
+				{
+					if(PlayerSpector[playerid]==-1)
+					{
+					    //if(itog>7)return r_Kick(playerid,"(¹0015) - anti Fly.");
+					    //if(itog<(-7))return r_Kick(playerid,"(¹0015) - anti Fly.");
+				    }
+				}
+			}
+        }
+		ApZz[playerid]=Player[playerid][pTPZ];
+		if(Player[playerid][pTPZ]<-90)
+		{
+			PauseAC[playerid]=10;
+			SetPVarInt(playerid,"DownAC",GetPVarInt(playerid,"DownAC")+1);
+			new strCheat[12];
+			format(strCheat,sizeof(strCheat),"%i-[0010]",playerid);
+			UpDateAdminCheat(strCheat);
+			if(GetPVarInt(playerid,"DownAC")>13)
+			{
+			    DeletePVar(playerid,"DownAC");
+				r_Kick(playerid,"(¹0010) - anti Fly di bawah peta.");
+			}
+		}
+		if(ShowTextSpeed[playerid]==true)
+		{
+		    UpDateSpeed(playerid);
+		}
+		if(NoCheetGun[playerid]>0)
+		{
+		    NoCheetGun[playerid]--;
+		    if(NoCheetGun[playerid]<=0)
+		    {
+		        NoCheetGun[playerid]=0;
+		    }
+		}
+		UpDateWeaponPlayerObject(playerid);
+		new speedp=GetPlayerSpeed(playerid);
+		if(Player[playerid][pAFK2]>0)speedp=0;
+		switch(speedp)
+		{
+			case 0:{PlayerEnergy[playerid]+=5;if(PlayerEnergy[playerid]>Player[playerid][pEnergy])PlayerEnergy[playerid]=Player[playerid][pEnergy];}
+			case 25..35:{PlayerEnergy[playerid]+=1+random(2);if(PlayerEnergy[playerid]>Player[playerid][pEnergy])PlayerEnergy[playerid]=Player[playerid][pEnergy];}
+//			case 70..99:{PlayerEnergy[playerid]-=random(2);if(PlayerEnergy[playerid]<0)PlayerEnergy[playerid]=0;}
+			case 100..120:
+			{
+				PlayerEnergy[playerid]-=2;// ccff
+				CheckTimeDownSoif[playerid]++;
+				if(CheckTimeDownSoif[playerid]>=50)
+				{
+				    Player[playerid][pSoif]-=1;
+				    SavePlayer(playerid,Soifx);
+				    PlayerUpDateNeedBar(playerid);
+				    CheckTimeDownSoif[playerid]=0;
+				}
+				if(PlayerEnergy[playerid]<0){PlayerEnergy[playerid]=0;}
+			}
+			case 121..200:
+			{
+				PlayerEnergy[playerid]-=3;
+				CheckTimeDownSoif[playerid]++;
+				if(PlayerEnergy[playerid]<0)
+				{
+					PlayerEnergy[playerid]=0;
+				}
+				if(CheckTimeDownSoif[playerid]>=40)
+				{
+				    Player[playerid][pSoif]-=1;
+				    SavePlayer(playerid,Soifx);
+				    PlayerUpDateNeedBar(playerid);
+				    CheckTimeDownSoif[playerid]=0;
+				}
+				if(random(60)==25)
+				{
+					PlayerEnergyFill[playerid]++;
+					if(PlayerEnergyFill[playerid]>=10)
+					{
+						Player[playerid][pEnergy]+=1;
+						PlayerEnergyFill[playerid]=0;
+						SavePlayer(playerid,Energyx);
+					}
+				}
+			}
+		}
+		if(PlayerEnergy[playerid]<=0&&PlayerEnergyAnim[playerid]==false)
+		{
+		    PlayerEnergyAnim[playerid]=true;
+		    ApplyAnimation(playerid,"FAT","IDLE_tired",4.0,1,0,0,0,0,1);
+		}
+		if(PlayerEnergyAnim[playerid]==true&&PlayerEnergy[playerid]>=300)
+		{
+		    PlayerEnergyAnim[playerid]=false;
+		    ClearAnimations(playerid);
+		}
+		if((TimeUseBint[playerid]>0||TimeUseZgyt[playerid]>0)&&GetPlayerSpeed(playerid)>40)
+		{
+		    if(TimeUseBint[playerid]>0){TimeUseBint[playerid]=0;SCM(playerid,-1,"Anda tidak bisa membalut luka Anda dan lari!",1);}
+		    if(TimeUseZgyt[playerid]>0){TimeUseZgyt[playerid]=0;SCM(playerid,-1,"Anda tidak bisa menjalin lukanya dan lari!",1);}
+		}
+		if(PlayerGymStats[playerid]>0)
+	    {
+	        PlayerGymTimer[playerid]--;
+	        if(PlayerGymTimer[playerid]<=0)
+	        {
+		        switch(PlayerGymStats[playerid])
+		        {
+		            case 1:// bench press
+		            {
+						if(PLAYER_INBENCH[playerid]==false)return false;
+						if(ShowTextGymTd[playerid]==false)return false;
+						SetPlayerAttachedObject(playerid, 0, 2913, 6);
+						DestroyObject(barbell_objects[PLAYER_CURRECT[playerid]]);
+						PlayerGymTimer[playerid]=7;
+						PlayerGymStats[playerid]=2;
+		            }
+		            case 2:// bench press
+		            {
+						PlayerGymTimer[playerid]=7;
+						GYM_CHECK(playerid);
+		            }
+		            case 3:// bench press
+		            {
+						if(PLAYER_INBENCH[playerid]==false)return false;
+						if(ShowTextGymTd[playerid]==false)return false;
+						ApplyAnimation(playerid,"benchpress","gym_bp_down",1,0,0,0,1,0,1);
+						PlayerGymTimer[playerid]=5;
+						PlayerGymStats[playerid]=2;
+		            }
+		            case 4:// bench press
+		            {
+						PlayerGymTimer[playerid]=20;
+						PlayerGymStats[playerid]=5;
+    					RemovePlayerAttachedObject(playerid,0);
+		            }
+		            case 5:// bench press
+		            {
+						PlayerGymTimer[playerid]=0;
+						PlayerGymStats[playerid]=0;
+		                REST_PLAYER(playerid);
+		            }
+		            case 11:// Bagus
+		            {
+						ApplyAnimation( playerid, "GYMNASIUM", "bike_start", 1, 1, 0, 0, 1, 0, 1);
+						PlayerGymTimer[playerid]=3;
+						PlayerGymStats[playerid]=12;
+		            }
+		            case 12:// Bagus
+		            {
+						PlayerGymTimer[playerid]=3;
+						GYM_CHECK(playerid);
+		            }
+		            case 13:// Bagus
+		            {
+						PlayerGymTimer[playerid]=0;
+						PlayerGymStats[playerid]=0;
+		                REST_PLAYER(playerid);
+		            }
+		            case 21:// treadmill
+		            {
+						ApplyAnimation( playerid, "GYMNASIUM", "gym_tread_sprint", 1, 1, 0, 0, 1, 0, 1);
+						PlayerGymTimer[playerid]=5;
+						PlayerGymStats[playerid]=22;
+		            }
+		            case 22:// treadmill
+		            {
+						PlayerGymTimer[playerid]=5;
+						GYM_CHECK(playerid);
+		            }
+		            case 23:// treadmill
+		            {
+						PlayerGymTimer[playerid]=0;
+						PlayerGymStats[playerid]=0;
+		                REST_PLAYER(playerid);
+		            }
+		        }
+			}
+	    }
+		// ccee11
+	}
+	return true;
+}
 
 
 public OnPlayerConnect(playerid)
