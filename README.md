@@ -3,7 +3,7 @@ Belajar memahami script dasar Pawn SAMP
 
 ![NPC script recording](https://github.com/PutuSuhartawan/Scripting-Pawn-SAMP-Belajar-Dasar/blob/main/vlcsnap-2021-03-15-11h48m31s921.png?raw=true)
 
-1. English.
+1. English. https://github.com/pawn-lang/compiler/raw/master/doc/pawn-lang.pdf
 2. Don't be lazy & give up.
 3. Be thorough.
 4. Try your best.
