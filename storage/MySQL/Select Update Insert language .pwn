@@ -1,4 +1,29 @@
 
+GetFreeTrunkID(v, s) {
+    new i=1; 
+    for(i; i <= 100; i++)
+    {
+            //i++;
+            if(get_vehicle_trunk[v][s][i] == 0) 
+            
+                if(i != 0)
+                { 
+                  i++;
+                  if(get_vehicle_trunk[v][s][i] == 0) 
+                  i+s;
+                  return i+GetSVarInt("SlotTrunkUsed");
+                }
+                
+            
+          
+
+    }
+        
+    return i+GetSVarInt("SlotTrunkUsed");
+    printf("[TRUNK_ID]: Debug new ID SQL:[%d]", v);
+}
+
+
 
 
 stock LoadOCTrunks(playerid, vehicleid)
