@@ -1,4 +1,5 @@
-
+#define GetItemInfo(%0,%1)    get_item_type[%0][%1]
+//native GetItemInfo(vehicleid, trunkslot, enumstrunkstructur);
 enum E_ITEM_STRUCT
 {
   I_NAME[16],
