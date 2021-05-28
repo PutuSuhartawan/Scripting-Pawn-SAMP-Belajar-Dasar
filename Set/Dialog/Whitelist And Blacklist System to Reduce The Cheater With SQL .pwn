@@ -35,6 +35,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
   new string[140];
   new Float:pos[2];
   
+ 
   if(dialogid == DIALOG_WHITELIST)
   {
     new player[200], string[128];
@@ -51,11 +52,12 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                       format(string,sizeof(string),"{00FFFF}%s{FFFFFF} succes to full request join whitelist.", inputtext);
                       SendClientMessage(playerid,COLOR_WHITE,string);
                       //dini_Create(player);
-
+                      format(GetDataFromPlayerConnect, 500, "INSERT INTO `whitelist` SET `username` ='%s'", inputtext); // now here inserting the database if the player has given the proper name in whitelist
+		                  n_mysql_query(MySQL:g_Sql, GetDataFromPlayerConnect, bool:true);
                       new str[600];
 
                       //if(_:WhitelistInfo == 0)
-                      //WhitelistInfo = DCC_FindChannelById("111111111);//masukkan ic channel discord kalian
+                      //WhitelistInfo = DCC_FindChannelById("111111111);// to notif if the administrator using a discord system
 
                       format(str,sizeof str,":unlock:***Nickname: ``%s`` has succesfull joining to whitelist!***",inputtext);
                       //DCC_SendChannelMessage(WhitelistInfo,str);
@@ -70,8 +72,6 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                   }
       }
   }
-
-
 }
 
 // sample
