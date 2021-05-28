@@ -38,15 +38,19 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
   if(dialogid == DIALOG_WHITELIST)
   {
     new player[200], string[128];
-    format(player,sizeof(player),"Whitelist/%s.txt",inputtext);
-    
+    //format(player,sizeof(player),"Whitelist/%s.txt",inputtext);
+    new GetDataFromPlayerConnect[500];
+	  format(GetDataFromPlayerConnect, 500, "SELECT * FROM `whitelist` WHERE `username` = '%s' LIMIT 1", inputtext); // now here check the database if the player has given the proper name in whitelist
+		n_mysql_query(MySQL:g_Sql, GetDataFromPlayerConnect, bool:true);
+
       if(response == 1)
       {
-                  if(!dini_Exists(player))
+                  new rows = cache_num_rows();
+                  if (!rows)
                   {
-                      format(string,sizeof(string),"{00FFFF}%s{FFFFFF} succes to request in whitelist.", inputtext);
+                      format(string,sizeof(string),"{00FFFF}%s{FFFFFF} succes to full request join whitelist.", inputtext);
                       SendClientMessage(playerid,COLOR_WHITE,string);
-                      dini_Create(player);
+                      //dini_Create(player);
 
                       new str[600];
 
@@ -66,6 +70,7 @@ public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
                   }
       }
   }
+
 
 }
 
