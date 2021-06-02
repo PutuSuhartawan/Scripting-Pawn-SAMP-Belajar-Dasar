@@ -3,3 +3,15 @@
 	"cmd": ["pawncc.exe", "-i includes", "$file", "-;+"],
 	"path": "E:/GAME/Server PutuSuhartawansamp03DL_svr_R1_win32/pawno"
 }
+/*
+//// SETTING HOTKEY /////////
+
+[
+	
+	{ "keys": ["f4"], "command": "find_prev" },
+	{ "keys": ["f5"], "command": "build" },
+	
+]
+
+
+*/
