@@ -1,4 +1,11 @@
-	
+
+public UnFreezeMe() // timer need public function
+{
+  SetCameraBehindPlayer(unfreezeplayer);
+  TogglePlayerControllable(unfreezeplayer, 1); // variabel dia bergerak itu jadi satu supaya bisa bergerak karakternya.
+}
+
+
 CMD:teleport(playerid, params[])
 {
 	new Float:gotoPos[3];
