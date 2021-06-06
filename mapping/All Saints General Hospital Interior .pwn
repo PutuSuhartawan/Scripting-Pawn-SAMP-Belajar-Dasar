@@ -1465,7 +1465,7 @@
 	
 
 
-	//ASH
+	// Driving school san fierro license test , ASH
 
 	tmpobjid = CreateObject(19445, 1968.772827, 1337.532836, 1515.505615, 0.000000, 90.000000, 0.000000);
 	SetObjectMaterial(tmpobjid, 0, 14577, "casinovault01", "compound_roof1", 0xFFF0FFFF);
