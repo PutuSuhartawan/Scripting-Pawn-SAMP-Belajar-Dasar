@@ -1324,3 +1324,122 @@ CMD:setskin(playerid, params[])
 	return 1;
 }
 
+//------------------------------------------------------------------------------------------------------
+public OnPlayerDisconnect(playerid, reason)
+{
+    if(PlayerInfo[playerid][pAdminDuty] == 1)
+    {
+        PlayerInfo[playerid][pAdminDuty] = 0;
+		AC_BS_SetPlayerHealth(playerid, PlayerInfo[playerid][pHealth]);
+		AC_BS_SetPlayerArmour(playerid, PlayerInfo[playerid][pArmor]);
+		SetPlayerName(playerid, PlayerInfo[playerid][pNormalName]);
+		SetPlayerColor(playerid, 0xFFFFFF00);
+		SetPVarInt(playerid, "AdminProtect", 0);
+	}
+    GetPlayerPos(playerid, PlayerInfo[playerid][pPos_x], PlayerInfo[playerid][pPos_y], PlayerInfo[playerid][pPos_z]);
+    TextDrawHideForPlayer(playerid, LBox[playerid]);
+	TextDrawHideForPlayer(playerid, LLine1[playerid]);
+	TextDrawHideForPlayer(playerid, LLine2[playerid]);
+	TextDrawHideForPlayer(playerid, LLine3[playerid]);
+	TextDrawHideForPlayer(playerid, LCredits[playerid]);
+	HideProgressBarForPlayer(playerid, phealth[playerid]);
+	HideProgressBarForPlayer(playerid, parmor[playerid]);
+	LuX_SpeedoMeter[playerid] = 0;
+ 	SaveWeaponInfo(playerid);
+	KillTimer(WeaponCheckTimer[playerid]);
+	for(new v; v < MAX_PLAYERVEHICLES; ++v)
+	{
+	    for(new vt = 0; vt < MAX_OBJECTS_PER_PLAYER; vt++)
+     	{
+	         	new Float:x, Float:y, Float:z, Float:angle, Float:health, Float:fuel;
+         	 	DestroyDynamicObject(PlayerVehicleInfo[playerid][v][pvToy][vt]);
+	            DestroyDynamicObject(PlayerVehicleInfo[playerid][v][pvNeonObj]);
+				DestroyDynamicObject(PlayerVehicleInfo[playerid][v][pvNeonObj2]);
+				DestroyDynamicObject(PlayerVehicleInfo[playerid][v][pvNeonObj3]);
+				DestroyDynamicObject(PlayerVehicleInfo[playerid][v][pvNeonObj4]);
+			 	GetVehicleDamageStatus(PlayerVehicleInfo[playerid][v][pvId], PlayerVehicleInfo[playerid][v][pvStatus][0], PlayerVehicleInfo[playerid][v][pvStatus][1], PlayerVehicleInfo[playerid][v][pvStatus][2], PlayerVehicleInfo[playerid][v][pvStatus][3]);
+				GetVehicleHealth(PlayerVehicleInfo[playerid][v][pvId], health);
+				if(PlayerInfo[playerid][pLockCar] == GetPlayerVehicleID(playerid)) PlayerInfo[playerid][pLockCar] = INVALID_VEHICLE_ID;
+				GetVehiclePos(PlayerVehicleInfo[playerid][v][pvId], x, y, z);
+				GetVehicleZAngle(PlayerVehicleInfo[playerid][v][pvId], angle);
+				PlayerVehicleInfo[playerid][v][pvPosX] = x;
+				PlayerVehicleInfo[playerid][v][pvPosY] = y;
+				PlayerVehicleInfo[playerid][v][pvPosZ] = z;
+				PlayerVehicleInfo[playerid][v][pvPosAngle] = angle;
+				PlayerVehicleInfo[playerid][v][pvFuel] = fuel;
+				PlayerVehicleInfo[playerid][v][pvHealth] = health;
+		}
+	}
+	if(GetPVarInt(playerid, "HaveADO") == 1) RemovePlayerADO(playerid);
+	new Float:x,Float:y,Float:z,Float:a, Float:health;
+ 	GetVehicleDamageStatus(PlayerRentInfo[playerid][prId], PlayerRentInfo[playerid][prStatus][0], PlayerRentInfo[playerid][prStatus][1], PlayerRentInfo[playerid][prStatus][2], PlayerRentInfo[playerid][prStatus][3]);
+	GetVehicleHealth(PlayerRentInfo[playerid][prId], health);
+	GetVehiclePos(PlayerRentInfo[playerid][prId], x, y, z);
+	GetVehicleZAngle(PlayerRentInfo[playerid][prId], a);
+	PlayerRentInfo[playerid][prPosX] = x;
+	PlayerRentInfo[playerid][prPosY] = y;
+	PlayerRentInfo[playerid][prPosZ] = z;
+	PlayerRentInfo[playerid][prPosAngle] = a;
+	PlayerRentInfo[playerid][prHealth] = health;
+	new weapons[13][2];
+	for(new s = 0; s < 12; s++)
+	{
+	    GetPlayerWeaponData(playerid, s, weapons[s][0], weapons[s][1]);
+	    PlayerInfo[playerid][pGuns][s] = weapons[s][0];
+	    PlayerInfo[playerid][pGunsAmmo][s] = weapons[s][1];
+	}
+	for(new i; i <= 9; i++) // 9 = Total Dialog , Jadi kita mau tau kalau Player Ini Apakah Ambil Dialog dari 3 tersebut apa ga !
+	{
+		if(DialogSaya[playerid][i] == true) // Cari apakah dia punya salah satu diantara 10 dialog tersebut
+		{
+		    DialogSaya[playerid][i] = false; // Ubah Jadi Dia ga punya dialog lagi Kalau Udah Disconnect (Bukan dia lagi pemilik)
+		    DialogHauling[i] = false; // Jadi ga ada yang punya nih dialog
+		    DialogSweeper[i] = false; // Jadi ga ada yang punya nih dialog
+		    DialogBus[i] = false; // Jadi ga ada yang punya nih dialog
+		    DestroyVehicle(TrailerHauling[playerid]);
+		}
+	}
+	//FlyMode
+    PlayerPressedJump[playerid] = 0;
+    TextDrawHideForPlayer(playerid, Time), TextDrawHideForPlayer(playerid, Date);
+	if(GetPVarType(playerid, "BoomboxObject"))
+    {
+        DestroyDynamicObject(GetPVarInt(playerid, "BoomboxObject"));
+        if(GetPVarType(playerid, "bboxareaid"))
+        {
+            foreach(Player,i)
+            {
+                if(IsPlayerInDynamicArea(i, GetPVarInt(playerid, "bboxareaid")))
+                {
+                    StopAudioStreamForPlayer(i);
+                     SendClientMessage(i, COLOR_GREY, " The boombox creator has disconnected from the server.");
+                }
+            }
+        }
+    }
+ 	new VID = GetPlayerVehicleID(playerid);
+    DestroyDynamicObject(SirenObject[VID]);
+ 	{
+	 	DestroyDynamicObject(GetPVarInt(playerid, "neon")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon1")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon2")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon3"));
+	  	DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon4")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon5")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon6")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon7"));
+	  	DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon8")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon9")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon10")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon11"));
+	  	DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon12")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon13")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon14")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon15"));
+	  	DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon16")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon17")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon18")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon19"));
+	  	DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon20")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon21")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon22")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon23"));
+	  	DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon24")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon25")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon26")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon27"));
+	  	DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon28")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon29")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon30")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon31"));
+	  	DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon32")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon33")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon34")); DeletePVar(playerid, "Status"); DestroyDynamicObject(GetPVarInt(playerid, "neon35"));
+	}
+	// Crash Fix - GhoulSlayeR
+	new name[MAX_PLAYER_NAME];
+	GetPlayerName(playerid, name, sizeof(name));
+	if(!strcmp(name, "InvalidNick", true)) return 1;
+	if(!strcmp(name, "BannedPlayer", true)) return 1;
+
+	TextDrawDestroy(DescriptionText[playerid]);
+	TextDrawHideForPlayer(playerid, Kotak);
+	TextDrawHideForPlayer(playerid, Rp);
+	TextDrawHideForPlayer(playerid, forum);
+	TextDrawHideForPlayer(playerid, sen);
+	TextDrawHideForPlayer(playerid, koma2);
+}
