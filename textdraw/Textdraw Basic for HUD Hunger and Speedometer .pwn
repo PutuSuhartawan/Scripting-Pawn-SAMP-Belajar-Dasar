@@ -863,6 +863,9 @@ public LuX_SpeedoMeterUp()
 	return 1;
 }
 
+forward LuX_SpeedoMeterUp();
+
+
 public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 {
     new vehid = GetClosestCar(playerid);
