@@ -607,7 +607,7 @@ CMD:stoprecord(playerid, params[])
 
 /*
 
-// this is scirpt for controlling NPC from foler NPC models
+// this is scirpt for controlling NPC from folder NPC models
 // this is on foot NPC
 #define RECORDING "GasStationStaff" //This is the filename of your recording without the extension.
 #define RECORDING_TYPE 2 //1 for in vehicle and 2 for on foot.
