@@ -1,6 +1,6 @@
 
 //
-
+#define SPD ShowPlayerDialogEx
 #define GetPlayerUseListitem(%0) 		g_player_listitem_use[%0]
 #define SetPlayerUseListitem(%0,%1) 	g_player_listitem_use[%0] = %1
 
@@ -10,8 +10,44 @@ new g_player_listitem_use[MAX_PLAYERS] = {-1, ...};
 #define GetPlayerListitemValue(%0,%1) 		g_player_listitem[%0][%1]
 
 new g_player_listitem[MAX_PLAYERS][96];
+new afk_check[MAX_PLAYERS];
+new afk_time[MAX_PLAYERS];
+new admin_logged[MAX_PLAYERS];
+new admin_level[MAX_PLAYERS];
 
+stock ShowPlayerDialogEx(playerid,dialogid,style,caption[],info[],button1[],button2[])
+{
+    pDialog[playerid] = true;
+    return ShowPlayerDialog(playerid,dialogid,style,caption,info,button1,button2);
+}
 
+public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
+{
+ switch(dialogid)
+	{
+ case 3288:
+		{
+			if(!response) return 1;
+
+			new sql_id = GetPlayerListitemValue(playerid, listitem);
+
+			SetPlayerUseListitem(playerid, sql_id);
+
+			SPD(playerid, 3289, DIALOG_STYLE_MSGBOX, "Konfirmasi tindakan", "Anda yakin ingin menghapus kode promosi ini?", "Ya", "Tidak");
+		}
+		case 3289:
+		{
+			if(!response) return callcmd::promo(playerid);
+
+			new sql_id = GetPlayerUseListitem(playerid);
+
+			format(format_string, 144, "DELETE FROM `promocodes` WHERE `id` = %i", sql_id);
+			mysql_tquery(mMysql, format_string);
+
+			SCM(playerid, COLOR_GREEN, "Kode promosi telah berhasil dihapus.");
+		}
+}
+}
 
 CMD:promo(playerid)
 {
