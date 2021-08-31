@@ -112,6 +112,36 @@ enum pInfo
 };
 new PlayerInfo[MAX_PLAYERS][pInfo];
 
+enum cINFO // Tuning
+{
+	cID, cCost, cType[32], cName[32]
+};
+new TuneCost[MAX_PLAYERS], NewColor[MAX_PLAYERS][2];
+
+enum wInfo
+{
+	wID, wReasonWarn[32], wAdminWarn[32], wWarnDate, wUnWarnDate
+};
+new WarnInfo[MAX_PLAYERS][3][wInfo];
+
+new gangenter[10];
+
+enum numInfo
+{
+	nID, plID, numName[64], nNumber
+};
+new NumberInfo[MAX_PLAYERS][MAX_NUMBER][numInfo];
+
+#define MAX_FRACTIONS 24
+
+enum frInfo
+{
+    fName[32], Float:fSpawn[4], fInt, fVw, fSkin[10], fSkinKolvo, fRankMax, fLevel, fBank[3], fTag[16], fSalary[16]
+};
+new FracInfo[MAX_FRACTIONS][frInfo];
+
+new FracRank[MAX_FRACTIONS][16][40];
+
 
 public OnDialogResponse(playerid, dialogid, response, listitem, inputtext[])
 {
