@@ -656,6 +656,8 @@ function InfoTD_MSG(playerid, ms_time, text[])
 	SetPVarInt(playerid, "InfoTDshown", SetTimerEx("InfoTD_Hide", ms_time, false, "i", playerid));
 }
 
+
+
 function InfoTD_Hide(playerid)
 {
 	SetPVarInt(playerid, "InfoTDshown", -1);
@@ -746,6 +748,352 @@ if(pData[playerid][pInjured] == 1 && pData[playerid][pHospital] != 1)
         SetPlayerHealthEx(playerid, 99999);
     }
 }
+
+
+public OnPlayerSpawn(playerid)
+{
+	//SetSpawnInfo(playerid, 0, pData[playerid][pSkin], pData[playerid][pPosX], pData[playerid][pPosY], pData[playerid][pPosZ], pData[playerid][pPosA], 0, 0, 0, 0, 0, 0);
+	//SpawnPlayer(playerid);
+	LagiKerja[playerid] = false;
+	Kurir[playerid] = false;
+	StopAudioStreamForPlayer(playerid);
+	SetPlayerInterior(playerid, pData[playerid][pInt]);
+	SetPlayerVirtualWorld(playerid, pData[playerid][pWorld]);
+	SetPlayerPos(playerid, pData[playerid][pPosX], pData[playerid][pPosY], pData[playerid][pPosZ]);
+	SetPlayerFacingAngle(playerid, pData[playerid][pPosA]);
+	SetCameraBehindPlayer(playerid);
+	TogglePlayerControllable(playerid, 0);
+	SetPlayerSpawn(playerid);
+	LoadAnims(playerid);
+	
+	SetPlayerSkillLevel(playerid, WEAPON_COLT45, 1);
+	SetPlayerSkillLevel(playerid, WEAPON_SILENCED, 1);
+	SetPlayerSkillLevel(playerid, WEAPON_DEAGLE, 1);
+	SetPlayerSkillLevel(playerid, WEAPON_SHOTGUN, 1);
+	SetPlayerSkillLevel(playerid, WEAPON_SAWEDOFF, 1);
+	SetPlayerSkillLevel(playerid, WEAPON_SHOTGSPA, 1);
+	SetPlayerSkillLevel(playerid, WEAPON_UZI, 1);
+	SetPlayerSkillLevel(playerid, WEAPON_MP5, 1);
+	SetPlayerSkillLevel(playerid, WEAPON_AK47, 1);
+	SetPlayerSkillLevel(playerid, WEAPON_M4, 1);
+	SetPlayerSkillLevel(playerid, WEAPON_TEC9, 1);
+	SetPlayerSkillLevel(playerid, WEAPON_RIFLE, 1);
+	SetPlayerSkillLevel(playerid, WEAPON_SNIPER, 1);
+	return 1;
+}
+
+SetPlayerSpawn(playerid)
+{
+	if(IsPlayerConnected(playerid))
+	{
+		if(pData[playerid][pGender] == 0)
+		{
+			TogglePlayerControllable(playerid,0);
+			SetPlayerHealth(playerid, 100.0);
+			SetPlayerArmour(playerid, 0.0);
+			SetPlayerPos(playerid, 1716.1129, -1880.0715, -10.0);
+			SetPlayerCameraPos(playerid,1429.946655, -1597.120483, 41);
+			SetPlayerCameraLookAt(playerid,247.605590, -1841.989990, 39.802570);
+			SetPlayerVirtualWorld(playerid, 0);
+			ShowPlayerDialog(playerid, DIALOG_AGE, DIALOG_STYLE_INPUT, "Tanggal Lahir", "Masukan tanggal lahir\n(Tgl/Bulan/Tahun)\nMisal : 15/04/1998", "Enter", "Batal");
+		}
+		else
+		{
+			SetPlayerColor(playerid, COLOR_WHITE);
+			if(pData[playerid][pHBEMode] == 1) //simple
+			{
+				ShowPlayerProgressBar(playerid, pData[playerid][sphungrybar]);
+				ShowPlayerProgressBar(playerid, pData[playerid][spenergybar]);
+				ShowPlayerProgressBar(playerid, pData[playerid][spbladdybar]);
+				for(new txd = 12; txd > 11 && txd < 16; txd++)
+				{
+					TextDrawShowForPlayer(playerid, TDEditor_TD[txd]);
+				}
+			}
+			if(pData[playerid][pHBEMode] == 2) //modern
+			{
+				ShowPlayerProgressBar(playerid, pData[playerid][hungrybar]);
+				ShowPlayerProgressBar(playerid, pData[playerid][energybar]);
+				ShowPlayerProgressBar(playerid, pData[playerid][bladdybar]);
+				for(new txd; txd < 5; txd++)
+				{
+					TextDrawShowForPlayer(playerid, TDEditor_TD[txd]);
+				}
+			}
+			else
+			{
+				
+			}
+			TextDrawShowForPlayer(playerid, SOIRP_TXD);
+
+			SetPlayerSkin(playerid, pData[playerid][pSkin]);
+			if(pData[playerid][pOnDuty] >= 1)
+			{
+				SetPlayerSkin(playerid, pData[playerid][pFacSkin]);
+				SetFactionColor(playerid);
+			}
+			if(pData[playerid][pAdminDuty] > 0)
+			{
+				SetPlayerColor(playerid, COLOR_RED);
+			}
+			SetTimerEx("SpawnTimer", 6000, false, "i", playerid);
+		}
+	}
+}
+
+function SpawnTimer(playerid)
+{
+	ResetPlayerMoney(playerid);
+	GivePlayerMoney(playerid, pData[playerid][pMoney]);
+	SetPlayerScore(playerid, pData[playerid][pLevel]);
+	SetPlayerHealth(playerid, pData[playerid][pHealth]);
+	SetPlayerArmour(playerid, pData[playerid][pArmour]);
+	pData[playerid][pSpawned] = 1;
+	TogglePlayerControllable(playerid, 1);
+	SetCameraBehindPlayer(playerid);
+	AttachPlayerToys(playerid);
+	SetWeapons(playerid);
+	if(pData[playerid][pJail] > 0)
+	{
+		JailPlayer(playerid); 
+	}
+	if(pData[playerid][pArrestTime] > 0)
+	{
+		SetPlayerArrest(playerid, pData[playerid][pArrest]);
+	}
+	LoadLunarSystem(playerid);
+	return 1;
+}
+
+
+public OnPlayerStateChange(playerid, newstate, oldstate)
+{
+	//JOB KURIR
+	if(oldstate == PLAYER_STATE_ONFOOT && newstate == PLAYER_STATE_DRIVER)
+	{
+		if(IsAKurirVeh(GetPlayerVehicleID(playerid)))
+		{
+			GameTextForPlayer(playerid, "~w~PENGANTARAN BARANG TERSEDIA /STARTKURIR", 5000, 3);
+			SendClientMessage(playerid, 0x76EEC6FF, "* Tampaknya ada paket yang tidak terkirim di Burrito Anda.");
+		}
+	}
+	if(newstate == PLAYER_STATE_WASTED && pData[playerid][pJail] < 1)
+    {	
+		if(pData[playerid][pInjured] == 0)
+        {
+            pData[playerid][pInjured] = 1;
+            SetPlayerHealthEx(playerid, 99999);
+
+            pData[playerid][pInt] = GetPlayerInterior(playerid);
+            pData[playerid][pWorld] = GetPlayerVirtualWorld(playerid);
+
+            GetPlayerPos(playerid, pData[playerid][pPosX], pData[playerid][pPosY], pData[playerid][pPosZ]);
+            GetPlayerFacingAngle(playerid, pData[playerid][pPosA]);
+        }
+        else
+        {
+            pData[playerid][pHospital] = 1;
+        }
+	}
+	//Spec Player
+	new vehicleid = GetPlayerVehicleID(playerid);
+	if(newstate == PLAYER_STATE_ONFOOT)
+	{
+		if(pData[playerid][playerSpectated] != 0)
+		{
+			foreach(new ii : Player)
+			{
+				if(pData[ii][pSpec] == playerid)
+				{
+					PlayerSpectatePlayer(ii, playerid);
+					Servers(ii, ,"%s(%i) is now on foot.", pData[playerid][pName], playerid);
+				}
+			}
+		}
+	}
+	if(newstate == PLAYER_STATE_DRIVER || newstate == PLAYER_STATE_PASSENGER)
+    {
+		if(pData[playerid][pInjured] == 1)
+        {
+            //RemoveFromVehicle(playerid);
+			RemovePlayerFromVehicle(playerid);
+            SetPlayerHealthEx(playerid, 99999);
+        }
+		foreach (new ii : Player) if(pData[ii][pSpec] == playerid) 
+		{
+            PlayerSpectateVehicle(ii, GetPlayerVehicleID(playerid));
+        }
+	}
+	if(oldstate == PLAYER_STATE_PASSENGER)
+	{
+		TextDrawHideForPlayer(playerid, TDEditor_TD[11]);
+		TextDrawHideForPlayer(playerid, DPvehfare[playerid]);
+	}
+	if(oldstate == PLAYER_STATE_DRIVER)
+    {	
+		if(GetPlayerSpecialAction(playerid) == SPECIAL_ACTION_CARRY || GetPlayerSpecialAction(playerid) == SPECIAL_ACTION_CUFFED)
+            return RemovePlayerFromVehicle(playerid);/*RemoveFromVehicle(playerid);*/
+			
+		PlayerTextDrawHide(playerid, DPvehname[playerid]);
+        PlayerTextDrawHide(playerid, DPvehengine[playerid]);
+        PlayerTextDrawHide(playerid, DPvehspeed[playerid]);
+		
+        TextDrawHideForPlayer(playerid, TDEditor_TD[5]);
+		TextDrawHideForPlayer(playerid, TDEditor_TD[6]);
+		TextDrawHideForPlayer(playerid, TDEditor_TD[7]);
+		TextDrawHideForPlayer(playerid, TDEditor_TD[8]);
+		TextDrawHideForPlayer(playerid, TDEditor_TD[9]);
+		TextDrawHideForPlayer(playerid, TDEditor_TD[10]);
+		
+		TextDrawHideForPlayer(playerid, TDEditor_TD[11]);
+		TextDrawHideForPlayer(playerid, DPvehfare[playerid]);
+		
+		//HBE textdraw Simple
+		PlayerTextDrawHide(playerid, SPvehname[playerid]);
+        PlayerTextDrawHide(playerid, SPvehengine[playerid]);
+        PlayerTextDrawHide(playerid, SPvehspeed[playerid]);
+		
+		TextDrawHideForPlayer(playerid, TDEditor_TD[16]);
+		TextDrawHideForPlayer(playerid, TDEditor_TD[17]);
+		TextDrawHideForPlayer(playerid, TDEditor_TD[18]);
+		
+		if(pData[playerid][pTaxiDuty] == 1)
+		{
+			pData[playerid][pTaxiDuty] = 0;
+			SetPlayerColor(playerid, COLOR_WHITE);
+			Servers(playerid, "You are no longer on taxi duty!");
+		}
+		if(pData[playerid][pFare] == 1)
+		{
+			KillTimer(pData[playerid][pFareTimer]);
+			Info(playerid, "Anda telah menonaktifkan taxi fare pada total: {00FF00}%s", FormatMoney(pData[playerid][pTotalFare]));
+			pData[playerid][pFare] = 0;
+			pData[playerid][pTotalFare] = 0;
+		}
+        
+		HidePlayerProgressBar(playerid, pData[playerid][spfuelbar]);
+        HidePlayerProgressBar(playerid, pData[playerid][spdamagebar]);
+		
+        HidePlayerProgressBar(playerid, pData[playerid][fuelbar]);
+        HidePlayerProgressBar(playerid, pData[playerid][damagebar]);
+	}
+	else if(newstate == PLAYER_STATE_DRIVER)
+    {
+		/*if(IsSRV(vehicleid))
+		{
+			new tstr[128], price = GetVehicleCost(GetVehicleModel(vehicleid));
+			format(tstr, sizeof(tstr), ""WHITE_E"Anda akan membeli kendaraan "PINK_E"%s "WHITE_E"dengan harga "LG_E"%s", GetVehicleName(vehicleid), FormatMoney(price));
+			ShowPlayerDialog(playerid, DIALOG_BUYPV, DIALOG_STYLE_MSGBOX, "Private Vehicles", tstr, "Buy", "Batal");
+		}
+		else if(IsVSRV(vehicleid))
+		{
+			new tstr[128], price = GetVipVehicleCost(GetVehicleModel(vehicleid));
+			if(pData[playerid][pVip] == 0)
+			{
+				Error(playerid, "Kendaraan Khusus VIP Player.");
+				RemovePlayerFromVehicle(playerid);
+				//SetVehicleToRespawn(GetPlayerVehicleID(playerid));
+				SetTimerEx("RespawnPV", 3000, false, "d", vehicleid);
+			}
+			else
+			{
+				format(tstr, sizeof(tstr), ""WHITE_E"Anda akan membeli kendaraan "PINK_E"%s "WHITE_E"dengan harga "YELLOW_E"%d Coin", GetVehicleName(vehicleid), price);
+				ShowPlayerDialog(playerid, DIALOG_BUYVIPPV, DIALOG_STYLE_MSGBOX, "Private Vehicles", tstr, "Buy", "Batal");
+			}
+		}*/
+		
+		foreach(new pv : PVehicles)
+		{
+			if(vehicleid == pvData[pv][cVeh])
+			{
+				if(IsABike(vehicleid) || GetVehicleModel(vehicleid) == 424)
+				{
+					if(pvData[pv][cLocked] == 1)
+					{
+						RemovePlayerFromVehicle(playerid);
+						//new Float:slx, Float:sly, Float:slz;
+						//GetPlayerPos(playerid, slx, sly, slz);
+						//SetPlayerPos(playerid, slx, sly, slz);
+						Error(playerid, "This bike is locked by owner.");
+						return 1;
+					}
+				}
+			}
+		}
+		
+		if(IsASweeperVeh(vehicleid))
+		{
+			ShowPlayerDialog(playerid, DIALOG_SWEEPER, DIALOG_STYLE_MSGBOX, "Side Job - Sweeper", "Anda akan bekerja sebagai pembersih jalan?", "Start Job", "Close");
+		}
+		if(IsABusVeh(vehicleid))
+		{
+			ShowPlayerDialog(playerid, DIALOG_BUS, DIALOG_STYLE_MSGBOX, "Side Job - Bus", "Anda akan bekerja sebagai pengangkut penumpang bus?", "Start Job", "Close");
+		}
+		if(IsAForVeh(vehicleid))
+		{
+			ShowPlayerDialog(playerid, DIALOG_FORKLIFT, DIALOG_STYLE_MSGBOX, "Side Job - Forklift", "Anda akan bekerja sebagai pemuat barang dengan Forklift?", "Start Job", "Close");
+		}
+		
+		if(!IsEngineVehicle(vehicleid))
+        {
+            SwitchVehicleEngine(vehicleid, true);
+        }
+		if(IsEngineVehicle(vehicleid) && pData[playerid][pDriveLic] <= 0)
+        {
+            Info(playerid, "Anda tidak memiliki surat izin mengemudi, berhati-hatilah.");
+        }
+		if(pData[playerid][pHBEMode] == 1)
+		{
+			TextDrawShowForPlayer(playerid, TDEditor_TD[16]);
+			TextDrawShowForPlayer(playerid, TDEditor_TD[17]);
+			TextDrawShowForPlayer(playerid, TDEditor_TD[18]);
+			
+			PlayerTextDrawShow(playerid, SPvehname[playerid]);
+			PlayerTextDrawShow(playerid, SPvehengine[playerid]);
+			PlayerTextDrawShow(playerid, SPvehspeed[playerid]);
+			ShowPlayerProgressBar(playerid, pData[playerid][spfuelbar]);
+			ShowPlayerProgressBar(playerid, pData[playerid][spdamagebar]);
+		}
+		else if(pData[playerid][pHBEMode] == 2)
+		{
+			TextDrawShowForPlayer(playerid, TDEditor_TD[5]);
+			TextDrawShowForPlayer(playerid, TDEditor_TD[6]);
+			TextDrawShowForPlayer(playerid, TDEditor_TD[7]);
+			TextDrawShowForPlayer(playerid, TDEditor_TD[8]);
+			TextDrawShowForPlayer(playerid, TDEditor_TD[9]);
+			TextDrawShowForPlayer(playerid, TDEditor_TD[10]);
+			
+			PlayerTextDrawShow(playerid, DPvehname[playerid]);
+			PlayerTextDrawShow(playerid, DPvehengine[playerid]);
+			PlayerTextDrawShow(playerid, DPvehspeed[playerid]);
+			ShowPlayerProgressBar(playerid, pData[playerid][fuelbar]);
+			ShowPlayerProgressBar(playerid, pData[playerid][damagebar]);
+		}
+		else
+		{
+		
+		}
+		new Float:health;
+        GetVehicleHealth(GetPlayerVehicleID(playerid), health);
+        VehicleHealthSecurityData[GetPlayerVehicleID(playerid)] = health;
+        VehicleHealthSecurity[GetPlayerVehicleID(playerid)] = true;
+		
+		if(pData[playerid][playerSpectated] != 0)
+  		{
+			foreach(new ii : Player)
+			{
+    			if(pData[ii][pSpec] == playerid)
+			    {
+        			PlayerSpectateVehicle(ii, vehicleid);
+				    Servers(ii, "%s(%i) is now driving a %s(%d).", pData[playerid][pName], playerid, GetVehicleModelName(GetVehicleModel(vehicleid)), vehicleid);
+				}
+			}
+		}
+		SetPVarInt(playerid, "LastVehicleID", vehicleid);
+	}
+	return 1;
+}
+
 
 //----------------------------[ Admin Level 2 ]-----------------------
 CMD:sethp(playerid, params[])
