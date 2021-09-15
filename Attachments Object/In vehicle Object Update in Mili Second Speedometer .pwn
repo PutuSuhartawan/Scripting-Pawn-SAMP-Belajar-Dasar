@@ -1,3 +1,20 @@
+// a_vehicle.inc
+native CreatePlayerObject(playerid, modelid, Float:X, Float:Y, Float:Z, Float:rX, Float:rY, Float:rZ, Float:DrawDistance = 0.0);
+
+
+#define VEHICLE_MODEL_INFO_SIZE				1
+#define VEHICLE_MODEL_INFO_FRONTSEAT		2
+#define VEHICLE_MODEL_INFO_REARSEAT			3
+#define VEHICLE_MODEL_INFO_PETROLCAP		4
+#define VEHICLE_MODEL_INFO_WHEELSFRONT		5
+#define VEHICLE_MODEL_INFO_WHEELSREAR		6
+#define VEHICLE_MODEL_INFO_WHEELSMID		7
+#define VEHICLE_MODEL_INFO_FRONT_BUMPER_Z	8
+#define VEHICLE_MODEL_INFO_REAR_BUMPER_Z	9
+
+// end a_vehicle.inc
+
+
 #define SPEEDUPDATE 250
 
 new PlayerSpeed[MAX_PLAYERS];
