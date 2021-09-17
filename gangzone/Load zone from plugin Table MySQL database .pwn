@@ -71,6 +71,32 @@ new format_string[244];
 #define MAX_NUMBER  15
 #define MAX_FAMILY  50
 
+
+new player_choose_skin[MAX_PLAYERS];
+
+enum E_ANTI_FLOOD_STRUCT
+{
+	AF_LAST_TICK,
+	AF_RATE
+}
+
+#define MAX_ZONES 104
+
+enum E_GZ_STRUCT
+{
+	gID,
+	Float: gPos[4],
+	gFraction,
+	gTime,
+	gAttack,
+	gType,
+	gDoubleDraw,
+	gKills[2],
+	Text: gTD[9]
+};
+
+new GZInfo[MAX_ZONES][E_GZ_STRUCT];
+
 static const Float:cam_start_pos [4] [3] [6] =
 {
 	{
@@ -117,6 +143,29 @@ stock PlayerToKvadrat(playerid,Float:min_x,Float:min_y,Float:max_x,Float:max_y)
 }
 
 
+epublic: LoadGangZones()
+{
+    new rows;
+
+	cache_get_row_count(rows);
+
+	if(!rows) return print("GangZones in the database is not found!");
+
+	for(new i; i < MAX_ZONES; i++)
+	{
+		cache_get_value_name_int(i, "fraction", GZInfo[i][gFraction]);
+		cache_get_value_name_float(i, "ginfo1", GZInfo[i][gPos][0]);
+		cache_get_value_name_float(i, "ginfo2", GZInfo[i][gPos][1]);
+		cache_get_value_name_float(i, "ginfo3", GZInfo[i][gPos][2]);
+		cache_get_value_name_float(i, "ginfo4", GZInfo[i][gPos][3]);
+
+		//printf("%i %f %f %f %f", i, GZInfo[i][gPos][0],GZInfo[i][gPos][1],GZInfo[i][gPos][2],GZInfo[i][gPos][3]);
+
+		GZInfo[i][gID] = GangZoneCreate(GZInfo[i][gPos][0],GZInfo[i][gPos][1],GZInfo[i][gPos][2],GZInfo[i][gPos][3]);
+	}
+
+	return printf("[MySQL R41-3]: Gangzone created: %i", rows);
+}
 
 stock GetGangZoneColor(g_id)
 {
