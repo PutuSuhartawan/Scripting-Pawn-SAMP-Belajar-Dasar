@@ -1,3 +1,4 @@
+#include <timestamptodate>
 
 enum wInfo
 {
@@ -123,6 +124,66 @@ stock DateToTimestamp(str[11])
         else return -1;
 }
 
+
+publics: OnPlayerCheckBanAcc(playerid)
+{
+ 	new rows;
+ 	cache_get_row_count(rows);
+    if(rows)
+    {
+   		new lockstate;
+        cache_get_value_name_int(0, "lockstate", lockstate);
+
+        if(lockstate == 1)
+        {
+            new nameplayer[MAX_PLAYER_NAME], nameadmin[MAX_PLAYER_NAME], reason[64];
+
+            new data, unbandate;
+
+            cache_get_value_name(0, "nameplayer", nameplayer,MAX_PLAYER_NAME);
+	        cache_get_value_name(0, "nameadmin", nameadmin,MAX_PLAYER_NAME);
+	        cache_get_value_name(0, "reason", reason,64);
+
+	        cache_get_value_name_int(0, "date", data);
+	        cache_get_value_name_int(0, "unbandate", unbandate);
+
+	        if(gettime() >= unbandate)
+	        {
+	            format(MySQLStr, 144, "DELETE FROM `banlog` WHERE `nameplayer` = '%s'", nameplayer);
+				mysql_tquery(mMysql, MySQLStr);
+			}
+			else
+			{
+			    SCMF(playerid,COLOR_RED,"Perhatian! Akun anda: [%s] diblokir!", Name(playerid));
+
+				new dateban[6];
+				TimestampToDate(data,dateban[0],dateban[1],dateban[2],dateban[3],dateban[4],dateban[5], 3);
+
+				new dateunban[6];
+				TimestampToDate(unbandate,dateunban[0],dateunban[1],dateunban[2],dateunban[3],dateunban[4],dateunban[5], 3);
+
+				format(String,sizeof(String),
+					"{FFFFFF}Alasan: %s.\nAdministrator Diblokir: %s.\n\
+					Tanggal Blok: %02d/%02d/%02d %02d:%02d:%02d.\n\
+					Buka Kunci Tanggal: %02d/%02d/%02d %02d:%02d:%02d.",
+					reason, nameadmin,
+					dateban[0],dateban[1],dateban[2],dateban[3],dateban[4],dateban[5],
+					dateunban[0],dateunban[1],dateunban[2],dateunban[3],dateunban[4],dateunban[5]
+				);
+
+				SPD(playerid, 0000, DIALOG_STYLE_MSGBOX, "{E5D81E}Pilihan Anda selesai!",String, "Keluar", "");
+				return KickD(playerid, "");
+			}
+		}
+	}
+
+	format(MySQLStr, 128, "SELECT * FROM `accounts` WHERE `pID` = %d LIMIT 1", PlayerInfo[playerid][pID]);
+	mysql_tquery(mMysql, MySQLStr, "OnPlayerLoadAccounts", "d", playerid);
+
+	return 1;
+}
+
+
 CMD:unwarn(playerid, params[])
 {
     if(admin_level[playerid] < 3 || !admin_logged[playerid]) return 1;
@@ -244,6 +305,67 @@ epublic: LoadMyWarns(playerid)
 }
 
 
+epublic:OnPlayerCheckBanIP(playerid, ipadress[])
+{
+	new rows;
+ 	cache_get_row_count(rows);
+    if(rows)
+    {
+   		new lockstate_ip;
+        cache_get_value_name_int(0, "lockstate", lockstate_ip);
+
+        if(lockstate_ip == 1)
+        {
+	  		new banipadress[MAX_IP_ADRESS], banipreason[64], banipadmin[MAX_PLAYER_NAME];
+
+	        cache_get_value_name(0, "ipadress", banipadress,MAX_IP_ADRESS);
+	        cache_get_value_name(0, "reason", banipreason,64);
+	        cache_get_value_name(0, "admin", banipadmin,MAX_PLAYER_NAME);
+
+	        new banipdate, banipunbandate;
+			cache_get_value_name_int(0, "date", banipdate);
+	        cache_get_value_name_int(0, "unbandate", banipunbandate);
+
+	        if(gettime() >= banipunbandate)
+	        {
+	            mysql_format(mMysql, MySQLStr, 144, "DELETE FROM `banips` WHERE `ipadress` = '%e' AND `lockstate` = '1'", ipadress), mysql_tquery(mMysql, MySQLStr, "", "");
+
+				CheckPlayerAccount(playerid);
+
+				//if(mysql_errno()) return MysqlErrorMessage(playerid);
+	        }
+	        else
+	        {
+
+		        SCMF(playerid,COLOR_RED,"Perhatian! Alamat IP Anda: [%s] diblokir!", banipadress);
+
+				new dateban[6];
+				TimestampToDate(banipdate,dateban[0],dateban[1],dateban[2],dateban[3],dateban[4],dateban[5], 3);
+
+				new dateunban[6];
+				TimestampToDate(banipunbandate,dateunban[0],dateunban[1],dateunban[2],dateunban[3],dateunban[4],dateunban[5], 3);
+
+				format(String,sizeof(String), "{FFFFFF}Alasan: %s.\nAdministrator Diblokir: %s.\nTanggal Blok: %02d/%02d/%02d %02d:%02d:%02d.\nTanggal Pemblokiran: %02d/%02d/%02d %02d:%02d:%02d.", banipreason, banipadmin, dateban[0],dateban[1],dateban[2],dateban[3],dateban[4],dateban[5], dateunban[0],dateunban[1],dateunban[2],dateunban[3],dateunban[4],dateunban[5]);
+				SPD(playerid,0,DIALOG_STYLE_MSGBOX, "{E5D81E}Alamat IP Anda diblokir!",String, "Keluar", "");
+				KickD(playerid, "");
+			}
+		}
+		else
+		{
+			CheckPlayerAccount(playerid);
+
+			//if(mysql_errno()) return MysqlErrorMessage(playerid);
+		}
+    }
+    else
+    {
+   		CheckPlayerAccount(playerid);
+
+		//if(mysql_errno()) return MysqlErrorMessage(playerid);
+    }
+	return true;
+}
+
 
 /*
 -- phpMyAdmin SQL Dump
@@ -323,6 +445,83 @@ ALTER TABLE `warninfo`
 --
 ALTER TABLE `warninfo`
   ADD CONSTRAINT `warninfo_ibfk_1` FOREIGN KEY (`plID`) REFERENCES `accounts` (`pID`);
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+*/
+
+/*
+
+-- phpMyAdmin SQL Dump
+-- version 5.1.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Generation Time: Sep 22, 2021 at 06:56 AM
+-- Server version: 10.4.20-MariaDB
+-- PHP Version: 8.0.9
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `szrp2021`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `banips`
+--
+
+CREATE TABLE `banips` (
+  `id` int(11) NOT NULL,
+  `ipadress` varchar(40) CHARACTER SET utf8 NOT NULL,
+  `reason` varchar(128) CHARACTER SET utf8 NOT NULL,
+  `admin` varchar(24) CHARACTER SET utf8 NOT NULL,
+  `date` int(11) NOT NULL,
+  `unbandate` int(11) NOT NULL,
+  `lockstate` int(11) NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=cp1251;
+
+--
+-- Dumping data for table `banips`
+--
+
+INSERT INTO `banips` (`id`, `ipadress`, `reason`, `admin`, `date`, `unbandate`, `lockstate`) VALUES
+(1, '125.165.173.87', 'biadap', 'Rico_Pasanea', 1630588001, 1633180001, 1),
+(2, '34.87.96.154', 'sampah', 'Ezra_Keisuke', 1631399159, 1633991159, 1);
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `banips`
+--
+ALTER TABLE `banips`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `banips`
+--
+ALTER TABLE `banips`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
