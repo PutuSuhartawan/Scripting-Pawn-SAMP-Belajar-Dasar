@@ -1,5 +1,5 @@
 #define Info(%1,%2) SendClientMessageEx(%1, -1, ""LBLUE"INFO: "WHITE_E""%2)
-#define Info(%1,%2) SendClientMessageEx(%1, -1, ""LBLUE"INFO: "WHITE_E""%2)
+
 
 new rands;
 new rands2;
@@ -193,3 +193,5 @@ CMD:paytoll(playerid)
 	}
 	return 1;
 }
+
+
