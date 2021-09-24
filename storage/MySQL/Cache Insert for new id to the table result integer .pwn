@@ -39,3 +39,50 @@ stock InitRadar(Float:x, Float:y, Float:z, Float:angle, r_speed, save = false)
 	printf("RADAR_CREATE , ID: %d", r + 1);
 	return true;
 }
+
+
+function OnPlayerRegister(playerid)
+{
+	if(pData[playerid][IsLoggedIn] == true)
+		return Error(playerid, "You already logged in!");
+		
+	pData[playerid][pID] = cache_insert_id();
+	pData[playerid][IsLoggedIn] = true;
+
+	pData[playerid][pPosX] = DEFAULT_POS_X;
+	pData[playerid][pPosY] = DEFAULT_POS_Y;
+	pData[playerid][pPosZ] = DEFAULT_POS_Z;
+	pData[playerid][pPosA] = DEFAULT_POS_A;
+	pData[playerid][pInt] = 0;
+	pData[playerid][pWorld] = 0;
+	pData[playerid][pGender] = 0;
+	
+	format(pData[playerid][pAdminname], MAX_PLAYER_NAME, "None");
+	format(pData[playerid][pEmail], 40, "None");
+	pData[playerid][pHealth] = 100.0;
+	pData[playerid][pArmour] = 0.0;
+	pData[playerid][pLevel] = 1;
+	pData[playerid][pHunger] = 100;
+	pData[playerid][pBladder] = 100;
+	pData[playerid][pEnergy] = 100;
+	pData[playerid][pMoney] = 1000;
+	pData[playerid][pBankMoney] = 1000;
+	
+	new query[128], rand = RandomEx(111111, 999999);
+	new rek = rand+pData[playerid][pID];
+	mysql_format(g_SQL, query, sizeof(query), "SELECT brek FROM players WHERE brek='%d'", rek);
+	mysql_tquery(g_SQL, query, "BankRek", "id", playerid, rek);
+	
+	SetSpawnInfo(playerid, NO_TEAM, 0, pData[playerid][pPosX], pData[playerid][pPosY], pData[playerid][pPosZ], pData[playerid][pPosA], 0, 0, 0, 0, 0, 0);
+	SpawnPlayer(playerid);
+	return 1;
+}
+
+
+forward OnContactAdd(playerid, id);
+public OnContactAdd(playerid, id)
+{
+	ContactData[playerid][id][contactID] = cache_insert_id();
+	return 1;
+}
+
