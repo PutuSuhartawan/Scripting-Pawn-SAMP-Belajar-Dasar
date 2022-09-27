@@ -62,6 +62,33 @@ new Text:RedScreen;
 new bool: player_news_live[MAX_PLAYERS];
 
 
+stock ShowPlayerFuelStationPayForRent(playerid)
+{
+	new stationid = GetPlayerFuelStation(playerid);
+	if(stationid != -1)
+	{
+		new fmt_str[256];
+
+		format
+		(
+			fmt_str, sizeof fmt_str,
+			"{FFFFFF}SPBU:\t\t¹%d (%s)\n"\
+			"Hari Sewa Berbayar:\t\t%d èç 30\n"\
+			"Sewa harian:\t$%d\n"\
+			"Jenis sewa:\t\t\t\t%s\n\n"\
+			"Berapa hari Anda ingin menyewa pompa bensin?",
+			stationid,
+			GetFuelStationData(stationid, FS_NAME),
+			GetFuelStationData(stationid, FS_RENT_DATE),
+			GetFuelStationData(stationid, FS_IMPROVEMENTS) < 4 ? GetFuelStationData(stationid, FS_RENT_PRICE) : GetFuelStationData(stationid, FS_RENT_PRICE) / 2,
+			GetFuelStationData(stationid, FS_IMPROVEMENTS) < 4 ? ("Penuh") : ("Diturunkan")
+		);
+		Dialog(playerid, DIALOG_PAY_FOR_RENT_FUEL_ST, DIALOG_STYLE_INPUT, "{32a44b}Sewa pompa bensin", fmt_str, "Untuk membayar", "Kembali");
+	}
+}
+
+
+
 stock GivePlayerBankEx(playerid, amount, reason[])
 {
 	PlayerInfo[playerid][pBank] += amount;
