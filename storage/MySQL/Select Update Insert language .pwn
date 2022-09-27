@@ -1,3 +1,58 @@
+stock CreateTicket(playerid, amount, issuer[], description[])
+{
+	new query[190];
+
+	mysql_format(mysql, query, sizeof query, "INSERT INTO tickets (uid, amount, issuer, description) VALUES (%d, %d, '%s', '%s')",
+	GetPlayerAccountID(playerid), amount, issuer, description);
+	mysql_query(mysql, query, false);
+	return 1;
+}
+
+stock CreateBoard(playerid, Float:x, Float:y, Float:z, Float:x_angle, Float:y_angle, Float:z_angle, Float:label_x, Float:label_y, Float:label_z, modelid)
+{
+	new board_id = g_board_created;
+	new fmt_text[110];
+	format(fmt_text, sizeof fmt_text, "- Nomor perisai %d gratis -\n{FFFFFF}Anda bisa menempatinya di dalam gedung Los-Santos Radio \n{888888}Diinstal: %s", board_id,GetPlayerNameEx(playerid));
+	SetBoardData(board_id, B_OBJECT, CreateDynamicObject(modelid,x,y,z,x_angle,y_angle,z_angle));
+	SetBoardData(board_id, B_LABEL, CreateDynamic3DTextLabel(fmt_text, 0x1E90FFFF, x, y, z+5.7153, 50.0));
+	SetBoardData(board_id, B_OWNER, -1);
+	SetBoardData(board_id, B_POS_X, x);
+	SetBoardData(board_id, B_POS_Y, y);
+	SetBoardData(board_id, B_POS_Z, z);
+    new query[510];
+
+	mysql_format(mysql, query, sizeof query, "INSERT INTO board (`x`, `y`, `z`, `x_angle`, `y_angle`, `z_angle`, `view_x`, `view_y`, `view_z`,`model`) VALUES ('%f', '%f', '%f','%f', '%f', '%f', '%f', '%f', '%f', '%d')",x,y,z,x_angle,y_angle,z_angle,label_x,label_y,label_z,modelid);
+	mysql_query(mysql, query, false);
+
+	g_board_created ++;
+	return 1;
+}
+stock CreateRadar(playerid, Float:x, Float:y, Float:z, limit)
+{
+	new radar_id = g_radars_created;
+	SetRadarData(radar_id, R_ZONE, CreateDynamicSphere(x, y, z, 40.0));
+	new fmt_text[110];
+
+	format(fmt_text, sizeof fmt_text, "- Perekam Kecepatan No.%d -\n\n{FFFFFF}Batasan: %d Km/h\n{888888}Diinstal: %s", radar_id, limit, GetPlayerNameEx(playerid));
+	SetRadarData(radar_id, R_LABEL, CreateDynamic3DTextLabel(fmt_text, 0x1E90FFFF, x, y, z + 3.0, 50.0));
+
+	SetRadarData(radar_id, R_POS_X, x);
+	SetRadarData(radar_id, R_POS_Y, y);
+	SetRadarData(radar_id, R_POS_Z, z);
+
+	SetRadarData(radar_id, R_LIMIT, limit);
+	g_radars_created ++;
+
+    new query[250];
+   	mysql_format(mysql, query, sizeof(query), "INSERT INTO radar (`x`, `y`, `z`, `limit`) VALUES ('%f', '%f', '%f', '%i')",x,y,z,limit);
+
+	mysql_function_query(mysql, query, true, "", "");
+	SendClientMessage(playerid,-1,query);
+	return 1;
+}
+
+
+
 
 GetFreeTrunkID(v, s) {
     new i=1; 
