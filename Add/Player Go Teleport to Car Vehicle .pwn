@@ -1,4 +1,36 @@
 
+CMD:gotoveh(playerid, params[])
+{
+	if(GetPlayerAdminEx(playerid) < 3) return 1;
+	if(GetPlayerData(playerid, P_ADMIN_DUTY) == 0) //return SendClientMessage(playerid,-1,"{00ff00}Kamu Sedang Tidak OnDuty Admin /aduty untuk OnDuty");
+
+	{
+		new carid;
+		if(sscanf(params, "d", carid)) return SendClientMessage(playerid, 0xCECECEFF, "USAGE: /gotoveh [carid]");
+
+		new Float:cwx2,Float:cwy2,Float:cwz2;
+		GetVehiclePos(carid, cwx2, cwy2, cwz2);
+		if (GetPlayerState(playerid) == 2)
+		{
+			new tmpcar = GetPlayerVehicleID(playerid);
+			SetVehiclePos(tmpcar, cwx2, cwy2, cwz2);
+			//TelePos[playerid][0] = 0.0;TelePos[playerid][1] = 0.0;
+		}
+		else
+		{
+			SetPlayerPos(playerid, cwx2, cwy2, cwz2);
+		}
+		SendClientMessage(playerid, 0xCECECEFF, "   You have been teleported!");
+		//SetPlayerInterior(playerid,0);
+	}
+	else
+	{
+		SendClientMessage(playerid, 0xCECECEFF, "ERROR: You don't have the privilege to use this command!");
+	}
+	return 1;
+}
+
+
 enum pInfo
 {
 	pTanamanAnggur,
