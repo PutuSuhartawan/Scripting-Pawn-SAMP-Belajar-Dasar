@@ -1,3 +1,74 @@
+	
+stock StartSpectate(playerid, for_player)
+{
+	if(GetPlayerAdminEx(playerid) < 1) return 1;
+
+	SetPlayerSpectateData(playerid, S_PLAYER, for_player);
+
+	SetPlayerInterior(playerid, GetPlayerInterior(for_player));
+	SetPlayerVirtualWorld(playerid, GetPlayerVirtualWorld(for_player));
+
+	TogglePlayerSpectating(playerid, true);
+
+	if(IsPlayerInAnyVehicle(for_player))
+	{
+		PlayerSpectateVehicle(playerid, GetPlayerVehicleID(for_player));
+	}
+	else PlayerSpectatePlayer(playerid, for_player);
+
+	return 1;
+}
+
+stock StopSpectate(playerid)
+{
+	if(GetPlayerAdminEx(playerid) < 1) return 1;
+	if(GetPlayerSpectateData(playerid, S_PLAYER) == -1) return 1;
+
+	TogglePlayerSpectating(playerid, false);
+
+	SetPlayerSpectateData(playerid, S_PLAYER, -1);
+
+	SetPlayerPosEx
+	(
+		playerid,
+		GetPlayerSpectateData(playerid, S_START_POS_X),
+		GetPlayerSpectateData(playerid, S_START_POS_Y),
+		GetPlayerSpectateData(playerid, S_START_POS_Z),
+		GetPlayerSpectateData(playerid, S_START_ANGLE),
+		GetPlayerSpectateData(playerid, S_START_INTERIOR),
+		GetPlayerSpectateData(playerid, S_START_VIRTUAL_WORLD)
+	);
+
+	return 1;
+}
+
+stock UpdateSpectate(playerid, disconnect)
+{
+	for(new i; i < MAX_PLAYERS; i ++)
+	{
+		if(!IsPlayerConnected(i)) continue;
+		else if(!IsPlayerLogged(i)) continue;
+		else if(GetPlayerAdminEx(i) < 1) continue;
+		else if(GetPlayerSpectateData(i, S_PLAYER) != playerid) continue;
+
+		if(disconnect)
+		{
+			StopSpectate(i);
+			GameTextForPlayer(i, "~r~~h~player disconnect", 4000, 4);
+		}
+		else if(IsPlayerInAnyVehicle(playerid))
+		{
+			PlayerSpectateVehicle(i, GetPlayerVehicleID(playerid));
+		}
+		else
+		{
+			PlayerSpectatePlayer(i, playerid);
+		}
+	}
+	return 1;
+}
+
+	
 	if(strcmp(cmd, "/spec", true) == 0 || strcmp(cmd, "/recon", true) == 0)
 	{
 	    if(IsPlayerConnected(playerid))
