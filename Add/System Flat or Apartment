@@ -1,0 +1,195 @@
+First, you will need to create a database table to store the housing data. Here is an example table structure:
+
+sql
+Copy code
+CREATE TABLE `houses` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `ownerid` int(11) DEFAULT NULL,
+  `interiorid` int(11) DEFAULT NULL,
+  `price` int(11) DEFAULT NULL,
+  `locked` tinyint(1) DEFAULT NULL,
+  `sale` tinyint(1) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+This table has fields to store the owner ID, interior ID, price, locked status, and sale status for each house.
+
+Next, you will need to define your MySQL database connection details. You can do this by creating a global variable to store the database connection:
+
+pawn
+Copy code
+new mysql;
+Then, you will need to connect to your MySQL database by calling the mysql_connect() function:
+
+pawn
+Copy code
+mysql = mysql_connect("localhost", "username", "password", "database", 0, 0, 0);
+Replace "localhost", "username", "password", and "database" with your actual database connection details.
+
+Once you have established a connection to your MySQL database, you can create functions to interact with the housing data. For example, to get a list of available houses, you could use a function like this:
+
+pawn
+Copy code
+public GetAvailableHouses(playerid)
+{
+    new query[128];
+    mysql_format(mysql, query, sizeof(query), "SELECT * FROM houses WHERE ownerid IS NULL AND sale = 1");
+    mysql_tquery(mysql, query, "OnAvailableHouses", "i", playerid);
+    return 1;
+}
+
+public OnAvailableHouses(playerid)
+{
+    new rows, row, id, interiorid, price, locked, sale;
+    mysql_num_rows(rows);
+    for (new i = 0; i < rows; i++)
+    {
+        mysql_fetch_row(row);
+        mysql_data_seek(row, 0);
+        mysql_fetch_field(row, "id", id);
+        mysql_fetch_field(row, "interiorid", interiorid);
+        mysql_fetch_field(row, "price", price);
+        mysql_fetch_field(row, "locked", locked);
+        mysql_fetch_field(row, "sale", sale);
+        SendClientMessage(playerid, -1, "House ID: %d, Interior ID: %d, Price: %d, Locked: %d, For Sale: %d", id, interiorid, price, locked, sale);
+    }
+    return 1;
+}
+In this example, GetAvailableHouses() sends a query to the MySQL database to retrieve a list of available houses that are not owned by any player and are for sale. The results of the query are then passed to the OnAvailableHouses() function, which sends a message to the player with information about each available house.
+
+You can create similar functions to allow players to buy houses, sell houses, and manage their own houses. For example, to allow a player to buy a house, you could use a function like this:
+
+pawn
+Copy code
+public BuyHouse(playerid, houseid)
+{
+    new query[128];
+    format(query, sizeof(query), "UPDATE houses SET ownerid='%d', sale=0 WHERE id='%d'", playerid, houseid);
+    mysql_query(mysql, query);
+    return 1;
+}
+In this
+
+constants and variables to use throughout the script:
+
+pawn
+Copy code
+// Constants
+#define HOUSE_PRICE_PER_SQUARE_METER 500
+
+// Variables
+new mysql;
+In this example, we've defined a constant for the price per square meter of a house, and we've created a global variable for the MySQL connection.
+
+Next, we'll define a function to create a new house:
+
+pawn
+Copy code
+public CreateHouse(playerid, interiorid, price)
+{
+    new query[128], result;
+    format(query, sizeof(query), "INSERT INTO houses (ownerid, interiorid, price, locked, sale) VALUES (NULL, %d, %d, 1, 1)", interiorid, price);
+    mysql_query(mysql, query, result);
+    if (result == mysql_errno(mysql))
+    {
+        SendClientMessage(playerid, -1, "Error creating house: %s", mysql_error(mysql));
+        return 0;
+    }
+    SendClientMessage(playerid, -1, "House created successfully.");
+    return 1;
+}
+This function takes the player ID, interior ID, and price as parameters, and inserts a new row into the houses table with those values. The locked and sale fields are set to 1 by default, indicating that the house is locked and for sale. If the MySQL query fails, an error message is sent to the player and the function returns 0. Otherwise, a success message is sent to the player and the function returns 1.
+
+Next, we'll define a function to get the details of a player's owned house:
+
+pawn
+Copy code
+public GetPlayerHouse(playerid)
+{
+    new query[128], result, rows, row, id, interiorid, price, locked, sale;
+    format(query, sizeof(query), "SELECT * FROM houses WHERE ownerid = %d", playerid);
+    mysql_query(mysql, query, result);
+    if (result == mysql_errno(mysql))
+    {
+        SendClientMessage(playerid, -1, "Error getting player house: %s", mysql_error(mysql));
+        return 0;
+    }
+    rows = mysql_num_rows(result);
+    if (rows == 0)
+    {
+        SendClientMessage(playerid, -1, "You don't own a house.");
+        return 0;
+    }
+    mysql_fetch_row(result, row);
+    mysql_fetch_field(row, "id", id);
+    mysql_fetch_field(row, "interiorid", interiorid);
+    mysql_fetch_field(row, "price", price);
+    mysql_fetch_field(row, "locked", locked);
+    mysql_fetch_field(row, "sale", sale);
+    SendClientMessage(playerid, -1, "House ID: %d, Interior ID: %d, Price: %d, Locked: %d, For Sale: %d", id, interiorid, price, locked, sale);
+    return 1;
+}
+This function sends a MySQL query to retrieve the details of the house owned by the player with the given ID. If the query fails or no rows are returned, an error message is sent to the player and the function returns 0. Otherwise, the details of the house are sent to the player and the function returns 1.
+
+Next, we'll define a function to allow players to buy houses:
+
+pawn
+Copy code
+public BuyHouse(playerid, houseid)
+{
+    new query[128], result, price, playermoney;
+    format(query, sizeof(query), "SELECT * FROM houses WHERE id = %d AND sale = 1", houseid);
+    mysql_query(mysql,
+    result);
+if (result == mysql_errno(mysql))
+{
+SendClientMessage(playerid, -1, "Error buying house: %s", mysql_error(mysql));
+return 0;
+}
+if (mysql_num_rows(result) == 0)
+{
+SendClientMessage(playerid, -1, "This house is not for sale.");
+return 0;
+}
+mysql_fetch_field(result, "price", price);
+GetPlayerMoney(playerid, playermoney);
+if (playermoney < price)
+{
+SendClientMessage(playerid, -1, "You don't have enough money to buy this house.");
+return 0;
+}
+format(query, sizeof(query), "UPDATE houses SET ownerid = %d, locked = 1, sale = 0 WHERE id = %d", playerid, houseid);
+mysql_query(mysql, query, result);
+if (result == mysql_errno(mysql))
+{
+SendClientMessage(playerid, -1, "Error buying house: %s", mysql_error(mysql));
+return 0;
+}
+GivePlayerMoney(playerid, -price);
+SendClientMessage(playerid, -1, "You have successfully bought this house for %d.", price);
+return 1;
+}
+
+vbnet
+Copy code
+
+This function takes the player ID and house ID as parameters, and checks if the house is for sale and if the player has enough money to buy it. If either condition is not met, an error message is sent to the player and the function returns 0. Otherwise, the owner of the house is set to the player, the house is locked, and it is taken off the market. The price of the house is deducted from the player's money, and a success message is sent to the player.
+
+Finally, we'll define a function to allow players to sell their houses:
+
+```pawn
+public SellHouse(playerid, houseid, price)
+{
+    new query[128], result;
+    format(query, sizeof(query), "UPDATE houses SET ownerid = NULL, locked = 1, sale = 1, price = %d WHERE id = %d AND ownerid = %d", price, houseid, playerid);
+    mysql_query(mysql, query, result);
+    if (result == mysql_errno(mysql))
+    {
+        SendClientMessage(playerid, -1, "Error selling house: %s", mysql_error(mysql));
+        return 0;
+    }
+    SendClientMessage(playerid, -1, "You have put your house up for sale at a price of %d.", price);
+    return 1;
+}
+This function takes the player ID, house ID, and price as parameters, and updates the houses table to set the house as for sale with the given price. If the house does not belong to the player or the MySQL query fails, an error message is sent to the player and the function returns 0. Otherwise, a success message is sent to the player.
+
+With these functions, you can create a simple housing system for your GTA SAMP server that allows players to buy and sell houses, as well as retrieve information about their owned house.
