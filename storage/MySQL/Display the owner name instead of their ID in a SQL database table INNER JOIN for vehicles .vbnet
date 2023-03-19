@@ -1,0 +1,16 @@
+To display the owner name instead of their ID in a SQL database table for vehicles, you can create a separate table that stores the player ID and their corresponding name, and then join that table with the vehicle table when querying the data. Here are the steps to implement this:
+
+Create a new table called "players" with two columns: "id" and "name".
+When a new player registers or logs in, add their ID and name to the "players" table.
+In the vehicle table, add a new column called "owner_id" to store the player ID who owns the vehicle.
+When a player buys a vehicle or claims ownership of a previously unowned vehicle, set the "owner_id" column in the vehicle table to the player's ID.
+When querying the vehicle table, join it with the "players" table on the "owner_id" and "id" columns to retrieve the owner's name instead of their ID.
+Here is an example SQL query to retrieve the vehicle data with the owner's name:
+
+vbnet
+Copy code
+SELECT vehicles.*, players.name AS owner_name
+FROM vehicles
+INNER JOIN players ON vehicles.owner_id = players.id
+WHERE vehicles.id = <vehicle_id>
+This query retrieves all columns from the "vehicles" table, and joins it with the "players" table on the "owner_id" and "id" columns. The "AS" keyword is used to give the "name" column a new alias called "owner_name". Finally, the query filters the results based on the specified vehicle ID.
