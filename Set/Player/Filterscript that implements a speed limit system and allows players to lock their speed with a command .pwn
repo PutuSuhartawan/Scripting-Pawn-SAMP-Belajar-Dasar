@@ -1,6 +1,135 @@
 
 
- 
+ #include <a_samp>
+#include <a_mysql> // MySQL plugin R41-4
+#include <zcmd>
+
+native IsValidVehicle(vehicleid);
+
+new AktifkanLimitSpeed[MAX_PLAYERS];
+
+
+// STOCK UNTU SEMUA JENIS FUNGSI YANG AKAN DI PANGGIL
+
+stock SetVehicleSpeedTT(vehicleid, Float:speed)
+{
+    new Float:x1, Float:y1, Float:z1, Float:x2, Float:y2, Float:z2, Float:a;
+    GetVehicleVelocity(vehicleid, x1, y1, z1);
+    GetVehiclePos(vehicleid, x2, y2, z2);
+    GetVehicleZAngle(vehicleid, a); a = 360 - a;
+    x1 = (floatsin(a, degrees) * (speed/100) + floatcos(a, degrees) * 0 + x2) - x2;
+    y1 = (floatcos(a, degrees) * (speed/100) + floatsin(a, degrees) * 0 + y2) - y2;
+    SetVehicleVelocity(vehicleid, x1, y1, z1);
+}
+
+forward Float: GetVehicleSpeed(vehicleid);
+public Float: GetVehicleSpeed(vehicleid)
+{
+	new Float: speed = -1;
+
+	if(vehicleid != INVALID_VEHICLE_ID)
+	{
+		new Float: x,
+			Float: y,
+			Float: z,
+			Float: angle;
+
+		GetVehicleVelocity(vehicleid, x, y, z);
+		GetVehicleZAngle(vehicleid, angle);
+
+		speed = x / floatsin(-angle, degrees);
+
+		speed *= 100.0;
+	}
+
+
+	return speed;
+}
+
+
+
+public OnPlayerExitVehicle(playerid, vehicleid)
+{
+
+	// fungsi untuk hilangkan limit speed saat user keluar dari kendaraaan.
+	KillTimer(AktifkanLimitSpeed[playerid]);
+
+	
+}
+
+forward lockspeed(playerid, vehicleid);
+public lockspeed(playerid, vehicleid)
+{
+	//GetPVarInt(playerid, "playerid");
+	//GetPVarInt(playerid, "pInfo[playerid][pKendaraanDipakai]");
+	//GetPVarFloat(playerid, "speed");
+	
+	
+	//SendClientMessage(playerid, -1, "* lockspeed sytem terbaca dan terpanggil");
+
+	if(Float:GetVehicleSpeed(pInfo[playerid][pKendaraanDipakai]) > Float:pInfo[playerid][pKecepatanKendaraan])
+	{
+		SetVehicleSpeedTT(pInfo[playerid][pKendaraanDipakai], Float:pInfo[playerid][pKecepatanKendaraan]);
+		new str[100];
+		format(str, 100, "ID kendaraan %i, Kecepatan %f", pInfo[playerid][pKendaraanDipakai], Float:pInfo[playerid][pKecepatanKendaraan]);
+		SendClientMessage(playerid, -1, str);
+	}
+	if(!IsPlayerInAnyVehicle(playerid))
+	{
+		KillTimer(AktifkanLimitSpeed[playerid]);
+		return 1;
+	}
+}
+
+CMD:limitspeed(playerid, params[])
+{
+	new vehicleid = GetPlayerVehicleID(playerid);
+
+	extract params -> new Float: speed; else return SendClientMessage(playerid, COLOR_ERROR, "/limitspeed [speed]");
+	pInfo[playerid][pKendaraanDipakai]=vehicleid;
+	Float:pInfo[playerid][pKecepatanKendaraan]=speed;
+	KillTimer(AktifkanLimitSpeed[playerid]);
+	AktifkanLimitSpeed[playerid] = SetTimer("lockspeed", 100, true);
+
+
+
+	SendClientMessage(playerid, -1, "* speed limit changed");
+}
+
+
+// coba latihan membuat cmd penghilang limit speed.
+CMD:unlimitspeed(playerid, params[])
+{
+	SendClientMessage(playerid, COLOR_ERROR, "* Limit speed kendaraan di hilangkan.");
+	KillTimer(AktifkanLimitSpeed[playerid]);
+	return 1;
+
+
+
+}
+
+CMD:kasispeed(playerid, params[])
+{
+	
+
+	if(!IsPlayerInAnyVehicle(playerid))
+		return SendClientMessage(playerid, -1, "u have to be in a vehicle");
+
+	extract params -> new Float: speed; else return SendClientMessage(playerid, -1, "/setspeed [speed]");
+
+	new vehicleid = GetPlayerVehicleID(playerid);
+
+	SetVehicleSpeedTT(vehicleid, speed);
+
+	SendClientMessage(playerid, -1, "speed changed");
+
+	return 1;
+}
+
+
+
+
+
 
 CMD:limitspeed(playerid, params[])
 
