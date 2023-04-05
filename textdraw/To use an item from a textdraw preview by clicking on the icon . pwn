@@ -1,0 +1,39 @@
+To use an item from a textdraw preview by clicking on the icon, you will need to follow these steps:
+
+Create a textdraw with a preview box that will display the item. You can use the PlayerTextDrawSetPreviewModel function to set the preview to a specific model or use PlayerTextDrawSetPreviewVehCol to set the preview to a specific vehicle color.
+Add an onclick event to the textdraw using PlayerTextDrawSetSelectable.
+In the OnPlayerClickPlayerTextDraw callback, check if the textdraw that was clicked has a specific preview ID that matches the ID of the item you want to use.
+If the preview ID matches, use the item by calling a function that you have defined to handle the usage of that specific item.
+Here is an example script that demonstrates this functionality for a health pack item:
+
+scss
+Copy code
+new const HEALTH_PACK_PREVIEW_ID = 100;
+
+// Create the textdraw with a health pack preview
+new healthPackPreviewText = CreatePlayerTextDraw(playerid, 0.0, 0.0, "");
+PlayerTextDrawSetPreviewModel(healthPackPreviewText, 1240); // Set the preview to a first aid kit model
+PlayerTextDrawSetSelectable(healthPackPreviewText, 1); // Make the textdraw clickable
+PlayerTextDrawSetPreviewRot(healthPackPreviewText, 0.0, 0.0, 180.0); // Rotate the preview
+
+// Handle the usage of the health pack item
+forward UseHealthPack(playerid);
+
+public OnPlayerClickPlayerTextDraw(playerid, PlayerText:clickedid)
+{
+    if (clickedid == healthPackPreviewText && GetPlayerState(playerid) == PLAYER_STATE_ONFOOT)
+    {
+        UseHealthPack(playerid);
+    }
+}
+
+public UseHealthPack(playerid)
+{
+    // Give the player health and remove the health pack from their inventory
+    SetPlayerHealth(playerid, GetPlayerHealth(playerid) + 20);
+    RemovePlayerItem(playerid, ITEM_HEALTH_PACK);
+
+    // Send a message to the player informing them that they have used a health pack
+    SendClientMessage(playerid, COLOR_GREEN, "You have used a health pack and gained 20 health!");
+}
+In this example, the HEALTH_PACK_PREVIEW_ID constant is used to identify the preview ID of the health pack item. The OnPlayerClickPlayerTextDraw callback checks if the clicked textdraw has this preview ID and if the player is on foot, and if so, calls the UseHealthPack function. The UseHealthPack function gives the player 20 health and removes the health pack item from their inventory, and sends them a message informing them that they have used a health pack.
