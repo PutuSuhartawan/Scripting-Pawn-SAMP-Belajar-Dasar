@@ -1,6 +1,6 @@
 To install mapping interior from the Modular Mapping folder, you can follow these steps:
 
-Download the Modular Mapping folder from the SA-MP forums or from a mapping website that provides it.
+first, Download the Modular Mapping folder from the SA-MP forums or from a mapping website that provides it.
 Extract the contents of the folder to your SA-MP server's "scriptfiles" directory.
 Open the "scriptfiles" directory and locate the "modular_mapping" folder.
 Open the "maps" subdirectory within the "modular_mapping" folder.
