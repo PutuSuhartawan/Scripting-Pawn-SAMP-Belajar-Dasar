@@ -99,3 +99,34 @@ if __name__ == "__main__":
 Use code with caution. Learn more
 Run the code.
 The output TXT file will be created in the same directory as the .py file.
+
+
+
+To save a mapping to the server SAMP for compiling first on gamemode using include from folder mapping, you can follow these steps:
+
+1. Open the mapping file in a text editor.
+2. Find the line that starts with "include".
+3. Replace the path in the include line with the path to the folder where the mapping files are located.
+4. Save the mapping file.
+5. Open the gamemode file in a text editor.
+6. Find the line that starts with "load_script".
+7. Add the name of the mapping file to the load_script line.
+8. Save the gamemode file.
+9. Start the server.
+
+The server will now compile the mapping and load it into the game.
+
+Here is an example of how to include a mapping file in a gamemode file:
+
+```
+load_script "mappings/my_map.inc"
+```
+
+The mapping file "mappings/my_map.inc" will be compiled and loaded into the game.
+
+It is important to note that the mapping file must be in the same directory as the gamemode file. If the mapping file is in a different directory, you will need to specify the full path to the mapping file in the include line.
+
+
+
+
+
