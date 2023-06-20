@@ -43,3 +43,21 @@ The file format for shared libraries is different on Linux and Windows. On Linux
 The MySQL plugin is statically linked on Linux, but it is dynamically linked on Windows. This means that the MySQL plugin on Linux includes all of the necessary libraries, while the MySQL plugin on Windows only includes the code that is needed to connect to the MySQL database.
 The MySQL plugin on Linux is provided as a separate download, while the MySQL plugin on Windows is included in the SAMP server package. This means that you need to download the MySQL plugin separately if you are running the SAMP server on Linux, but you do not need to download it if you are running the SAMP server on Windows.
 In short, the name of the MySQL plugin is different on Linux and Windows because the file format for shared libraries is different, the MySQL plugin is statically linked on Linux but dynamically linked on Windows, and the MySQL plugin on Linux is provided as a separate download, while the MySQL plugin on Windows is included in the SAMP server package.
+
+
+
+
+
+
+here are the reasons why you need to make the version of the include server need to be the same version for the plugin because it has a special .dll for running the file on the console without error:
+
+The .dll file is a dynamic link library that contains the code that is needed to run the plugin. The .dll file is specific to the version of the include server that it was compiled with.
+If you try to run a plugin that was compiled with a different version of the include server, the .dll file will not be able to find the necessary code and the plugin will not work.
+The .dll file is also used to load the plugin into the SAMP server. If the .dll file is not the same version as the include server, the SAMP server will not be able to load the plugin and the plugin will not work.
+In short, you need to make the version of the include server and the plugin the same because the .dll file is specific to the version of the include server that it was compiled with and the .dll file is also used to load the plugin into the SAMP server.
+
+Here are some additional tips for making sure that the version of the include server and the plugin are the same:
+
+Download the latest version of the include server and the plugin. The latest versions of the include server and the plugin are usually the most compatible with each other.
+Check the version number of the include server and the plugin. The version number of the include server and the plugin is usually listed in the file name.
+Compile the plugin with the same version of the include server that you are using. If you are compiling the plugin yourself, make sure that you compile it with the same version of the include server that you are using.
