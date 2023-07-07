@@ -19,6 +19,64 @@ Once you have found the SAMP server IP, you can connect to the server by using t
 
 
 
+
+
+
+
+
+ Q&A about Look for the line that says "IPv4 Address". This is the IP address of your computer.
+
+Q: What is an IP address?
+
+An IP address is a unique identifier that is assigned to every device that is connected to a network. IP addresses are used to route traffic between devices on a network.
+
+Q: What is an IPv4 address?
+
+IPv4 is the older version of the IP addressing scheme. It uses a 32-bit address, which means that there are a total of 4,294,967,296 possible IPv4 addresses.
+
+Q: What is an IPv6 address?
+
+IPv6 is the newer version of the IP addressing scheme. It uses a 128-bit address, which means that there are a total of 340,282,366,920,938,463,463,374,607,431,768,211,456 possible IPv6 addresses.
+
+Q: Why do I need to know my IP address?
+
+There are many reasons why you might need to know your IP address. For example, you might need to know your IP address to:
+
+Connect to a remote computer
+Access a website or service that is blocked on your network
+Configure your router or firewall
+Troubleshoot network problems
+Q: How do I find my IP address?
+
+There are many ways to find your IP address. One way is to open the Command Prompt and type the following command:
+
+Code snippet
+ipconfig
+Use code with caution. Learn more
+This will display a list of network adapters on your computer, along with their IP addresses. The IP address that you are looking for is the IPv4 address.
+
+Another way to find your IP address is to visit a website that displays your IP address. There are many websites that offer this service, such as WhatIsMyIPAddress.com: https://www.whatismyipaddress.com/.
+
+Q: What does it mean if I have multiple IP addresses?
+
+It is possible to have multiple IP addresses if you have multiple network adapters on your computer. For example, if you have a wired and a wireless network adapter, you will have two IP addresses.
+
+Q: What does it mean if my IP address changes?
+
+Your IP address can change if you are using a dynamic IP address. Dynamic IP addresses are assigned by your ISP and can change from time to time. If you are using a static IP address, your IP address will not change.
+
+
+
+
+
+
+
+
+
+
+
+
+
  a list of the history of the Command Prompt sorted by years:
 
 1985: The Command Prompt was first introduced in Windows 1.0 as a way for users to interact with the operating system at a low level.
