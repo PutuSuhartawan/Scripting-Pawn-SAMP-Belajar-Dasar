@@ -1,0 +1,338 @@
+
+
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Host: 127.0.0.1
+-- Generation Time: Jul 07, 2023 at 04:34 AM
+-- Server version: 10.4.28-MariaDB
+-- PHP Version: 8.0.28
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `vprp`
+--
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `users`
+--
+
+CREATE TABLE `users` (
+  `uid` int(10) NOT NULL,
+  `username` varchar(24) DEFAULT NULL,
+  `password` varchar(129) DEFAULT NULL,
+  `regdate` datetime DEFAULT NULL,
+  `lastlogin` datetime DEFAULT NULL,
+  `ip` varchar(16) DEFAULT NULL,
+  `setup` tinyint(1) DEFAULT 1,
+  `gender` tinyint(1) DEFAULT 1,
+  `age` tinyint(4) DEFAULT 18,
+  `skin` smallint(6) DEFAULT 299,
+  `camera_x` float DEFAULT 0,
+  `camera_y` float DEFAULT 0,
+  `camera_z` float DEFAULT 0,
+  `pos_x` float DEFAULT 0,
+  `pos_y` float DEFAULT 0,
+  `pos_z` float DEFAULT 0,
+  `pos_a` float DEFAULT 0,
+  `interior` tinyint(4) DEFAULT 0,
+  `world` int(11) DEFAULT 0,
+  `cash` int(11) DEFAULT 150000,
+  `bank` int(11) DEFAULT 0,
+  `paycheck` int(11) DEFAULT 0,
+  `level` int(11) DEFAULT 1,
+  `exp` int(11) DEFAULT 0,
+  `minutes` smallint(6) DEFAULT 0,
+  `hours` int(11) DEFAULT 2,
+  `adminlevel` int(11) DEFAULT 0,
+  `adminname` varchar(24) DEFAULT 'None',
+  `helperlevel` tinyint(4) DEFAULT 0,
+  `health` float DEFAULT 100,
+  `armor` float DEFAULT 0,
+  `upgradepoints` int(11) DEFAULT 0,
+  `warnings` tinyint(4) DEFAULT 0,
+  `injured` tinyint(1) DEFAULT 0,
+  `hospital` tinyint(1) DEFAULT 0,
+  `spawnhealth` float DEFAULT 50,
+  `spawnarmor` float DEFAULT 0,
+  `jailtype` tinyint(1) DEFAULT 0,
+  `jailtime` int(11) DEFAULT 0,
+  `newbiemuted` tinyint(1) DEFAULT 0,
+  `helpmuted` tinyint(1) DEFAULT 0,
+  `admuted` tinyint(1) DEFAULT 0,
+  `livemuted` tinyint(1) DEFAULT 0,
+  `globalmuted` tinyint(1) DEFAULT 0,
+  `reportmuted` tinyint(4) DEFAULT 0,
+  `reportwarns` tinyint(4) DEFAULT 0,
+  `fightstyle` tinyint(4) DEFAULT 4,
+  `locked` tinyint(1) DEFAULT 0,
+  `accent` varchar(16) DEFAULT 'None',
+  `cookies` int(11) DEFAULT 0,
+  `phone` int(11) DEFAULT 0,
+  `job` int(11) DEFAULT -1,
+  `secondjob` tinyint(4) DEFAULT -1,
+  `crimes` int(11) DEFAULT 0,
+  `arrested` int(11) DEFAULT 0,
+  `wantedlevel` tinyint(4) DEFAULT 0,
+  `materials` int(11) DEFAULT 0,
+  `pot` int(11) DEFAULT 0,
+  `crack` int(11) DEFAULT 0,
+  `meth` int(11) DEFAULT 0,
+  `painkillers` int(11) DEFAULT 0,
+  `seeds` int(11) DEFAULT 0,
+  `ephedrine` int(11) DEFAULT 0,
+  `muriaticacid` int(11) DEFAULT 0,
+  `bakingsoda` int(11) DEFAULT 0,
+  `cigars` int(11) DEFAULT 0,
+  `walkietalkie` tinyint(1) DEFAULT 0,
+  `channel` int(11) DEFAULT 0,
+  `rentinghouse` int(11) DEFAULT 0,
+  `spraycans` int(11) DEFAULT 0,
+  `boombox` tinyint(1) DEFAULT 0,
+  `mp3player` tinyint(1) DEFAULT 0,
+  `phonebook` tinyint(1) DEFAULT 0,
+  `fishingrod` tinyint(1) DEFAULT 0,
+  `fishingbait` int(11) DEFAULT 0,
+  `fishweight` int(11) DEFAULT 0,
+  `components` int(11) DEFAULT 0,
+  `courierskill` int(11) DEFAULT 0,
+  `fishingskill` int(11) DEFAULT 0,
+  `guardskill` int(11) DEFAULT 0,
+  `weaponskill` int(11) DEFAULT 0,
+  `mechanicskill` int(11) DEFAULT 0,
+  `lawyerskill` int(11) DEFAULT 0,
+  `smugglerskill` int(11) DEFAULT 0,
+  `toggletextdraws` tinyint(1) DEFAULT 0,
+  `toggleooc` tinyint(1) DEFAULT 0,
+  `togglephone` tinyint(1) DEFAULT 0,
+  `toggleadmin` tinyint(1) DEFAULT 0,
+  `togglehelper` tinyint(1) DEFAULT 0,
+  `togglenewbie` tinyint(1) DEFAULT 0,
+  `togglewt` tinyint(1) DEFAULT 0,
+  `toggleradio` tinyint(1) DEFAULT 0,
+  `togglevip` tinyint(1) DEFAULT 0,
+  `togglemusic` tinyint(1) DEFAULT 0,
+  `togglefaction` tinyint(1) DEFAULT 0,
+  `togglegang` tinyint(1) DEFAULT 0,
+  `togglenews` tinyint(1) DEFAULT 0,
+  `toggleglobal` tinyint(1) DEFAULT 0,
+  `togglecam` tinyint(1) DEFAULT 0,
+  `carlicense` tinyint(1) DEFAULT 0,
+  `facemask` int(11) DEFAULT 0,
+  `fmtime` int(11) DEFAULT 0,
+  `vippackage` tinyint(4) NOT NULL DEFAULT 2,
+  `viptime` int(11) DEFAULT 1290000,
+  `vipcooldown` int(11) DEFAULT 0,
+  `weapon_0` tinyint(4) DEFAULT 0,
+  `weapon_1` tinyint(4) DEFAULT 0,
+  `weapon_2` tinyint(4) DEFAULT 0,
+  `weapon_3` tinyint(4) DEFAULT 0,
+  `weapon_4` tinyint(4) DEFAULT 0,
+  `weapon_5` tinyint(4) DEFAULT 0,
+  `weapon_6` tinyint(4) DEFAULT 0,
+  `weapon_7` tinyint(4) DEFAULT 0,
+  `weapon_8` tinyint(4) DEFAULT 0,
+  `weapon_9` tinyint(4) DEFAULT 0,
+  `weapon_10` tinyint(4) DEFAULT 0,
+  `weapon_11` tinyint(4) DEFAULT 0,
+  `weapon_12` tinyint(4) DEFAULT 0,
+  `ammo_0` smallint(6) DEFAULT 0,
+  `ammo_1` smallint(6) DEFAULT 0,
+  `ammo_2` smallint(6) DEFAULT 0,
+  `ammo_3` smallint(6) DEFAULT 0,
+  `ammo_4` smallint(6) DEFAULT 0,
+  `ammo_5` smallint(6) DEFAULT 0,
+  `ammo_6` smallint(6) DEFAULT 0,
+  `ammo_7` smallint(6) DEFAULT 0,
+  `ammo_8` smallint(6) DEFAULT 0,
+  `ammo_9` smallint(6) DEFAULT 0,
+  `ammo_10` smallint(6) DEFAULT 0,
+  `ammo_11` smallint(6) DEFAULT 0,
+  `ammo_12` smallint(6) DEFAULT 0,
+  `faction` tinyint(4) DEFAULT -1,
+  `gang` tinyint(4) DEFAULT -1,
+  `factionrank` tinyint(4) DEFAULT 0,
+  `gangrank` tinyint(4) DEFAULT 0,
+  `division` tinyint(4) DEFAULT -1,
+  `contracted` int(11) DEFAULT 0,
+  `contractby` varchar(24) DEFAULT 'Nobody',
+  `bombs` int(11) DEFAULT 0,
+  `completedhits` int(11) DEFAULT 0,
+  `failedhits` int(11) DEFAULT 0,
+  `reports` int(11) DEFAULT 0,
+  `helprequests` int(11) DEFAULT 0,
+  `speedometer` tinyint(1) DEFAULT 1,
+  `factionmod` tinyint(1) DEFAULT 0,
+  `gangmod` tinyint(1) DEFAULT 0,
+  `banappealer` tinyint(1) DEFAULT 0,
+  `potplanted` tinyint(1) DEFAULT 0,
+  `pottime` int(11) DEFAULT 0,
+  `potgrams` int(11) DEFAULT 0,
+  `pot_x` float DEFAULT 0,
+  `pot_y` float DEFAULT 0,
+  `pot_z` float DEFAULT 0,
+  `pot_a` float DEFAULT 0,
+  `inventoryupgrade` int(11) DEFAULT 0,
+  `addictupgrade` int(11) DEFAULT 0,
+  `traderupgrade` int(11) DEFAULT 0,
+  `assetupgrade` int(11) DEFAULT 0,
+  `laborupgrade` int(11) NOT NULL DEFAULT 0,
+  `pistolammo` smallint(6) DEFAULT 0,
+  `shotgunammo` smallint(6) DEFAULT 0,
+  `smgammo` smallint(6) DEFAULT 0,
+  `arammo` smallint(6) DEFAULT 0,
+  `rifleammo` smallint(6) DEFAULT 0,
+  `hpammo` smallint(6) DEFAULT 0,
+  `poisonammo` smallint(6) DEFAULT 0,
+  `fmjammo` smallint(6) DEFAULT 0,
+  `ammotype` tinyint(4) DEFAULT 0,
+  `ammoweapon` tinyint(4) DEFAULT 0,
+  `dmwarnings` tinyint(4) DEFAULT 0,
+  `weaponrestricted` int(11) DEFAULT 0,
+  `referral_uid` int(11) DEFAULT 0,
+  `refercount` int(11) DEFAULT 0,
+  `watch` tinyint(1) DEFAULT 0,
+  `gps` tinyint(1) DEFAULT 0,
+  `prisonedby` varchar(24) DEFAULT 'No-one',
+  `prisonreason` varchar(128) DEFAULT 'None',
+  `togglehud` tinyint(1) DEFAULT 1,
+  `clothes` smallint(6) DEFAULT -1,
+  `showturfs` tinyint(1) DEFAULT 0,
+  `showlands` tinyint(1) DEFAULT 0,
+  `watchon` tinyint(1) DEFAULT 0,
+  `gpson` tinyint(1) DEFAULT 0,
+  `doublexp` int(11) DEFAULT 0,
+  `couriercooldown` int(11) DEFAULT 0,
+  `pizzacooldown` int(11) DEFAULT 0,
+  `detectivecooldown` int(11) DEFAULT 0,
+  `duty` int(11) DEFAULT 0,
+  `bandana` int(11) NOT NULL DEFAULT 0,
+  `detectiveskill` int(11) DEFAULT 0,
+  `gascan` int(11) DEFAULT 0,
+  `refunded` int(11) DEFAULT 0,
+  `backpack` int(11) DEFAULT 0,
+  `bpcash` int(11) DEFAULT 0,
+  `bpmaterials` int(11) DEFAULT 0,
+  `bppot` int(11) DEFAULT 0,
+  `bpcrack` int(11) DEFAULT 0,
+  `bpmeth` int(11) DEFAULT 0,
+  `bppainkillers` int(11) DEFAULT 0,
+  `bpweapon_0` int(11) DEFAULT 0,
+  `bpweapon_1` int(11) DEFAULT 0,
+  `bpweapon_2` int(11) DEFAULT 0,
+  `bpweapon_3` int(11) DEFAULT 0,
+  `bpweapon_4` int(11) DEFAULT 0,
+  `bpweapon_5` int(11) DEFAULT 0,
+  `bpweapon_6` int(11) DEFAULT 0,
+  `bpweapon_7` int(11) DEFAULT 0,
+  `bpweapon_8` int(11) DEFAULT 0,
+  `bpweapon_9` int(11) DEFAULT 0,
+  `bpweapon_10` int(11) DEFAULT 0,
+  `bpweapon_11` int(11) DEFAULT 0,
+  `bpweapon_12` int(11) DEFAULT 0,
+  `bpweapon_13` int(11) DEFAULT 0,
+  `bpweapon_14` int(11) DEFAULT 0,
+  `bphpammo` int(11) DEFAULT 0,
+  `bppoisonammo` int(11) DEFAULT 0,
+  `bpfmjammo` int(11) DEFAULT 0,
+  `formeradmin` int(11) NOT NULL DEFAULT 0,
+  `deathcooldown` int(11) NOT NULL DEFAULT 0,
+  `hunger` int(11) NOT NULL DEFAULT 100,
+  `hungertimer` int(11) NOT NULL DEFAULT 0,
+  `thirst` int(11) NOT NULL DEFAULT 100,
+  `thirsttimer` int(11) NOT NULL DEFAULT 0,
+  `covid` int(11) NOT NULL DEFAULT 0,
+  `covidtimer` int(11) NOT NULL DEFAULT 0,
+  `totalpatients` int(11) NOT NULL DEFAULT 0,
+  `totalfires` int(11) NOT NULL DEFAULT 0,
+  `rarecooldown` int(11) NOT NULL DEFAULT 0,
+  `vipdlcooldown` int(11) NOT NULL DEFAULT 0,
+  `customtitle` varchar(64) NOT NULL DEFAULT '0',
+  `customcolor` varchar(16) NOT NULL DEFAULT '0',
+  `mask` int(11) NOT NULL DEFAULT 0,
+  `diamonds` int(11) NOT NULL DEFAULT 0,
+  `ecoin` int(11) NOT NULL DEFAULT 0,
+  `blindfold` int(11) NOT NULL DEFAULT 0,
+  `rope` int(11) NOT NULL DEFAULT 0,
+  `insurance` int(11) NOT NULL DEFAULT 0,
+  `passport` int(11) NOT NULL DEFAULT 0,
+  `passportname` varchar(64) DEFAULT NULL,
+  `passportlevel` int(11) NOT NULL DEFAULT 0,
+  `passportskin` int(11) NOT NULL DEFAULT 0,
+  `passportphone` int(11) NOT NULL DEFAULT 0,
+  `marriedto` int(11) NOT NULL DEFAULT -1,
+  `newbies` int(11) NOT NULL DEFAULT 0,
+  `chatanim` tinyint(4) NOT NULL DEFAULT 0,
+  `Lottery` int(11) NOT NULL DEFAULT 0,
+  `LotteryB` int(11) NOT NULL DEFAULT 0,
+  `flashlight` tinyint(4) NOT NULL DEFAULT 0,
+  `candy` int(11) NOT NULL DEFAULT 0,
+  `gunlicense` tinyint(4) NOT NULL DEFAULT 0,
+  `dirtycash` int(11) NOT NULL DEFAULT 0,
+  `comserv` int(11) NOT NULL DEFAULT 0,
+  `bandage` int(11) DEFAULT 0,
+  `medkit` int(11) DEFAULT 0,
+  `repairkit` int(11) DEFAULT 0,
+  `brokenleg` int(11) NOT NULL DEFAULT 0,
+  `weaponclip` int(11) DEFAULT 0,
+  `vest` int(11) DEFAULT 0,
+  `amcount` int(11) NOT NULL DEFAULT 0,
+  `mappermod` tinyint(1) DEFAULT 0,
+  `loadexpire` int(11) DEFAULT 1290000,
+  `loads` int(11) DEFAULT 0,
+  `grabfoodcooldown` int(11) DEFAULT 0,
+  `shopeecooldown` int(11) DEFAULT 0,
+  `lockpick` tinyint(1) DEFAULT 0,
+  `laptop` tinyint(1) DEFAULT 0,
+  `dynamicadmin` tinyint(1) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Dumping data for table `users`
+--
+
+INSERT INTO `users` (`uid`, `username`, `password`, `regdate`, `lastlogin`, `ip`, `setup`, `gender`, `age`, `skin`, `camera_x`, `camera_y`, `camera_z`, `pos_x`, `pos_y`, `pos_z`, `pos_a`, `interior`, `world`, `cash`, `bank`, `paycheck`, `level`, `exp`, `minutes`, `hours`, `adminlevel`, `adminname`, `helperlevel`, `health`, `armor`, `upgradepoints`, `warnings`, `injured`, `hospital`, `spawnhealth`, `spawnarmor`, `jailtype`, `jailtime`, `newbiemuted`, `helpmuted`, `admuted`, `livemuted`, `globalmuted`, `reportmuted`, `reportwarns`, `fightstyle`, `locked`, `accent`, `cookies`, `phone`, `job`, `secondjob`, `crimes`, `arrested`, `wantedlevel`, `materials`, `pot`, `crack`, `meth`, `painkillers`, `seeds`, `ephedrine`, `muriaticacid`, `bakingsoda`, `cigars`, `walkietalkie`, `channel`, `rentinghouse`, `spraycans`, `boombox`, `mp3player`, `phonebook`, `fishingrod`, `fishingbait`, `fishweight`, `components`, `courierskill`, `fishingskill`, `guardskill`, `weaponskill`, `mechanicskill`, `lawyerskill`, `smugglerskill`, `toggletextdraws`, `toggleooc`, `togglephone`, `toggleadmin`, `togglehelper`, `togglenewbie`, `togglewt`, `toggleradio`, `togglevip`, `togglemusic`, `togglefaction`, `togglegang`, `togglenews`, `toggleglobal`, `togglecam`, `carlicense`, `facemask`, `fmtime`, `vippackage`, `viptime`, `vipcooldown`, `weapon_0`, `weapon_1`, `weapon_2`, `weapon_3`, `weapon_4`, `weapon_5`, `weapon_6`, `weapon_7`, `weapon_8`, `weapon_9`, `weapon_10`, `weapon_11`, `weapon_12`, `ammo_0`, `ammo_1`, `ammo_2`, `ammo_3`, `ammo_4`, `ammo_5`, `ammo_6`, `ammo_7`, `ammo_8`, `ammo_9`, `ammo_10`, `ammo_11`, `ammo_12`, `faction`, `gang`, `factionrank`, `gangrank`, `division`, `contracted`, `contractby`, `bombs`, `completedhits`, `failedhits`, `reports`, `helprequests`, `speedometer`, `factionmod`, `gangmod`, `banappealer`, `potplanted`, `pottime`, `potgrams`, `pot_x`, `pot_y`, `pot_z`, `pot_a`, `inventoryupgrade`, `addictupgrade`, `traderupgrade`, `assetupgrade`, `laborupgrade`, `pistolammo`, `shotgunammo`, `smgammo`, `arammo`, `rifleammo`, `hpammo`, `poisonammo`, `fmjammo`, `ammotype`, `ammoweapon`, `dmwarnings`, `weaponrestricted`, `referral_uid`, `refercount`, `watch`, `gps`, `prisonedby`, `prisonreason`, `togglehud`, `clothes`, `showturfs`, `showlands`, `watchon`, `gpson`, `doublexp`, `couriercooldown`, `pizzacooldown`, `detectivecooldown`, `duty`, `bandana`, `detectiveskill`, `gascan`, `refunded`, `backpack`, `bpcash`, `bpmaterials`, `bppot`, `bpcrack`, `bpmeth`, `bppainkillers`, `bpweapon_0`, `bpweapon_1`, `bpweapon_2`, `bpweapon_3`, `bpweapon_4`, `bpweapon_5`, `bpweapon_6`, `bpweapon_7`, `bpweapon_8`, `bpweapon_9`, `bpweapon_10`, `bpweapon_11`, `bpweapon_12`, `bpweapon_13`, `bpweapon_14`, `bphpammo`, `bppoisonammo`, `bpfmjammo`, `formeradmin`, `deathcooldown`, `hunger`, `hungertimer`, `thirst`, `thirsttimer`, `covid`, `covidtimer`, `totalpatients`, `totalfires`, `rarecooldown`, `vipdlcooldown`, `customtitle`, `customcolor`, `mask`, `diamonds`, `ecoin`, `blindfold`, `rope`, `insurance`, `passport`, `passportname`, `passportlevel`, `passportskin`, `passportphone`, `marriedto`, `newbies`, `chatanim`, `Lottery`, `LotteryB`, `flashlight`, `candy`, `gunlicense`, `dirtycash`, `comserv`, `bandage`, `medkit`, `repairkit`, `brokenleg`, `weaponclip`, `vest`, `amcount`, `mappermod`, `loadexpire`, `loads`, `grabfoodcooldown`, `shopeecooldown`, `lockpick`, `laptop`, `dynamicadmin`) VALUES
+(112, 'Putu_Suhartawan', '45A9437FEB47C3846F5893B5B3C200A44D561133F711B40E7FA04E14BB1657FFB3CC0477052E0620DAD89EC8ED7969176F03F17CEC6C7E6A49C7FB119C0155CA', '2023-06-20 04:18:21', '2023-06-20 08:43:15', '36.79.134.224', 0, 1, 27, 27, 796.753, -1349.57, 14.704, 796.612, -1353, 13.391, 177.643, 0, 0, 999999998, 99999999, 0, 999, 99999, 5, 2, 999999, 'Itaachzi', 0, 71, 0, 999999, 0, 0, 0, 9999, 9999, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 'None', 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 21, 5, 24, 0, 0, 30, 0, 0, 0, 0, 12, 0, 0, 0, 0, 0, 0, 0, 0, 9999, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0, -1, 0, 'Nobody', 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'Itaachzi', 'test', 1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 94, 128, 90, 8, 0, 0, 0, 0, 0, 0, '0', '0', 0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1290000, 0, 0, 0, 0, 0, 1),
+(113, 'Ben_Tison', 'F868F740FDE00BA7D5F0F6A8F7BCA44B4479D107127C5255A8037B7352E95D6B2FD6A63B3666E111D33A36964E6AF3B4B31D48C3DBFF2A1F5288BA32DC5F6B47', '2023-06-20 05:17:46', '2023-06-20 07:01:24', '103.105.33.93', 0, 1, 23, 230, 1541.58, -1675.12, 15.219, 1536.39, -1676.6, 13.574, 60.869, 0, 0, 149500, 0, 0, 1, 0, 36, 2, 7, 'Yoga', 0, 30.7, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 'None', 0, 0, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0, -1, 0, 'Nobody', 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'Yoga', 'a', 1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 94, 128, 90, 8, 0, 0, 0, 0, 0, 0, '0', '0', 0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, -1, 3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1290000, 0, 0, 0, 0, 0, 1),
+(114, 'Tukiran_Wijaya', 'E5F7B283B53BFCA36597A45D640F54192568098F5364D0ADC22D206F4CFC5C42C4957D89D736552389642FF5423E657D04D3DDE77B4E4D0DEBDD7928E8BFCAC3', '2023-06-20 05:34:08', '2023-06-20 06:57:03', '182.1.67.255', 0, 1, 25, 217, 1481.06, -1707.41, 14.261, 1481.92, -1706.3, 14.047, 281.312, 0, 0, 149000, 0, 0, 1, 3, 18, 5, 7, 'None', 0, 96.04, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 'None', 0, 0, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0, -1, 0, 'Nobody', 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'Smith_Vanzee', 'a', 1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 94, 128, 90, 8, 0, 0, 0, 0, 0, 0, '0', '0', 0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1290000, 0, 0, 0, 0, 0, 1),
+(115, 'Phele_Ohlin', 'C5AF67741526A222A4D4EE60789B87AE736AA78803AC2299A42BE58D62E68A3EDFCDF1DC8771B4DDAC3C49C0ED2554E064DD1F73023859121ADD576223EAA137', '2023-06-20 06:54:50', '2023-06-21 06:35:38', '114.142.173.6', 0, 1, 25, 25, 1128.6, -1451.09, -45.303, 1128.55, -1451.57, -49.372, 174.556, 0, 0, 149000, 0, 0, 1, 0, 24, 2, 0, 'None', 0, 97.36, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 'None', 0, 0, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0, -1, 0, 'Nobody', 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'No-one', 'None', 1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 94, 128, 90, 8, 0, 0, 0, 0, 0, 0, '0', '0', 0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1290000, 0, 0, 0, 0, 0, 1),
+(116, 'Joesion_Valentino', '6E9F853B79006ACE73E77EEE16762F96DBA57E441AAAE13B0584AD20EE9E3DAFCAF7776FD9CA5D39A31C38B13D997423400E86E0EDEAD4D14A591485EC92518C', '2023-06-21 04:15:27', '2023-06-21 04:15:27', '36.71.138.22', 0, 1, 21, 241, 1959.99, -2001.76, 15.837, 1956.76, -2003.64, 13.383, 155.494, 0, 0, 150000, 0, 0, 1, 0, 14, 2, 0, 'None', 0, 100, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 'None', 0, 0, 1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0, -1, 0, 'Nobody', 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'No-one', 'None', 1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 94, 128, 90, 8, 0, 0, 0, 0, 0, 0, '0', '0', 0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1290000, 0, 0, 0, 0, 0, 0),
+(117, 'Smith_Vanzee', 'E5F7B283B53BFCA36597A45D640F54192568098F5364D0ADC22D206F4CFC5C42C4957D89D736552389642FF5423E657D04D3DDE77B4E4D0DEBDD7928E8BFCAC3', '2023-07-06 10:22:34', '2023-07-06 10:22:34', '114.125.120.115', 0, 1, 25, 203, 0, 0, 0, 0, 0, 0, 0, 0, 0, 190000, 0, 0, 1, 0, 0, 2, 0, 'None', 0, 100, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 'None', 0, 0, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 3, 1689528268, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0, -1, 0, 'Nobody', 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'No-one', 'None', 1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 0, 100, 0, 0, 0, 0, 0, 0, 0, '0', '0', 0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1290000, 0, 0, 0, 0, 0, 0),
+(118, 'Renjunkie_Alvarez', '15C0CD3616AEFFE0319D3A930671272082EBA8135211E3F399E0E363F7940AD7343E43431A9BF1D3FB588E5EE82BCA88922E85E5BCBCF07DB901AC8E7851F3E8', '2023-07-06 10:23:03', '2023-07-06 10:23:03', '103.105.34.108', 0, 1, 25, 19, 0, 0, 0, 0, 0, 0, 0, 0, 0, 170000, 0, 0, 1, 0, 0, 2, 0, 'None', 0, 100, 0, 0, 0, 0, 0, 50, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 4, 0, 'None', 0, 0, -1, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, -1, -1, 0, 0, -1, 0, 'Nobody', 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 'No-one', 'None', 1, -1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 100, 81, 100, 81, 0, 0, 0, 0, 0, 0, '0', '0', 0, 0, 0, 0, 0, 0, 0, NULL, 0, 0, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1290000, 0, 0, 0, 0, 0, 0);
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`uid`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `uid` int(10) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=119;
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
