@@ -1,6 +1,58 @@
 public OnPlayerConnect(playerid)
 {
 
+/*
+The code you provided creates a textdraw for the player when they connect to the server. The textdraw is located at the coordinates (315, 129) and the text is initially set to an underscore.
+
+The following code creates the textdraw:
+
+C
+InventoryTD[playerid][0] = CreatePlayerTextDraw(playerid, 315.000000, 129.000000, "_");
+Use code with caution. Learn more
+The CreatePlayerTextDraw() function takes three parameters:
+
+playerid: The ID of the player who will see the textdraw.
+x: The X coordinate of the textdraw.
+y: The Y coordinate of the textdraw.
+text: The text that will be displayed in the textdraw.
+The following code sets the font, letter size, text size, outline, shadow, alignment, color, background color, box color, use box, proportional, and selectable properties of the textdraw:
+
+C
+PlayerTextDrawFont(playerid, InventoryTD[playerid][0], 1);
+PlayerTextDrawLetterSize(playerid, InventoryTD[playerid][0], 0.600000, 20.300003);
+PlayerTextDrawTextSize(playerid, InventoryTD[playerid][0], 258.500000, 330.000000);
+PlayerTextDrawSetOutline(playerid, InventoryTD[playerid][0], 1);
+PlayerTextDrawSetShadow(playerid, InventoryTD[playerid][0], 0);
+PlayerTextDrawAlignment(playerid, InventoryTD[playerid][0], 2);
+PlayerTextDrawColor(playerid, InventoryTD[playerid][0], -1);
+PlayerTextDrawBackgroundColor(playerid, InventoryTD[playerid][0], 255);
+PlayerTextDrawBoxColor(playerid, InventoryTD[playerid][0], 255);
+PlayerTextDrawUseBox(playerid, InventoryTD[playerid][0], 1);
+PlayerTextDrawSetProportional(playerid, InventoryTD[playerid][0], 1);
+PlayerTextDrawSetSelectable(playerid, InventoryTD[playerid][0], 0);
+Use code with caution. Learn more
+The PlayerTextDrawFont() function sets the font of the textdraw. The PlayerTextDrawLetterSize() function sets the letter size of the textdraw. The PlayerTextDrawTextSize() function sets the text size of the textdraw. The PlayerTextDrawSetOutline() function sets whether or not the textdraw has an outline. The PlayerTextDrawSetShadow() function sets whether or not the textdraw has a shadow. The PlayerTextDrawAlignment() function sets the alignment of the textdraw. The PlayerTextDrawColor() function sets the color of the textdraw. The PlayerTextDrawBackgroundColor() function sets the background color of the textdraw. The PlayerTextDrawBoxColor() function sets the box color of the textdraw. The PlayerTextDrawUseBox() function sets whether or not the textdraw has a box. The PlayerTextDrawSetProportional() function sets whether or not the textdraw is proportional. The PlayerTextDrawSetSelectable() function sets whether or not the textdraw is selectable.
+
+Once the textdraw is created and its properties are set, it is displayed to the player.
+
+
+
+
+The reason for this is that the textdraw is used to display the player's inventory. If the textdraw was only created when the player clicked an item, then the player's inventory would not be displayed until they clicked an item. This would be inconvenient for the player, as they would have to click an item every time they wanted to see their inventory.
+
+By creating the textdraw for every player, the player's inventory is always displayed. This means that the player can easily see what items they have, and they can easily click on an item to use it.
+
+Here are some of the benefits of creating an inventory textdraw for every player:
+
+The player's inventory is always displayed, so they can easily see what items they have.
+The player can easily click on an item to use it.
+The textdraw is not affected by the player's location, so it will always be displayed in the same location.
+The textdraw is not affected by the player's rotation, so it will always be displayed in the same orientation.
+
+
+
+
+*/
 
 
     InventoryTD[playerid][0] = CreatePlayerTextDraw(playerid, 315.000000, 129.000000, "_");
