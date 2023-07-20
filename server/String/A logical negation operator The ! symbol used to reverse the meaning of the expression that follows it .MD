@@ -10,7 +10,7 @@ A: A logical negation operator is a symbol that reverses the meaning of a logica
 Q: What is the symbol for logical negation?
 
 A: The symbol for logical negation is usually !. However, some programming languages use other symbols, such as ~ or ¬.
-stopcode
+</code>
 Q: How is logical negation used in programming?
 
 A: Logical negation is often used in programming to check for the absence of a condition. For example, the code if (!reportExists) would only execute if the reportExists variable is equal to false.
