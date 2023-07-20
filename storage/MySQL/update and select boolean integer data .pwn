@@ -1,6 +1,21 @@
 
 
 
+ reasons why you might want to manage boolean with integer:
+
+It can be more efficient. Integers are a smaller data type than booleans, so they can be stored more efficiently in memory. This can be important if you are working with a large number of boolean values.
+It can be more versatile. Integers can be used for more than just boolean values. For example, you could use an integer to store the number of players who are whitelisted.
+It can be easier to work with. Integers are a more familiar data type than booleans, so they can be easier to work with for some people.
+However, there are also some drawbacks to managing boolean with integer:
+
+It can be less clear. It can be less clear what the value of an integer means if it is used to store a boolean value. For example, if the value of an integer is 1, does that mean that the boolean value is true or false?
+It can be less efficient. If you are only using the integer to store a boolean value, then you are wasting memory. This can be important if you are working with a limited amount of memory.
+Ultimately, the decision of whether or not to manage boolean with integer is up to you. There are both benefits and drawbacks to consider, and the best solution will depend on the specific needs of your project.
+
+
+
+
+
 Pawn script for variable manage boolean with integer too:
 
 Code snippet
