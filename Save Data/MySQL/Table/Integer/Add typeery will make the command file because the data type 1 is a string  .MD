@@ -11,7 +11,7 @@ To avoid this, you can use the CAST() function to explicitly convert the string 
 
 SQL<code>
 INSERT INTO table (column) VALUES (CAST('1' AS INTEGER));
-<code>
+</code>
 Use code with caution. Learn more
 This will ensure that the command file contains the integer value 1, not the string 1.
 
