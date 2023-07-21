@@ -1,6 +1,38 @@
 
 
 
+The ` symbol is used in SQL to delimit strings. This means that any data that is enclosed in backticks is considered to be a string. This is useful for storing data that contains special characters, such as spaces, commas, and quotes.
+
+For example, the following query will create a new table called products and insert a row with the product name "Cool Shoes":
+
+SQL<code>
+CREATE TABLE products (
+  product_id INT NOT NULL AUTO_INCREMENT,
+  product_name VARCHAR(255) NOT NULL,
+  PRIMARY KEY (product_id)
+);</code>
+
+INSERT INTO products (product_name) VALUES (`"Cool Shoes"`);
+Use code with caution. Learn more
+The backticks around the product name ensure that the string is not interpreted as a SQL keyword or operator. This is important because the product name contains the space character, which is a reserved character in SQL.
+
+The symbol can also be used to escape special characters in strings. For example, the following query will create a new table calledusersand insert a row with the user name"John Doe, Jr."`:
+
+SQL<code>
+CREATE TABLE users (
+  user_id INT NOT NULL AUTO_INCREMENT,
+  user_name VARCHAR(255) NOT NULL,
+  PRIMARY KEY (user_id)
+);</code>
+
+INSERT INTO users (user_name) VALUES (`"John Doe\, Jr."`);
+Use code with caution. Learn more
+The backtick before the comma in the user name escapes the comma, so that it is not interpreted as a delimiter. This allows the comma to be stored as part of the user name.
+
+
+
+
+
 The SQL statement set locked = 0 will set the value of the locked column to 0. The locked column is typically used to indicate whether a record is locked for editing. If you set the value of the locked column to 0, the record will be unlocked and can be edited by other users.
 
 The CAST() function can be used to convert the value of the locked column to a different data type. For example, you could use the following query to convert the value of the locked column to an integer:
