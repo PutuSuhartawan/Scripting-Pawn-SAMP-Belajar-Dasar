@@ -1,4 +1,32 @@
 
+In Pawn, 1 is considered true and 0 is considered false. This is because Pawn uses a Boolean value system, which means that there are only two possible values for a variable: true or false. In other words, a Boolean value can only be either 1 or 0.
+
+This is different from some other programming languages, such as Python, where 0 is considered false but any other non-zero value is considered true. In Pawn, however, 0 is always false, even if it is the only value in a variable.
+
+This can be a bit confusing at first, but it is important to remember that Pawn uses a Boolean value system. If you are ever unsure about whether a value is considered true or false in Pawn, you can always check the Pawn documentation.
+
+Here is an example of how Boolean values work in Pawn:
+
+
+
+Code snippet<code>
+// This code will print "True" to the console.
+new bool b;
+b = 1;
+if (b) {
+    print("True");
+}</code>
+Use code with caution. Learn more
+In this example, the variable b is first initialized to the value 1. Then, an if statement is used to check if b is true. If b is true, the code inside the if statement will be executed, which in this case is the print("True") statement.
+
+Since 1 is considered true in Pawn, the if statement will be executed and the text "True" will be printed to the console.
+
+
+
+
+
+
+
 
 
 Q&A about a logical negation operator:
