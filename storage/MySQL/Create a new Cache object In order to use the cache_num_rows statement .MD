@@ -1,4 +1,42 @@
- In order to use the cache_num_rows statement, you need to first create a new Cache object. You can do this by using the new Cache: Result statement.
+
+
+reasons why you might not want to use mysql_tquery and just use mysql_query while using cache_num_rows:
+
+Performance: mysql_tquery executes queries in a transaction, which can add some overhead. If you are only interested in the number of rows in the result set, then there is no need to use a transaction, and you can use mysql_query instead.
+Complexity: mysql_tquery can be more complex to use than mysql_query. If you are not familiar with transactions, then you might find it easier to use mysql_query.
+Not all queries need transactions: Not all queries need to be executed in a transaction. If you are sure that your query will not fail, then there is no need to use a transaction.
+Here is an example of how to use mysql_query and cache_num_rows:
+<code>
+Code snippet
+// Create a connection to the MySQL database.
+new MySQL = mysql_connect("localhost", "username", "password");
+
+// Select the `players` table.
+new query[128];
+format(query, sizeof(query), "SELECT * FROM players");
+
+// Execute the query and get the number of rows.
+new rows = cache_num_rows(mysql_query(MySQL, query));
+
+// Check if the query was successful.
+if (rows) {
+  // Do something with the number of rows.
+} else {
+  // Handle the error.
+}
+
+// Close the connection to the MySQL database.
+mysql_close(MySQL);
+Use code with caution. Learn more
+</code>
+As you can see, this code is much simpler than the code that uses mysql_tquery. It is also more efficient, because it does not use a transaction.
+
+Ultimately, the decision of whether to use mysql_tquery or mysql_query depends on your specific needs. If you need to ensure that your database is always in a consistent state, then you should use mysql_tquery. However, if you are only interested in the number of rows in the result set, then you can use mysql_query instead.
+
+
+
+
+In order to use the cache_num_rows statement, you need to first create a new Cache object. You can do this by using the new Cache: Result statement.
 
 Here is an example of how to do this:
 <code>
