@@ -1,5 +1,51 @@
 
 
+IsAngelsBurger(playerid)
+{
+	return GetFactionType(playerid) == FACTION_BURGER;
+}
+
+/*
+
+Here's a breakdown of the code for easy learning:
+
+Function:
+
+Name: IsAngelsBurger(playerid)
+Purpose: Checks if a player belongs to the Burgershot faction.
+Steps:
+
+Retrieve Player's Faction:
+GetFactionType(playerid): This function (likely defined elsewhere) obtains the specific faction a player is associated with.
+Compare to Burgershot Faction:
+==: This operator compares the retrieved faction to the FACTION_BURGER value, which presumably represents the Burgershot faction.
+Return Result:
+return ...: The function returns true if the player belongs to the Burgershot faction, and false otherwise.
+Simple Explanation:
+
+Imagine a club where members wear specific badges.
+This function acts like a bouncer:
+It asks a player to show their badge (GetFactionType).
+It checks if the badge is the Burgershot badge (FACTION_BURGER).
+It tells others (by returning a value) whether the player is allowed in or not.
+Key Points:
+
+Function calls: Functions can call other functions to perform tasks.
+Return values: Functions can return results to be used in other parts of the code.
+Comparison operators: == checks if two values are equal.
+Faction systems: Games often use factions to group players and control access to features.
+Tips for Learning:
+
+Break down code: Analyze each line's purpose.
+Practice writing simple functions: Start with basic tasks and build complexity.
+Experiment: Change values and observe outcomes to solidify understanding.
+Utilize resources: Online tutorials and coding communities offer guidance.
+
+*/
+
+
+
+
 CMD:flist(playerid, params[])
 
 {
