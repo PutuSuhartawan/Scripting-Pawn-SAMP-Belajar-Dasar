@@ -12,6 +12,42 @@
 //#endif
 
 
+/*
+
+Here's why the code snippet uses defines in that manner:
+
+1. Conditional Compilation:
+
+The #if defined DISCORD directive controls which parts of the code are compiled based on whether a specific compiler flag is set. This allows for code customization for different environments or platforms.
+2. Discord-Specific Code:
+
+The code within the #if defined DISCORD block is intended for use with Discord-related functionality. This includes:
+Including header files for Discord interaction (<discord-connector> and <discord-command>).
+Defining constants related to Discord server and voice channels.
+3. Separating Discord-Specific Logic:
+
+By using #if preprocessor directives, the code ensures that:
+Discord-specific code is only included when necessary, avoiding potential issues if the code is compiled for a non-Discord environment.
+The code is more organized and maintainable, as Discord-related sections are clearly marked.
+4. Constant Definitions:
+
+The #define directives create constants for:
+GUILDSVR: The Discord server ID.
+VCLOBBY, VCDELUXESHOT, VCFACTION, VCGANG, VCHELPER, VCADMIN: IDs of specific voice channels within the server.
+Reasons for using constants:
+Readability: Using meaningful names enhances code clarity.
+Maintainability: Updating a constant's value requires changes in only one place.
+Flexibility: Constants can be easily adjusted for different servers or channels.
+In summary:
+
+The code snippet conditionally includes Discord-related code and defines constants for server and channel IDs to:
+Organize and manage Discord-specific logic effectively.
+Improve code readability and maintainability.
+Provide flexibility for adapting to different Discord environments.
+
+*/
+
+
 
 CMD:fa(playerid, params[])
 
