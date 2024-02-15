@@ -392,3 +392,43 @@ public OnPlayerConnect(playerid)
   SetTimerEx("GantiWarna",  5000, true, "i", playerid);
 
 }
+
+
+
+
+
+/*
+
+
+
+
+While using timers to call another function per second can be useful in certain scenarios, it's crucial to evaluate its necessity and consider alternative approaches. Here are some reasons why you might use timers but also reasons to be cautious:
+
+Reasons for using timers:
+
+1. Real-time Updates: For features requiring continuous updates, like simulating real-time physics or animations, timers can ensure smooth and accurate behavior.
+2. Event Triggers: Timers are reliable for triggering actions at specific intervals, like applying damage per second or managing time-based gameplay mechanics.
+3. Background Processes: Tasks that shouldn't block the main thread, such as saving data or performing heavy calculations periodically, can be handled by timers without impacting responsiveness.
+
+However, overuse of timers can have drawbacks:
+
+1. Performance Overhead: Creating and running timers consume resources, especially with many simultaneous timers or frequent updates. This can lead to lag or slower response times.
+2. Unnecessary Updates: Calling functions unnecessarily, like updating player position when they're idle, wastes resources and increases server load.
+3. Debugging Difficulty: Numerous timers can make debugging and pinpointing issues more complex.
+
+Alternatives to consider:
+
+1. Event-based triggers: Instead of timers, consider triggering the function based on relevant events (e.g., player movement, collisions, item usage) to reduce unnecessary updates.
+2. ptasks: If timing precision is less critical, ptasks can handle background tasks efficiently without the overhead of timers.
+3. Coroutines: For complex interactions and sequencing, coroutines can offer more flexibility and control compared to single-shot timers.
+
+Considerations specific to your scenario:
+
+Function purpose: Understanding the function's purpose and what it updates is crucial. Does it require real-time updates, or can it be triggered by events or other mechanisms?
+Update frequency: Is calling the function every second truly necessary? Evaluating the actual need for high-frequency updates can help optimize performance.
+Recommendation:
+
+Analyze your specific scenario and consider alternative approaches like event-based triggers, ptasks, or coroutines before resorting to timers. By using timers judiciously and optimizing update frequency, you can ensure smooth gameplay without sacrificing server performance.
+
+
+*/
