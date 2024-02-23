@@ -268,7 +268,11 @@ public DCC_OnChannelMessage(DCC_Channel:channel, DCC_User:author, const message[
     format(message, sizeof(message), "Server is online with %d players.", playerCount);
 
     // Send the formatted message
-    SendClientMessage(channel, author, message);
+    //SendClientMessage(channel, author, message);
+	 SCMA(COLOR_WHITE, "---------- * Resto Deluxeshot Announcement * ----------");
+        SMA(COLOR_ORANGE, "** %s %s: %s", FactionRanks[PlayerInfo[playerid][pFaction]][PlayerInfo[playerid][pFactionRank]], GetRPName(playerid), params);
+        Dyuze(playerid, "Resto Deluxeshot Announcement", "Trimakasi telah berkabar");
+        DCC_SendChannelMessage(DCC_FindChannelById(VCDELUXESHOT), params);
     return 1;
   }
 
@@ -276,7 +280,11 @@ public DCC_OnChannelMessage(DCC_Channel:channel, DCC_User:author, const message[
   else if (strcmp(msg, "&help") == 0)
   {
     // Send available commands (replace with your actual commands)
-    New SendClientMessage(channel, author, "Available commands: &info, &help");
+    //New SendClientMessage(channel, author, "Available commands: &info, &help");
+	 SCMA(COLOR_WHITE, "---------- * Resto Deluxeshot Announcement * ----------");
+        SMA(COLOR_ORANGE, "** %s %s: %s", FactionRanks[PlayerInfo[playerid][pFaction]][PlayerInfo[playerid][pFactionRank]], GetRPName(playerid), params);
+        Dyuze(playerid, "Resto Deluxeshot Announcement", "Trimakasi telah berkabar");
+        DCC_SendChannelMessage(DCC_FindChannelById(VCDELUXESHOT), params);
     return 1;
   }
 
