@@ -208,6 +208,8 @@ public DCC_OnChannelMessage(DCC_Channel:channel, DCC_User:author, const message[
 
   return 0;
 }
+
+/*
 Use code with caution.
 Explanation:
 
@@ -239,10 +241,15 @@ If "&flist" is found, the function returns 1 to indicate successful processing.
 Otherwise, it returns 0 to signal that the command was not recognized.
 Remember to replace the placeholder comments with your actual implementation for data retrieval and response handling. This script provides a basic framework to get you started. Adapt it according to your specific needs and ensure proper security measures are in place when handling user input and data retrieval.
 
+*/
 
 
-
-
+// Function to get the current count of online players
+// This is a placeholder - you'll need to replace it with your actual implementation
+function GetOnlinePlayerCount() {
+    // Placeholder for the actual logic to get the online player count
+    return 100; // Example static return, replace with dynamic count
+}
 
 
 public DCC_OnChannelMessage(DCC_Channel:channel, DCC_User:author, const message[])
@@ -253,7 +260,15 @@ public DCC_OnChannelMessage(DCC_Channel:channel, DCC_User:author, const message[
   if (strcmp(msg, "&info") == 0)
   {
     // Send general information about the server (replace with your actual content)
-    New SendClientMessage(channel, author, "Server is online with 100 players.");
+    //New SendClientMessage(channel, author, "Server is online with 100 players.");
+	new playerCount = GetOnlinePlayerCount(); // Get the current online player count
+    new message[128]; // Adjust size as needed
+
+    // Format the message string with the dynamic player count
+    format(message, sizeof(message), "Server is online with %d players.", playerCount);
+
+    // Send the formatted message
+    SendClientMessage(channel, author, message);
     return 1;
   }
 
